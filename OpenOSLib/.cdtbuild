@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?fileVersion 3.1.0?>
+
+<ManagedProjectBuildInfo>
+<project id="OpenOS.cdt.managedbuild.target.gnu.lib.933650743" name="Static Library (Gnu)" projectType="cdt.managedbuild.target.gnu.lib">
+<configuration id="cdt.managedbuild.config.gnu.lib.debug.1695920507" name="Debug" description="" parent="cdt.managedbuild.config.gnu.lib.debug" artifactName="OpenOS" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="a" cleanCommand="rm -rf">
+<toolChain superClass="cdt.managedbuild.toolchain.gnu.lib.debug" id="cdt.managedbuild.toolchain.gnu.lib.debug.153296304" name="GCC Tool Chain">
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug" id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.982915631" name="GCC C++ Compiler">
+<option superClass="gnu.cpp.compiler.option.include.paths" id="gnu.cpp.compiler.option.include.paths.973167058" valueType="includePath">
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib}/Source&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
+</option>
+<option superClass="gnu.cpp.compiler.option.debugging.prof" id="gnu.cpp.compiler.option.debugging.prof.1170664001" value="true" valueType="boolean"/>
+<option superClass="gnu.cpp.compiler.option.debugging.gprof" id="gnu.cpp.compiler.option.debugging.gprof.1491956171" value="true" valueType="boolean"/>
+<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.661171261" valueType="definedSymbols">
+<listOptionValue value="dont_DEBUG_BUFFER" builtIn="false"/>
+<listOptionValue value="dont_DEBUG_SCI" builtIn="false"/>
+<listOptionValue value="DEBUG" builtIn="false"/>
+<listOptionValue value="dont_DEBUG_OLI" builtIn="false"/>
+</option>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug" id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.816021991" name="GCC C Compiler"/>
+<tool superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug" id="cdt.managedbuild.tool.gnu.archiver.lib.debug.1811852901" name="GCC Archiver"/>
+<tool superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug" id="cdt.managedbuild.tool.gnu.assembler.lib.debug.1689651941" name="GCC Assembler"/>
+<macros/>
+</toolChain>
+</configuration>
+<configuration id="cdt.managedbuild.config.gnu.lib.release.225620934" name="Release" description="" parent="cdt.managedbuild.config.gnu.lib.release" artifactName="OpenOS" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="a" cleanCommand="rm -rf">
+<toolChain superClass="cdt.managedbuild.toolchain.gnu.lib.release" id="cdt.managedbuild.toolchain.gnu.lib.release.1496092376" name="GCC Tool Chain">
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release" id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.1156862277" name="GCC C++ Compiler"/>
+<tool superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release" id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.1722207272" name="GCC C Compiler"/>
+<tool superClass="cdt.managedbuild.tool.gnu.archiver.lib.release" id="cdt.managedbuild.tool.gnu.archiver.lib.release.1773981514" name="GCC Archiver"/>
+<tool superClass="cdt.managedbuild.tool.gnu.assembler.lib.release" id="cdt.managedbuild.tool.gnu.assembler.lib.release.934093036" name="GCC Assembler"/>
+</toolChain>
+</configuration>
+<macros/>
+</project>
+</ManagedProjectBuildInfo>
