@@ -1,0 +1,9 @@
+process
+(
+	global_pid:$GSM 
+	programme_file_name:gsm/Debug/gsm 
+	cpu_id:0 
+	thread(thread_id:1 entry_point:MainThread) 
+	thread(thread_id:2 entry_point:ErrorHandlerThread) 
+	thread(thread_id:3 entry_point:LoggingHandlerThread)
+) 
