@@ -5,10 +5,7 @@
 	<projects>
 		<project>DummyApplication</project>
 		<project>GSM-Application</project>
-		<project>OLI-Server</project>
 		<project>OpenOSLib</project>
-		<project>OpenOSProcess</project>
-		<project>PCS-Application</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

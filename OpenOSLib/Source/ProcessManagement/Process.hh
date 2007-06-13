@@ -213,6 +213,9 @@ public:
 	//! forward for SimpleCommandInterface::removeCommandHandler()
 	ASAAC_ReturnStatus 	 	removeCommandHandler( unsigned long CommandIdentifier );
 
+	//! forward for SimpleCommandInterface::removeAllCommandHandler()
+	ASAAC_ReturnStatus 	 	removeAllCommandHandler();
+
 	//! forward for SimpleCommandInterface::sendCommand()
 	ASAAC_TimedReturnStatus sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
 	
@@ -262,8 +265,11 @@ private:
 	//! explicit deinitialization
 	void 					deinitialize();	
 
+	void 					setServer( bool IsServer );
+	bool 					isServer();
+
 	//! launch the ProcessStarter to initialize the process
-	ASAAC_TimedReturnStatus	launch();
+	void					launch();
 	/*!< The actual starting of the new process in its current implementation, without
 	 *   the longended mechanism via a MasterProcess/ProcessManager makes use of functionality
 	 *   defined in the POSIX specification IEEE 1003.1, 2004 Edition 

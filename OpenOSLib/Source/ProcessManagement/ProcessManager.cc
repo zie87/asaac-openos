@@ -112,7 +112,7 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 	
 	//CommandInterface has to be the first object initialized here,
 	//because memory is used in OpenOS object too
-	m_CommandInterface.initialize( UsedAllocator, IsServer, IsServer );
+	m_CommandInterface.initialize( UsedAllocator, IsServer );
 	
 	//Semaphore is an global OpenOS object, therefore it has to allocate memory from parent allocator
 	m_Semaphore.initialize( ParentAllocator, IsMaster );
@@ -335,12 +335,12 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, long &Index )
 			if (Object->getId() != ProcessId)
 			{
 				Object->deinitialize();
-				Object->initialize(false, false, true, Description, SHARED);
+				Object->initialize( false, false, true, Description, SHARED );
 			}	
 		}
 		else
 		{
-			Object->initialize(false, false, true, Description, SHARED);
+			Object->initialize( false, false, true, Description, SHARED );
 		}
 	}
 	catch (ASAAC_Exception &e)
@@ -441,13 +441,7 @@ ASAAC_TimedReturnStatus ProcessManager::createClientProcess( const ASAAC_Process
 				if ( NewProcess == 0 ) 
 					throw OSException("Process object has not been created", LOCATION);
 		
-				Status = NewProcess->launch();
-				
-				if (Status == ASAAC_TM_ERROR)
-					throw OSException("Error launching process", LOCATION);
-				
-				if (Status == ASAAC_TM_TIMEOUT)
-					throw TimeoutException("Timeout launching process", LOCATION);
+				NewProcess->launch();
 				
 				if ( NewProcess->getPID() == ASAAC_ERROR ) 
 					throw TimeoutException("Timeout requesting pid of client process", LOCATION);
@@ -641,7 +635,9 @@ void ProcessManager::releaseAllClientProcesses()
 
 void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 {
-	getProcess( ProcessId, m_CurrentProcessIndex);
+	Process *P = getProcess( ProcessId, m_CurrentProcessIndex);
+
+	P->setServer( true );
 }
 
 
@@ -689,6 +685,15 @@ ASAAC_ReturnStatus 	 ProcessManager::removeCommandHandler( unsigned long Command
 		throw UninitializedObjectException(LOCATION);
 
 	return m_CommandInterface.removeCommandHandler( CommandIdentifier );
+}
+
+
+ASAAC_ReturnStatus 	 ProcessManager::removeAllCommandHandler()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	return m_CommandInterface.removeAllCommandHandler();
 }
 
 

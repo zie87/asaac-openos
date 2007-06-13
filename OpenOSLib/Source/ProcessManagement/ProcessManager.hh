@@ -125,6 +125,9 @@ public:
 	//! forward for SimpleCommandInterface::removeCommandHandler()
 	ASAAC_ReturnStatus 	 removeCommandHandler( unsigned long CommandIdentifier );
 
+	//! forward for SimpleCommandInterface::removeCommandHandler()
+	ASAAC_ReturnStatus 	 removeAllCommandHandler();
+
 	//! forward for SimpleCommandInterface::sendCommand()
 	ASAAC_TimedReturnStatus sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
 	

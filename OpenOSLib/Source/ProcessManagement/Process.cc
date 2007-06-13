@@ -80,7 +80,7 @@ void Process::initialize( bool IsServer, bool IsMaster, bool UseInternalCommandI
 		
 	m_Semaphore.initialize( m_Allocator, IsMaster );
 	
-	m_InternalCommandInterface.initialize( m_Allocator, IsMaster, IsServer );
+	m_InternalCommandInterface.initialize( m_Allocator, IsMaster );
 	
 	m_EntryPoints.initialize( m_Allocator, OS_MAX_NUMBER_OF_ENTRYPOINTS );
 	
@@ -106,20 +106,8 @@ void Process::initialize( bool IsServer, bool IsMaster, bool UseInternalCommandI
 			m_EntryPoints[ Index ] = EmptyEntryPoint;
 		}
 	}
-	if ( IsServer )
-	{
-		addCommandHandler( CMD_RUN_PROCESS,  Process::RunHandler  );
-		addCommandHandler( CMD_GET_PID, Process::getPIDHandler );		
-		addCommandHandler( CMD_STOP_PROCESS, Process::StopHandler );
-		addCommandHandler( CMD_TERM_PROCESS, Process::DestroyHandler );
-		addCommandHandler( CMD_ATTACH_VC, Process::attachLocalVcHandler );
-		addCommandHandler( CMD_DETACH_VC, Process::detachLocalVcHandler );
-		addCommandHandler( CMD_INVOKE_OS_SCOPE, Process::invokeOSScopeHandler );
-        
-        m_ProcessData->OSScopeSchedulingData.Policy = SCHED_RR;
-        m_ProcessData->OSScopeSchedulingData.Parameter.__sched_priority = sched_get_priority_min(SCHED_RR) + 1;
-        //pthread_setschedparam( pthread_self(), m_ProcessData->OSScopeSchedulingData.Policy, &m_ProcessData->OSScopeSchedulingData.Parameter );
-	}			
+	
+	setServer( IsServer );
 	
 	m_IsInitialized = true;
 }
@@ -132,8 +120,38 @@ bool Process::isInitialized()
 }
 
 
+void Process::setServer( bool IsServer )
+{
+	if ( IsServer )
+	{
+		addCommandHandler( CMD_RUN_PROCESS,  Process::RunHandler  );
+		addCommandHandler( CMD_GET_PID, Process::getPIDHandler );		
+		addCommandHandler( CMD_STOP_PROCESS, Process::StopHandler );
+		addCommandHandler( CMD_TERM_PROCESS, Process::DestroyHandler );
+		addCommandHandler( CMD_ATTACH_VC, Process::attachLocalVcHandler );
+		addCommandHandler( CMD_DETACH_VC, Process::detachLocalVcHandler );
+		addCommandHandler( CMD_INVOKE_OS_SCOPE, Process::invokeOSScopeHandler );
 
-ASAAC_TimedReturnStatus Process::launch()
+        m_ProcessData->OSScopeSchedulingData.Policy = SCHED_RR;
+        m_ProcessData->OSScopeSchedulingData.Parameter.__sched_priority = sched_get_priority_min(SCHED_RR) + 1;
+        //pthread_setschedparam( pthread_self(), m_ProcessData->OSScopeSchedulingData.Policy, &m_ProcessData->OSScopeSchedulingData.Parameter );
+	}
+	else
+	{
+		removeAllCommandHandler();
+	}
+	
+	m_IsServer = IsServer;
+}
+
+
+bool Process::isServer()
+{
+	return m_IsServer;
+}
+
+
+void Process::launch()
 {
 	CharacterSequence ErrorString;
 	ASAAC_TimedReturnStatus Result = ASAAC_TM_SUCCESS;
@@ -162,7 +180,7 @@ ASAAC_TimedReturnStatus Process::launch()
 		}
 		else LocalPath = FileNameGenerator::getAsaacPath(m_ProcessData->Description.programme_file_name);
 		
-        ProcessManager::getInstance()->getCurrentProcess()->suspendAllThreads();
+        //ProcessManager::getInstance()->getCurrentProcess()->suspendAllThreads();
         
 		pid_t new_pid = fork();
         
@@ -176,6 +194,22 @@ ASAAC_TimedReturnStatus Process::launch()
             try
             {            	
                 OpenOS::getInstance()->initializeProcessStarter(CpuId.asaac_id(), ProcessId.asaac_id());
+
+				// Enter main cycle of ProcessStarter
+				unsigned long CommandId;
+				for(;;)
+				{					
+					handleOneCommand( CommandId );
+	
+					if ( CommandId == CMD_TERM_PROCESS )
+						throw OSException("Process reached signal to terminate", LOCATION);
+					
+					if ( CommandId == CMD_TERM_ENTITY )
+						throw OSException("Process reached signal to terminate", LOCATION);
+					
+					if ( CommandId == CMD_RUN_PROCESS ) 
+						break;
+				} 
     
                 char* ExecArgs[5];
                 char** ExecEnv = environ;
@@ -247,7 +281,7 @@ ASAAC_TimedReturnStatus Process::launch()
         if (new_pid > 0)
             m_PID = new_pid;
 
-        ProcessManager::getInstance()->getCurrentProcess()->resumeAllThreads();
+        //ProcessManager::getInstance()->getCurrentProcess()->resumeAllThreads();
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -255,8 +289,6 @@ ASAAC_TimedReturnStatus Process::launch()
 		
 		throw;
 	}	
-	
-	return ASAAC_TM_SUCCESS;
 }
 
 
@@ -428,6 +460,14 @@ ASAAC_ReturnStatus 	 Process::removeCommandHandler( unsigned long CommandIdentif
 	if 	(m_UseInternalCommandInterface)
 		return m_InternalCommandInterface.removeCommandHandler( CommandIdentifier );
 	return ProcessManager::getInstance()->removeCommandHandler( CommandIdentifier );
+}
+
+
+ASAAC_ReturnStatus 	 	Process::removeAllCommandHandler()
+{
+	if 	(m_UseInternalCommandInterface)
+		return m_InternalCommandInterface.removeAllCommandHandler();
+	return ProcessManager::getInstance()->removeAllCommandHandler();
 }
 
 
@@ -670,7 +710,8 @@ ASAAC_ReturnStatus Process::run()
 {
 	if ( ProcessManager::getInstance()->getCurrentProcess() == this )
 	{
-		assert( m_IsServer == true );
+		if (m_IsServer == false )
+			throw FatalException("Current process is not declared as server for communication", LOCATION);
 
 		Thread* MainThread = getThread(1);
 		

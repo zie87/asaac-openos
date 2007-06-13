@@ -39,7 +39,7 @@ public:
 	
 	
 	//! explicit initialization
-	void initialize( Allocator* ThisAllocator , bool IsMaster, bool IsServer );
+	void initialize( Allocator* ThisAllocator , bool IsMaster );
 	/*!< \param[in] ThisAllocator Reference to the Allocator that shall be used to 
 	 *                            store all data and control structures of the SCI
 	 * 
@@ -106,6 +106,8 @@ public:
 	 * \returns   ASAAC_SUCCESS on successful operation. ASAAC_ERROR, if there is no handler installed for the
 	 *            indicated command identifier.
 	 */
+
+	ASAAC_ReturnStatus removeAllCommandHandler();
 
 	//! cause the server to handle a single SCI command
 	ASAAC_ReturnStatus handleOneCommand( unsigned long& CommandIdentifier );

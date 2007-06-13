@@ -36,7 +36,7 @@ SimpleCommandInterface::~SimpleCommandInterface()
 }
 
 
-void SimpleCommandInterface::initialize( Allocator* ThisAllocator, bool IsMaster, bool IsServer )
+void SimpleCommandInterface::initialize( Allocator* ThisAllocator, bool IsMaster )
 {
 	if ( m_IsInitialized ) throw DoubleInitializationException(LOCATION);
 	m_IsInitialized = true;
@@ -59,7 +59,6 @@ void SimpleCommandInterface::initialize( Allocator* ThisAllocator, bool IsMaster
 	}
 
 	m_IsMaster = IsMaster;
-	m_IsServer = IsServer;
 	
 }
 
@@ -240,6 +239,16 @@ ASAAC_ReturnStatus SimpleCommandInterface::removeCommandHandler( unsigned long C
 	return ASAAC_SUCCESS;
 }
 
+
+ASAAC_ReturnStatus SimpleCommandInterface::removeAllCommandHandler()
+{
+	for ( unsigned long Index = 0; Index < OS_MAX_COMMAND_HANDLERS; Index ++ )
+	{
+		m_Handler[ Index ].Identifier = 0;
+	}
+	
+	return ASAAC_SUCCESS;
+}
 
 
 ASAAC_TimedReturnStatus SimpleCommandInterface::sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )

@@ -64,7 +64,6 @@ int main( char argc, char** argv )
 	{
 		initializeConfiguration();		
 		parseParameter( argc, argv );
-		printHeader(entityConfiguration);		
 	}
     catch ( ASAAC_Exception& e )
     {
@@ -86,6 +85,9 @@ int main( char argc, char** argv )
 
         // Determine entry points
         parseConfiguration();
+
+		// Print configuration
+		printHeader(entityConfiguration);		
 
 		// Create main thread
 		createThread("MainThread", ProcessManager::getInstance()->getCurrentProcess()->getId(), 1);

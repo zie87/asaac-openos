@@ -225,20 +225,13 @@ void OpenOS::initializeSystem( bool IsMaster, ASAAC_PublicId CpuId, ASAAC_Public
 
 void OpenOS::deinitializeSystem()
 {
-	cout << "OpenOS::deinitializeSystem() 1 " << endl;
 	CommunicationManager::getInstance()->deinitialize();
-	cout << "OpenOS::deinitializeSystem() 2 " << endl;
 	    
 	ProcessManager::getInstance()->deinitialize();
-	cout << "OpenOS::deinitializeSystem() 3 " << endl;
 
-	ErrorHandler::getInstance()->deinitialize();
-	cout << "OpenOS::deinitializeSystem() 4 " << endl;
-    
+	ErrorHandler::getInstance()->deinitialize();    
 	LoggingManager::getInstance()->deinitialize();
-	cout << "OpenOS::deinitializeSystem() 5 " << endl;
 	FaultManager::getInstance()->deinitialize();
-	cout << "OpenOS::deinitializeSystem() 6 " << endl;
 }
 
 
@@ -252,24 +245,15 @@ void OpenOS::deinitialize()
 		
 		deinitializeSystem();
 
-		cout << "OpenOS::deinitialize() 1 " << endl;
-
 		if ( m_CpuAllocator.isInitialized() )
 			m_CpuAllocator.deinitialize();
-
-		cout << "OpenOS::deinitialize() 2 " << endl;
 
 		m_MutexData.deinitialize();
 		m_CpuId.deinitialize();
 
-		cout << "OpenOS::deinitialize() 3 " << endl;
-		
 		m_Allocator.deinitialize();
 
-		cout << "OpenOS::deinitialize() 4 " << endl;
-		
 		FileManager::getInstance()->closeAllFiles();
-		cout << "OpenOS::deinitialize() 5 " << endl;
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -352,7 +336,7 @@ ASAAC_TimedReturnStatus OpenOS::sendCommand( ASAAC_PublicId CpuId, unsigned long
 			false,
 			false );
 				
-		CommandInterface.initialize( &m_CpuAllocator, false, false );
+		CommandInterface.initialize( &m_CpuAllocator, false );
 		
 		Result = CommandInterface.sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
 	}
