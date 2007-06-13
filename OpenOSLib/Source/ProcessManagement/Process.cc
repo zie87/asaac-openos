@@ -17,6 +17,8 @@
 #include "Managers/FileNameGenerator.hh"
 #include "Managers/TimeManager.hh"
 
+#include "FaultManagement/ErrorHandler.hh"
+
 #include "Communication/CommunicationManager.hh"
 #include "Communication/LocalVc.hh"
 
@@ -167,40 +169,12 @@ ASAAC_TimedReturnStatus Process::launch()
         //Starter process
         if (new_pid == 0)
         {
-            char* ExecArgs[4];
-            char** ExecEnv = environ;
-                
-            char ProcessStarterPathBuffer[512]; 
-            char ProcessPathBuffer[512];    
-            char CpuIdBuffer[16];
-            char ProcessIdBuffer[16];
-                
-            CharacterSequence ProcessStarterPath    = FileNameGenerator::getAsaacPath(OS_PROCESS_STARTER);
-            CharacterSequence ProcessPath           = m_ProcessData->Description.programme_file_name;
+            CharacterSequence ProcessPath           = LocalPath;
             CharacterSequence CpuId                 = m_ProcessData->Description.cpu_id;
             CharacterSequence ProcessId             = m_ProcessData->Description.global_pid;
                 
-            ProcessStarterPath.convertTo( ProcessStarterPathBuffer );
-            LocalPath.convertTo( ProcessPathBuffer );
-            CpuId.convertTo( CpuIdBuffer ); 
-            ProcessId.convertTo( ProcessIdBuffer ); 
-        
-            ExecArgs[0] = ProcessPathBuffer;
-            ExecArgs[1] = CpuIdBuffer;
-            ExecArgs[2] = ProcessIdBuffer;
-            ExecArgs[3] = 0;
-                
-            execve( ProcessStarterPathBuffer, ExecArgs, ExecEnv );
-            
-            char * Error = strerror(errno);
-            OSException( Error, LOCATION ).raiseError();
-                
-            exit(0);
-
-//#########################################################            
-            //here begins the study code of process starter            
             try
-            {
+            {            	
                 OpenOS::getInstance()->initializeProcessStarter(CpuId.asaac_id(), ProcessId.asaac_id());
     
                 char* ExecArgs[5];
@@ -216,19 +190,19 @@ ASAAC_TimedReturnStatus Process::launch()
                 // prepare handles to be handed over to application     
                 long Handle = 0;
                 FileManager::getInstance()->saveState( Handle );
-            
-                CharSeq(Handle).convertTo(HandleBuffer);
-            
-                // Execute the application.             
+                        
+                // create parameter buffers.             
                 ProcessPath.convertTo( ProcessPathBuffer );
                 CpuId.convertTo( CpuIdBuffer );
                 ProcessId.convertTo( ProcessIdBuffer );
+                CharSeq(Handle).convertTo(HandleBuffer);
                             
+                // assign buffers to parameter list
                 ExecArgs[0] = CpuIdBuffer;
                 ExecArgs[1] = ProcessIdBuffer;
                 ExecArgs[2] = HandleBuffer;
                 ExecArgs[3] = ShellNameBuffer;
-                ExecArgs[4] = 0;
+                ExecArgs[4] = 0; //zero terminated
                 
                 // For APOS processes drop all privileges. set uid and gid == nobody
                 if (OpenOS::getInstance()->isSMOSProcess( ProcessId.asaac_id() ) == false)
@@ -237,10 +211,15 @@ ASAAC_TimedReturnStatus Process::launch()
                     setgid( 65534 );
                 } 
         
-                //Because this process ends immediately, cleanup local objects first 
-                OpenOS::getInstance()->deinitialize();    
+        		// Log, which binary we now want to load
+		        CharacterSequence LogMsg;
+		        LogMsg << "Start ClientProcess: " << LocalPath;
+		        ErrorHandler::getInstance()->logMessage(LogMsg.asaac_str(), ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE);
+		        
+		        // Load and execute the binary
                 execve( ProcessPathBuffer, ExecArgs, ExecEnv);
                 
+                // bloody hell, what happens?
                 throw OSException( strerror(errno), LOCATION );
             }
             catch ( ASAAC_Exception &e )
@@ -258,7 +237,6 @@ ASAAC_TimedReturnStatus Process::launch()
             }
             
             exit(0);            
-//#########################################################            
         }   
         
         //Fork failed

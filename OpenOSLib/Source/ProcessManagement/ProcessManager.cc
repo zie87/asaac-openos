@@ -306,7 +306,6 @@ Process* ProcessManager::createProcess( bool IsMasterProcess, const ASAAC_Proces
 }
 
 
-
 Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, long &Index )
 {
 	if (m_IsInitialized == false) 
@@ -373,7 +372,9 @@ ASAAC_ReturnStatus ProcessManager::initializeEntityProcess(  bool IsMaster, Allo
 
 	ASAAC_ProcessDescription Description;
 	Description.global_pid = OS_PROCESSID_MASTER;
-	try {
+	
+	try 
+	{
 		initialize( true, IsMaster, ParentAllocator, CpuId, SHARED );		
 
 		Process* NewProcess = createProcess(true, Description, m_CurrentProcessIndex);
@@ -401,18 +402,11 @@ ASAAC_ReturnStatus ProcessManager::initializeClientProcess( Allocator *ParentAll
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException( LOCATION );
 	
-	ASAAC_ProcessDescription DummyDesc;
-	DummyDesc.global_pid = ProcessId;
-
-	try {
+	try 
+	{
 		initialize( false, false, ParentAllocator, CpuId, Location );
 		
-		m_CurrentProcessIndex = getProcessIndex(ProcessId);
-		
-		if (m_CurrentProcessIndex == -1)
-			throw OSException("Process not found", LOCATION);
-		
-		m_ProcessObject[m_CurrentProcessIndex].initialize( true, false, true, DummyDesc, SHARED );
+		setCurrentProcess( ProcessId );
 		
 		handleBufferMemory();
 	}
@@ -647,7 +641,7 @@ void ProcessManager::releaseAllClientProcesses()
 
 void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 {
-    //TODO:: Fill function
+	getProcess( ProcessId, m_CurrentProcessIndex);
 }
 
 

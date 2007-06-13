@@ -269,7 +269,7 @@ private:
 	 *   defined in the POSIX specification IEEE 1003.1, 2004 Edition 
 	 *   (CX extension to the ISO C standard and the optional SPN module).
 	 */ 
-	
+		
 	//! stop and delete the process
 	ASAAC_ReturnStatus		destroy();
 	/*!< The termination of another process in its current implementation depends on
