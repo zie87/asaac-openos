@@ -673,11 +673,20 @@ ASAAC_ReturnStatus FileManager::restoreStateByHandle( long SavedStateHandler )
 		ProtectedScope Access( "Restoring the state of FileManager", m_Semaphore );
 	
 		ssize_t TotalSize = sizeof( FileInfoBlock ) * OS_MAX_NUMBER_OF_FILES;
-	
+
 		if ( read( SavedStateHandler, m_Files, TotalSize ) != TotalSize ) 
 			throw OSException( LOCATION );
 	
-		oal_close( SavedStateHandler );	
+		oal_close( SavedStateHandler );
+		
+	for ( long Index = 0; Index < OS_MAX_NUMBER_OF_FILES; Index ++ )
+	{
+		if (m_Files[ Index ].Type  != FILETYPE_UNDEFINED)
+		{
+			//cout << CharSeq(m_Files[ Index ].Name).c_str() << endl;
+		}
+	}
+			
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -703,7 +712,7 @@ FileManager::FileInfoBlock* FileManager::findFileByName( const ASAAC_CharacterSe
 	for ( long Index = 0; Index < OS_MAX_NUMBER_OF_FILES; Index ++ )
 	{
 		if ( ( CharSeq(m_Files[ Index ].Name) == CharSeq(Name) ) &&
-		     ( (m_Files[ Index ].Flags == Flags ) || (Flags == -1) ) ) 
+		     ( true || (m_Files[ Index ].Flags == Flags ) || (Flags == -1) ) ) 
 			return &(m_Files[ Index ]);
 	}
 	

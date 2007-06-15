@@ -3,8 +3,7 @@
 	<name>OpenOSLib</name>
 	<comment></comment>
 	<projects>
-		<project>ASAAC IF</project>
-		<project>OpenOSProcess</project>
+		<project>OpenOSEntity</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

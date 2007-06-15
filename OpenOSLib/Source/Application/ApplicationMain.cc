@@ -10,9 +10,6 @@ using namespace std;
 #include "ProcessManagement/Process.hh"
 
 
-ASAAC_CharacterSequence MainThreadName = { 10, "MainThread" };
-
-
 long applicationMain( char argc, char** argv )
 {
 	ASAAC_PublicId CpuId 		= OS_UNUSED_ID;

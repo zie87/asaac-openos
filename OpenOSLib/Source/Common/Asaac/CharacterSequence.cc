@@ -3,60 +3,67 @@
 #include "TimeStamp.hh"
 #include "TimeInterval.hh"
 
+#include "Exceptions/Exceptions.hh"
+
+#define min(a,b) (a)<(b)?(a):(b)
+
 CharacterSequence::CharacterSequence()
 {
+	erase();
 }
 
 CharacterSequence::CharacterSequence(const CharacterSequence &data)
 {
+	erase();
 	this->assign(data);
 }
 
 CharacterSequence::CharacterSequence(const ASAAC_CharacterSequence &data)
 {
+	erase();
 	this->assign(data);
 }
 
 CharacterSequence::CharacterSequence(const char * data)
 {
+	erase();
 	this->assign(data);
 }
 
 CharacterSequence::CharacterSequence(const string &data)
 {
+	erase();
 	this->assign(data);
 }
 
 CharacterSequence::CharacterSequence(unsigned long len, char ch)
 {
+	erase();
 	this->assign(len, ch);
 }
 
 CharacterSequence::CharacterSequence(long number)
 {
-	char buffer[16];
-    snprintf(buffer,sizeof(buffer),"%d",number);
-	this->assign(buffer);
+	erase();
+	this->assign(number);
 }
 
 CharacterSequence::CharacterSequence(ASAAC_PublicId number)
 {
-	char buffer[16];
-    snprintf(buffer,sizeof(buffer),"%lu",number);
-	this->assign(buffer);
+	erase();
+	this->assign(number);
 }
 
 CharacterSequence::CharacterSequence(ASAAC_Time time)
 {
 	erase();
-	
-	tm t = TimeStamp(time).tm_Time();
-	
-	*this << (t.tm_mon + 1) << "/" << t.tm_mday << "/" <<  (1900 + t.tm_year) << " " <<  t.tm_hour << ":" <<  t.tm_min << ":" <<  t.tm_sec << "." << div(time.nsec, (long)100000).quot;
+	this->assign(time);
 }
 
-CharacterSequence::CharacterSequence(ASAAC_TimeInterval longerval)
+CharacterSequence::CharacterSequence(ASAAC_TimeInterval interval)
 {
+	erase();
+	this->assign(interval);
 }
 
 CharacterSequence::~CharacterSequence()
@@ -65,225 +72,266 @@ CharacterSequence::~CharacterSequence()
 
 CharacterSequence & CharacterSequence::append( const ASAAC_CharacterSequence &data )
 {
-	m_Data.append( data.data, data.size );
+	unsigned long max_size = min( data.size, ASAAC_OS_MAX_STRING_SIZE - m_Size );
+	memcpy( m_Data + m_Size, data.data, max_size );
+	
+	m_Size += max_size;
+	m_Data[m_Size] = 0;
+	
+	checkIntegrity();
+	 
 	return *this;
 }
 
 CharacterSequence & CharacterSequence::append( const CharacterSequence &data )
 {
-	m_Data.append( data.cpp_str() );
-	return *this;
+	return this->append( data.asaac_str() );
 }
 
 CharacterSequence & CharacterSequence::append( const char *data )
 {
-	if (checkCharString(data))
-		m_Data.append( data );
-	return *this;
+	return this->append( CharacterSequence(data) );
 }
 
 CharacterSequence & CharacterSequence::append( const string &data )
 {
-	m_Data.append( data );
-	return *this;
+	return this->append( CharacterSequence(data) );
 }
 
 CharacterSequence & CharacterSequence::append( unsigned long len, char ch )
 {
-	m_Data.append(len, ch);
-	return *this;
+	return this->append( CharacterSequence(len, ch) );
 }
 
 CharacterSequence & CharacterSequence::append( long number )
 {
-	this->append(CharacterSequence(number));
-	return *this;
+	return this->append(CharacterSequence(number));
 }
 
 CharacterSequence & CharacterSequence::append( ASAAC_PublicId number )
 {
-	this->append(CharacterSequence(number));
-	return *this;
+	return this->append(CharacterSequence(number));
 }
 
 CharacterSequence & CharacterSequence::append( ASAAC_Time &time)
 {
-	this->append(CharacterSequence(time));
-	return *this;
+	return this->append(CharacterSequence(time));
 }
 
 CharacterSequence & CharacterSequence::append( ASAAC_TimeInterval &interval)
 {
-	this->append(CharacterSequence(interval));
-	return *this;
+	return this->append(CharacterSequence(interval));
 }
 
 CharacterSequence & CharacterSequence::appendLineBreak()
 {
-	char lb[2];
-	lb[0] = 10;
-	lb[1] = 0;
-	m_Data.append(lb);
-	return *this;
+	return this->append(LineBreak());
 }
 
 CharacterSequence & CharacterSequence::assign( const ASAAC_CharacterSequence &data, unsigned long begin_pos, unsigned long len )
-{
-	if ((data.size == 0) && (begin_pos == 0))
-		m_Data.erase();
-			
-	if (begin_pos >= data.size)
-		return *this;
-		
-	if ((begin_pos + len) > data.size)
-		len = data.size - begin_pos; 
-		
-	const char *Addr = data.data + begin_pos;
-	m_Data.assign( Addr, len );
+{	
+	checkAsaacString( data );
+	
+	if (begin_pos < data.size)
+	{	
+		if (len + begin_pos > data.size)
+			len = data.size - begin_pos;	
+	
+		memcpy( m_Data, data.data + begin_pos, len );
+	
+		m_Size = len;
+		m_Data[m_Size] = 0;
+	}
+	else
+	{
+		erase();
+	}
+
+	checkIntegrity();
 	
 	return *this;
 }
 
 CharacterSequence & CharacterSequence::assign( const CharacterSequence &data, unsigned long begin_pos, unsigned long len )
 {
-	const char * SourceData = data.m_Data.c_str();
-	return assign(SourceData, begin_pos, len);
+	return this->assign( data.asaac_str(), begin_pos, len);
 }
 
 CharacterSequence & CharacterSequence::assign( const char *data, unsigned long begin_pos, unsigned long len )
 {
-	if (checkCharString(data))
-	{
-		unsigned long Size = strlen(data);
+	if (!checkCharString(data))
+		return *this;	
 
-		if ((Size == 0) && (begin_pos == 0))
-			m_Data.erase();
-			
-		if (begin_pos >= Size)
-			return *this;
-			
-		if ((begin_pos + len) > Size)
-			len = Size - begin_pos;
-			 
-		const char *Addr = data + begin_pos;
-		m_Data.assign( Addr, len );
-	}
-	return *this;	
+	ASAAC_CharacterSequence Seq;
+	
+	Seq.size = min( strlen(data), ASAAC_OS_MAX_STRING_SIZE );
+	memcpy( Seq.data, data, Seq.size );
+
+	checkIntegrity();
+		
+	return this->assign( Seq, begin_pos, len );
 }
 
 CharacterSequence & CharacterSequence::assign( const string &data, unsigned long begin_pos, unsigned long len )
 {
-	return assign(data.c_str());	
+	return this->assign( data.c_str() );	
 }
 
 CharacterSequence & CharacterSequence::assign( unsigned long len, char ch )
 {
-	m_Data.assign(len, ch);
-	return *this;
+	if (len > ASAAC_OS_MAX_STRING_SIZE)
+		len = ASAAC_OS_MAX_STRING_SIZE;
+
+	ASAAC_CharacterSequence Seq;
+	
+	for (unsigned long i=0; i<len; i++)
+		Seq.data[i] = ch;
+		
+	Seq.size = len;
+
+	checkIntegrity();
+		
+	return this->assign( Seq );
 }
 
 CharacterSequence & CharacterSequence::assign( long number )
 {
-	this->assign(CharacterSequence(number));
+    snprintf( m_Data, sizeof(m_Data), "%li", number );
+
+    m_Size = strlen( m_Data );
+	m_Data[m_Size] = 0;
+
+	checkIntegrity();
+    
 	return *this;
 }
 
 CharacterSequence & CharacterSequence::assign( ASAAC_PublicId number )
 {
-	this->assign(CharacterSequence(number));
+    snprintf( m_Data, sizeof(m_Data), "%lu", number );
+
+    m_Size = strlen( m_Data );
+	m_Data[m_Size] = 0;
+
+	checkIntegrity();
+    
+	return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( ASAAC_Time time)
+{	
+	tm t = TimeStamp(time).tm_Time();
+	*this << (t.tm_mon + 1) << "/" << t.tm_mday << "/" <<  (1900 + t.tm_year) << " " <<  t.tm_hour << ":" <<  t.tm_min << ":" <<  t.tm_sec << "." << div(time.nsec, (long)100000).quot;
+	
+	return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( ASAAC_TimeInterval interval)
+{
+	TimeInterval Interval = interval;
+
+	//TODO: find out how to print interval
 	return *this;
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long pos, ASAAC_CharacterSequence data )
 {
-	m_Data.insert( pos, data.data, 1, data.size );
-	return *this;	
+	return this->insert( pos, data, 0, data.size );	
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long pos, CharacterSequence data )
 {
-	m_Data.insert( pos, data.cpp_str() );
-	return *this;	
+	return this->insert( pos, data.asaac_str() );
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long pos, char *data )
 {
-	if (data != 0)
-		m_Data.insert( pos, data );
-	return *this;
+	return this->insert( pos, CharacterSequence(data) );
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long pos, string data )
 {
-	m_Data.insert( pos, data );
-	return *this;
+	return this->insert( pos, CharacterSequence(data) );
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long pos, unsigned long len, char ch )
 {
-	m_Data.insert(pos, len, ch);
-	return *this;
+	return this->insert(pos, CharacterSequence(len, ch) );
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long pos, long number )
 {
-	this->insert(pos, CharacterSequence(number));
-	return *this;
+	return this->insert( pos, CharacterSequence(number) );
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long pos, ASAAC_PublicId number )
 {
-	this->insert(pos, CharacterSequence(number));
-	return *this;
+	return this->insert( pos, CharacterSequence(number) );
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long dest_pos, ASAAC_CharacterSequence data, unsigned long source_pos, unsigned long len)
 {
-	m_Data.insert( dest_pos, data.data, source_pos, len );
+	checkAsaacString( data );
+
+	if (dest_pos < ASAAC_OS_MAX_STRING_SIZE )
+	{
+		if (source_pos < data.size)
+		{
+			len = min( len, ASAAC_OS_MAX_STRING_SIZE - source_pos );
+			
+			if (len + dest_pos < ASAAC_OS_MAX_STRING_SIZE)
+			{
+				unsigned long move_size = min(len, ASAAC_OS_MAX_STRING_SIZE - dest_pos - len); 	
+				memmove( m_Data + dest_pos+len, m_Data + dest_pos, move_size );
+			}
+			
+			unsigned long cpy_size = min( len, ASAAC_OS_MAX_STRING_SIZE - dest_pos );  	
+			memcpy( m_Data + dest_pos, data.data, cpy_size );
+			
+			m_Size = min( m_Size+len, ASAAC_OS_MAX_STRING_SIZE );
+			m_Data[ m_Size ] = 0;
+		}
+	}
+
+	checkIntegrity();
+	
 	return *this;	
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long dest_pos, CharacterSequence data, unsigned long source_pos, unsigned long len)
 {
-	m_Data.insert( dest_pos, data.cpp_str(), source_pos, len);
-	return *this;
+	return this->insert( dest_pos, data.asaac_str(), source_pos, len);
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long dest_pos, char *data, unsigned long source_pos, unsigned long len)
 {
-	if (checkCharString(data))
-		m_Data.insert( dest_pos, data, source_pos, len);
-	return *this;
+	return this->insert( dest_pos, CharacterSequence(data), source_pos, len );
 }
 
 CharacterSequence & CharacterSequence::insert( unsigned long dest_pos, string data, unsigned long source_pos, unsigned long len)
 {
-	m_Data.insert( dest_pos, data, source_pos, len);
-	return *this;
-}
-
-long CharacterSequence::compare(const CharacterSequence &data) const
-{
-	return m_Data.compare(data.m_Data);
-}
-
-long CharacterSequence::compare(const char *data) const
-{
-	if (checkCharString(data))
-		return m_Data.compare(data);
-	else if (size() == 0)
-		return 0;
-	return -1;
-}
-
-long CharacterSequence::compare(const string &data) const
-{
-	return m_Data.compare(data);
+	return this->insert( dest_pos, CharacterSequence(data), source_pos, len );
 }
 
 long CharacterSequence::compare(const ASAAC_CharacterSequence data) const
 {
-	return m_Data.compare(CharacterSequence(data).cpp_str());
+	//cout << m_Data << ":" << CharacterSequence(data).c_str() << "=" << strcmp( m_Data, CharacterSequence(data).c_str() ) << endl;
+	return strcmp( m_Data, CharacterSequence(data).c_str() );
+}
+
+long CharacterSequence::compare(const CharacterSequence &data) const
+{
+	return this->compare( data.asaac_str() );
+}
+
+long CharacterSequence::compare(const char *data) const
+{
+	return this->compare( CharacterSequence(data) );
+}
+
+long CharacterSequence::compare(const string &data) const
+{
+	return this->compare( CharacterSequence(data) );
 }
 
 unsigned long CharacterSequence::contains(const CharacterSequence &data, bool cs) const
@@ -309,28 +357,28 @@ unsigned long CharacterSequence::contains(const CharacterSequence &data, bool cs
 			}
 		}
 	}
-	
+
 	return Result;
 }
 
 unsigned long CharacterSequence::contains(const char *data, bool cs) const
 {
-	return contains(CharSeq(data));
+	return contains( CharacterSequence(data) );
 }
 
 unsigned long CharacterSequence::contains(const char data, bool cs) const
 {
-	return contains(CharSeq(1, data));
+	return contains( CharacterSequence(1, data) );
 }
 
 unsigned long CharacterSequence::contains(const string &data, bool cs) const
 {
-	return contains(CharSeq(data));
+	return contains( CharacterSequence(data) );
 }
 
 unsigned long CharacterSequence::contains(const ASAAC_CharacterSequence data, bool cs) const
 {
-	return contains(CharSeq(data));
+	return contains( CharacterSequence(data) );
 }
 
 long CharacterSequence::find( const CharacterSequence &data, bool cs, unsigned long begin_pos ) const
@@ -355,50 +403,38 @@ long CharacterSequence::find( const CharacterSequence &data, bool cs, unsigned l
 			}
 		}
 	}
-	
+
 	return -1;
 }
 
 long CharacterSequence::find(const char *data, bool cs, unsigned long begin_pos ) const
 {
-	return find(CharSeq(data), cs, begin_pos );
+	return find( CharacterSequence(data), cs, begin_pos );
 }
 
 long CharacterSequence::find(const char data, bool cs, unsigned long begin_pos ) const
 {
-	return find(CharSeq(1, data), cs, begin_pos );
+	return find( CharacterSequence(1, data), cs, begin_pos );
 }
 
 long CharacterSequence::find(const string &data, bool cs, unsigned long begin_pos ) const
 {
-	return find(CharSeq(data), cs, begin_pos );
+	return find( CharacterSequence(data), cs, begin_pos );
 }
 
 long CharacterSequence::find(const ASAAC_CharacterSequence data, bool cs, unsigned long begin_pos ) const
 {
-	return find(CharSeq(data), cs, begin_pos );
+	return find( CharacterSequence(data), cs, begin_pos );
 }
 
 void CharacterSequence::convertTo( ASAAC_CharacterSequence &data, unsigned long begin_pos, unsigned long len ) const
 {
-	const char *source = m_Data.c_str();
-
-	source += begin_pos;
-
-	if (begin_pos >= size())
-		data.size = 0;
-	else
-	{	
-		if ((begin_pos + len) > size())
-			len = size() - begin_pos;
+	unsigned long cpy_size = min( m_Size, len );
 	
-		if (len > sizeof(data.data))
-			len = sizeof(data.data);
-	
-		memcpy(data.data, source, len);
+	if ( cpy_size > 0 )	
+		memcpy( data.data, m_Data + begin_pos, cpy_size );
 		
-		data.size = len;
-	}
+	data.size = cpy_size;
 }
 
 void CharacterSequence::convertTo( CharacterSequence &data, unsigned long begin_pos, unsigned long len ) const
@@ -408,25 +444,18 @@ void CharacterSequence::convertTo( CharacterSequence &data, unsigned long begin_
 
 void CharacterSequence::convertTo( char *data, unsigned long begin_pos, unsigned long len ) const
 {
-	const char *source = m_Data.c_str();
+	unsigned long cpy_size = min( m_Size, len );
 	
-	source += begin_pos;
-	
-	if ((begin_pos + len) > size())
-		len = size() - begin_pos;
-	
-	if (data != 0)
-		memcpy(data, source, len);
-	
-	data[len] = 0;
+	if ( len > 0 )
+	{	
+		memcpy( data, m_Data + begin_pos, cpy_size );
+		data[cpy_size] = 0;
+	}
 }
 
 void CharacterSequence::convertTo( string &data, unsigned long begin_pos, unsigned long len ) const
 {
-	static CharacterSequence Data;
-	this->convertTo(Data, begin_pos, len);
-	
-	data = Data.m_Data;
+	data = m_Data[0];
 }
 	
 void CharacterSequence::convertTo( long &number, unsigned long begin_pos, unsigned long len ) const
@@ -447,42 +476,56 @@ void CharacterSequence::convertTo( ASAAC_PublicId &number, unsigned long begin_p
 	
 CharacterSequence & CharacterSequence::erase()
 {
-	m_Data.erase();
+	m_Size = 0;
+	m_Data[ m_Size ] = 0;
+	
 	return *this;
 }
 
 CharacterSequence & CharacterSequence::erase(unsigned long pos)
 {
-	m_Data.erase(pos, 1);
-	return *this;
+	return this->erase(pos, pos);
 }
 	
 CharacterSequence & CharacterSequence::erase(unsigned long start, unsigned long end)
 {
-	m_Data.erase(start, end);
+	if (start < m_Size)
+	{
+		if (end >= start)
+		{
+			end = min( end, m_Size ) + 1;
+			unsigned long move_size = end-start;
+			 
+			memmove( m_Data + start, m_Data + end, move_size );
+			
+			m_Size -= move_size;
+		}
+	}
+	
+	checkIntegrity();	
+	
 	return *this;
 }	
 
 const char *CharacterSequence::c_str( unsigned long begin_pos, unsigned long len ) const
 {
-	static string str;	
-	convertTo(str, begin_pos, len);
-	return str.c_str();
+	return m_Data;
 }
 
 const ASAAC_CharacterSequence CharacterSequence::asaac_str( unsigned long begin_pos, unsigned long len ) const
 {
-	static ASAAC_CharacterSequence result;
-	CharacterSequence(m_Data).convertTo(result, begin_pos, len);
-	return result;
+	ASAAC_CharacterSequence Result;
+	this->convertTo(Result, begin_pos, len);
+	
+	return Result;
 }
 
 const string CharacterSequence::cpp_str( unsigned long begin_pos, unsigned long len ) const
 {
-	static CharacterSequence Data;
-	this->convertTo(Data, begin_pos, len);
+	string Result;
+	this->convertTo(Result, begin_pos, len);
 	
-	return Data.m_Data;
+	return Result;
 }
 
 long CharacterSequence::c_int( unsigned long begin_pos, unsigned long len ) const
@@ -533,175 +576,148 @@ bool CharacterSequence::filled() const
 
 unsigned long CharacterSequence::size() const
 {
-	return m_Data.length();
+	return m_Size;
 }
 
 unsigned long CharacterSequence::length() const
 {
-	return m_Data.length();
+	return m_Size;
 }
 
 const char *CharacterSequence::data() const
 {
-	ASAAC_CharacterSequence result;
-	convertTo(result);
-	return result.data;
+	return m_Data;
 }
 
 CharacterSequence & CharacterSequence::operator=(const CharacterSequence &data)
 {
-	this->assign(data);
-	return *this;
+	return this->assign(data);
 }
 
 CharacterSequence & CharacterSequence::operator=(const char *data)
 {
-	this->assign(data);
-	return *this;
+	return this->assign(data);
 }
 
 CharacterSequence & CharacterSequence::operator=(const string &data)
 {
-	this->assign(data);
-	return *this;
+	return this->assign(data);
 }
 
 CharacterSequence & CharacterSequence::operator=(const ASAAC_CharacterSequence &data)
 {
-	this->assign(data);
-	return *this;
+	return this->assign(data);
 }
 
 CharacterSequence & CharacterSequence::operator=(long number)
 {
-	this->assign(number);
-	return *this;
+	return this->assign(number);
 }
 
 CharacterSequence & CharacterSequence::operator=(unsigned long number)
 {
-	this->assign(number);
-	return *this;
+	return this->assign(number);
 }
 
 CharacterSequence & CharacterSequence::operator<<(const CharacterSequence &data)
 {
-	this->append(data);
-	return *this;
+	return this->append(data);
 }
 
 CharacterSequence & CharacterSequence::operator<<(const char *data)
 {
-	this->append(data);
-	return *this;
+	return this->append(data);
 }
 
 CharacterSequence & CharacterSequence::operator<<(const string &data)
 {
-	this->append(data);
-	return *this;
+	return this->append(data);
 }
 
 CharacterSequence & CharacterSequence::operator<<(const ASAAC_CharacterSequence &data)
 {
-	this->append(data);
-	return *this;
+	return this->append(data);
 }
 
 CharacterSequence & CharacterSequence::operator<<(long number)
 {
-	this->append(number);
-	return *this;
+	return this->append(number);
 }
 
 CharacterSequence & CharacterSequence::operator<<(ASAAC_Time &time)
 {
-	this->append(time);
-	return *this;
+	return this->append(time);
 }
 
 CharacterSequence & CharacterSequence::operator<<(ASAAC_TimeInterval &interval)
 {
-	this->append(interval);
-	return *this;
+	return this->append(interval);
 }
 
 CharacterSequence & CharacterSequence::operator+=(const CharacterSequence &data)
 {
-	this->append(data);
-	return *this;
+	return this->append(data);
 }
 
 CharacterSequence & CharacterSequence::operator+=(const char *data)
 {
-	this->append(data);
-	return *this;
+	return this->append(data);
 }
 
 CharacterSequence & CharacterSequence::operator+=(const string &data)
 {
-	this->append(data);
-	return *this;
+	return this->append(data);
 }
 
 CharacterSequence & CharacterSequence::operator+=(const ASAAC_CharacterSequence &data)
 {
-	this->append(data);
-	return *this;
+	return this->append(data);
 }
 
 CharacterSequence & CharacterSequence::operator+=(long number)
 {
-	this->append(number);
-	return *this;
+	return this->append(number);
 }
 
 CharacterSequence & CharacterSequence::operator+=(ASAAC_PublicId number)
 {
-	this->append(number);
-	return *this;
+	return this->append(number);
 }
 
 CharacterSequence  CharacterSequence::operator+(const CharacterSequence &data)
 {
 	CharacterSequence cs(*this);
-	cs.append(data);
-	return cs;
+	return cs.append(data);
 }
 
 CharacterSequence  CharacterSequence::operator+(const char *data)
 {
 	CharacterSequence cs(*this);
-	cs.append(data);
-	return cs;
+	return cs.append(data);
 }
 
 CharacterSequence  CharacterSequence::operator+(const string &data)
 {
 	CharacterSequence cs(*this);
-	cs.append(data);
-	return cs;
+	return cs.append(data);
 }
 
 CharacterSequence  CharacterSequence::operator+(const ASAAC_CharacterSequence &data)
 {
 	CharacterSequence cs(*this);
-	cs.append(data);
-	return cs;
+	return cs.append(data);
 }
 
 CharacterSequence  CharacterSequence::operator+(long number)
 {
 	CharacterSequence cs(*this);
-	cs.append(number);
-	return cs;
+	return cs.append(number);
 }
 
 CharacterSequence  CharacterSequence::operator+(ASAAC_PublicId number)
 {
 	CharacterSequence cs(*this);
-	cs.append(number);
-	return cs;
+	return cs.append(number);
 }
 
 bool CharacterSequence::operator==(const CharacterSequence &data) const
@@ -746,7 +762,52 @@ bool CharacterSequence::operator!=(const ASAAC_CharacterSequence &data) const
 
 char CharacterSequence::operator[](const unsigned long Index) const
 {
+	if (Index >= m_Size)
+		OSException("Index is out of range", LOCATION);
+	
 	return m_Data[Index];
+}
+
+CharacterSequence CharacterSequence::LineBreak()
+{
+	CharacterSequence Result;
+	
+	Result.m_Size = 1;
+	Result.m_Data[0] = 10;
+	Result.m_Data[1] = 0;
+	
+	return Result;
+}
+
+ostream & operator<<(ostream &stream, CharacterSequence seq)
+{
+	stream << seq.m_Data;
+	
+	return stream;
+}
+
+istream & operator>>(istream &stream, CharacterSequence &seq)
+{
+	stream >> seq.m_Data;
+	
+	return stream;
+}
+
+void CharacterSequence::checkIntegrity()
+{
+	if (m_Size > ASAAC_OS_MAX_STRING_SIZE)
+		throw FatalException("Data structure is corrupted", LOCATION);
+
+	if (m_Data[ m_Size ] != 0)
+		throw FatalException("Data structure is corrupted", LOCATION);
+}
+
+bool CharacterSequence::checkAsaacString(const ASAAC_CharacterSequence data)
+{
+	if (data.size > ASAAC_OS_MAX_STRING_SIZE)
+		throw FatalException("Data structure is corrupted", LOCATION);
+
+	return true;	
 }
 
 bool CharacterSequence::checkCharString( const char * data )

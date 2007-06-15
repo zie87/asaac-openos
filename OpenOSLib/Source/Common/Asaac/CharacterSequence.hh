@@ -20,7 +20,7 @@ public:
 	CharacterSequence(long number);
 	CharacterSequence(ASAAC_PublicId number);
 	CharacterSequence(ASAAC_Time time);
-	CharacterSequence(ASAAC_TimeInterval longerval);
+	CharacterSequence(ASAAC_TimeInterval interval);
 	virtual ~CharacterSequence();
 	
 	CharacterSequence & append( const ASAAC_CharacterSequence &data );
@@ -41,6 +41,8 @@ public:
 	CharacterSequence & assign( unsigned long len, char ch );
 	CharacterSequence & assign( long number );
 	CharacterSequence & assign( ASAAC_PublicId number );
+	CharacterSequence & assign( ASAAC_Time time);
+	CharacterSequence & assign( ASAAC_TimeInterval interval);
 	
 	CharacterSequence & insert( unsigned long pos, ASAAC_CharacterSequence data );
 	CharacterSequence & insert( unsigned long pos, CharacterSequence data );
@@ -137,11 +139,20 @@ public:
 	
 	char operator[](const unsigned long Index) const;
 	
+	static CharacterSequence LineBreak();
+
+	friend ostream & operator<<(ostream &stream, CharacterSequence seq);
+	friend istream & operator>>(istream &stream, CharacterSequence &seq);	
+	
 private: 
+	void checkIntegrity();
+
+	static bool checkAsaacString(const ASAAC_CharacterSequence data);
 	static bool checkCharString(const char * data);
 	static bool compareChar(char c1, char c2, bool cs);
 
-	string m_Data;
+	char m_Data[ASAAC_OS_MAX_STRING_SIZE + 1];
+	unsigned long m_Size;
 };
 
 typedef CharacterSequence CharSeq;
