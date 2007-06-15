@@ -145,19 +145,9 @@ void ProcessManager::deinitialize()
 			{
 				OpenOS::getInstance()->unregisterCpu(m_CpuId);
 			}
-					
-			for ( long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
-			{
-				if ((Index != m_CurrentProcessIndex) && (m_ProcessObject[ Index ].isInitialized())) 
-					m_ProcessObject[ Index ].deinitialize();
-			}
 
-			Process *P = getCurrentProcess();
-			if (P != 0)
-				P->deinitialize();
-				
-			m_CurrentProcessIndex = -1;
-				
+			releaseAllProcesses();					
+
 			m_Semaphore.deinitialize();
 			m_CommandInterface.deinitialize();
 			
@@ -617,19 +607,37 @@ ASAAC_ReturnStatus ProcessManager::stopProcess(const ASAAC_PublicId process_id)
 
 void ProcessManager::releaseProcess( ASAAC_PublicId ProcessId )
 {
-    //TODO:: Fill function
+    long Index = getProcessIndex( ProcessId );
+    
+    if (Index != -1)
+    {
+    	m_ProcessObject[Index].deinitialize();
+	}
+	
+	if ( Index == m_CurrentProcessIndex )				
+		m_CurrentProcessIndex = -1;
 }
  
     
 void ProcessManager::releaseAllProcesses()
 {
-    //TODO:: Fill function
+	for ( long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
+	{
+		if ( m_ProcessObject[ Index ].isInitialized() ) 
+			m_ProcessObject[ Index ].deinitialize();
+	}
+	
+	m_CurrentProcessIndex = -1;
 }
  
     
 void ProcessManager::releaseAllClientProcesses()
 {
-    //TODO:: Fill function
+	for ( long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
+	{
+		if ( (Index != m_CurrentProcessIndex) && (m_ProcessObject[ Index ].isInitialized()) ) 
+			m_ProcessObject[ Index ].deinitialize();
+	}
 }
     
 

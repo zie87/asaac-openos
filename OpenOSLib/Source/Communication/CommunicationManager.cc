@@ -81,13 +81,8 @@ void CommunicationManager::deinitialize()
 	
 	try
 	{
-		//remove all global vcs	
-		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_GLOBALVCS; Index ++ )
-		{
-			if ( m_GlobalVcObject[ Index ].isInitialized() )
-				m_GlobalVcObject[ Index ].deinitialize();
-		}
-		
+		releaseAllGlobalVirtualChannels();
+				
 		VcUpdateSignal::deinitialize();	
 	
 		m_Semaphore.deinitialize();
@@ -318,13 +313,22 @@ ASAAC_ReturnStatus	CommunicationManager::destroyAllGlobalVirtualChannels()
 
 void CommunicationManager::releaseGlobalVirtualChannel( ASAAC_PublicId GlobalVcId )
 {
-    //TODO:: Fill function
+    long Index = getGlobalVirtualChannelIndex( GlobalVcId );
+    
+    if (Index != -1)
+    {
+    	m_GlobalVcObject[Index].deinitialize();
+	}
 }
 
 
 void CommunicationManager::releaseAllGlobalVirtualChannels()
 {
-    //TODO:: Fill function
+	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_GLOBALVCS; Index ++ )
+	{
+		if ( m_GlobalVcObject[ Index ].isInitialized() )
+			m_GlobalVcObject[ Index ].deinitialize();
+	}
 }
 
 

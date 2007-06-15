@@ -315,7 +315,6 @@ CharacterSequence & CharacterSequence::insert( unsigned long dest_pos, string da
 
 long CharacterSequence::compare(const ASAAC_CharacterSequence data) const
 {
-	//cout << m_Data << ":" << CharacterSequence(data).c_str() << "=" << strcmp( m_Data, CharacterSequence(data).c_str() ) << endl;
 	return strcmp( m_Data, CharacterSequence(data).c_str() );
 }
 
