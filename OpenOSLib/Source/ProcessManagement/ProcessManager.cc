@@ -417,8 +417,6 @@ ASAAC_TimedReturnStatus ProcessManager::createClientProcess( const ASAAC_Process
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	ASAAC_TimedReturnStatus Status = ASAAC_TM_ERROR;
-
 	if (m_IsServer)
 	{
 		if (Description.cpu_id == this->getCpuId())
