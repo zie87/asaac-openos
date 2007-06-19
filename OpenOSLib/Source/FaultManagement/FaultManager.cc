@@ -33,16 +33,7 @@ void FaultManager::initialize(bool IsMaster)
 
 	try
 	{
-		if (IsMaster)
-		{
-			if (m_ErrorMessageQueue.create( OS_ERROR_QUEUE, CLIENTS_RECEIVE, OS_MAX_ERROR_QUEUESIZE, sizeof( ASAAC_ErrorInfo ) ) == ASAAC_ERROR)
-				throw OSException("Unable to create ErrorMessageQueue", LOCATION);
-		}
-		else 
-		{
-			if (m_ErrorMessageQueue.open( OS_ERROR_QUEUE, CLIENTS_RECEIVE ) == ASAAC_ERROR)
-				throw OSException("Unable to open ErrorMessageQueue", LOCATION);
-		}
+		m_ErrorMessageQueue.initialize( IsMaster, OS_ERROR_QUEUE, CLIENTS_RECEIVE, OS_MAX_ERROR_QUEUESIZE, sizeof( ASAAC_ErrorInfo ) );
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -62,7 +53,7 @@ void FaultManager::deinitialize()
 	
 	try
 	{
-		m_ErrorMessageQueue.close();
+		m_ErrorMessageQueue.deinitialize();
 	}
 	catch (ASAAC_Exception &e)
 	{

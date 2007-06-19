@@ -23,41 +23,39 @@ public:
 	static OpenOS *getInstance();
 	~OpenOS();
 	
-	void initializeRemote( );
-	void initializeEntity( ASAAC_PublicId CpuId, bool &FlushSession );
-	void initializeProcessStarter( ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId );
-	void initializeProcess( ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId );
+	void initialize( LocalActivityState State );
+	void initialize( LocalActivityState State,  ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId );
+
+	void switchState( LocalActivityState State,  ASAAC_PublicId ProcessId );
 	
 	void deinitialize();
 
 	bool isInitialized();
 
-	ASAAC_ReturnStatus destroyAllEntities();
-	ASAAC_TimedReturnStatus sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
+	ASAAC_ReturnStatus       destroyAllEntities();
+	ASAAC_TimedReturnStatus  sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
 	
-	SessionId getSessionId();
-	OpenOSContext getContext();
-	long getCpuIndex( ASAAC_PublicId CpuId );
+	SessionId 			getSessionId();
+	LocalActivityState  getActivityState();
+	long 				getCpuIndex( ASAAC_PublicId CpuId );
 	
-    bool isSMOSProcess(ASAAC_PublicId ProcessId);
-    bool isAPOSProcess(ASAAC_PublicId ProcessId);
-
 	static size_t predictSize();
 	
 private:
 	OpenOS();
 
-	void initialize( bool &IsFirstSession );
+	void initializeThisObject();
+	void deinitializeThisObject();
 	
-	void initializeSystem( bool IsMaster, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId = OS_UNUSED_ID);
-	void deinitializeSystem();
+	void initializeGlobalObjects( ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId = OS_UNUSED_ID);
+	void deinitializeGlobalObjects();
 	
 	friend class ProcessManager;
 	
 	void registerCpu( ASAAC_PublicId cpu_id );
 	ASAAC_ReturnStatus unregisterCpu( ASAAC_PublicId cpu_id );	
 
-	void flushSession( bool IsFirstSession );	
+	void flushSession();	
 	void flushLocalSession( SessionId NewSessionId );
 	
 	void initializeMutex();
@@ -78,7 +76,9 @@ private:
 	
 	bool 					m_IsInitialized;
 	
-	OpenOSContext			m_Context;
+	bool					m_IsMaster;
+	
+	LocalActivityState		m_ActivityState;
 	
 	SharedMemory			m_Allocator;
 	

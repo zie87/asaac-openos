@@ -13,15 +13,15 @@
 typedef void* Address;
 
 typedef enum {
-	OS_Undefined,
-	OS_Entity,
-	OS_Starter,
-	OS_Process,
-	OS_Remote
-} OpenOSContext;
+	LAS_UNDEFINED,
+	LAS_ENTITY,
+	LAS_PROCESS_INIT,
+	LAS_PROCESS_RUNNING,
+	LAS_REMOTE
+} LocalActivityState;
 
 typedef enum {
-	PROC_Undefined,
+	PROC_UNDEFINED,
 	PROC_APOS,
 	PROC_SMOS,
 	PROC_GSM,

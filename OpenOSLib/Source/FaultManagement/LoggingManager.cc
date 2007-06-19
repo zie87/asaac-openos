@@ -50,25 +50,15 @@ void LoggingManager::initialize(bool IsMaster)
 		
 		for ( long Index = 0; Index < 4; Index ++ )
 		{
+			FM->createFile( CharSeq(LogFileNames[ Index ]).asaac_str(), ASAAC_RW, 0 );
 			
-			m_LogFileDescriptors[Index] = FM->getFileHandle( CharSeq(LogFileNames[ Index ]).asaac_str(), 
-															REGULAR_FILE, 
-															O_RDWR | O_APPEND | O_CREAT );
-			if ( m_LogFileDescriptors[ Index ] == -1 ) 
+			const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
+			
+			if (FM->openFile( CharSeq(LogFileNames[ Index ]).asaac_str(), UseOption, m_LogFileDescriptors[Index]) == ASAAC_ERROR);
 				throw OSException( LogFileNames[ Index ], LOCATION );
 		}
 		
-		if (IsMaster)
-		{
-			if (m_LoggingQueue.create( OS_LOGGING_QUEUE, CLIENTS_RECEIVE, OS_MAX_ERROR_QUEUESIZE, sizeof( LogReportData ) ) == ASAAC_ERROR)
-				throw OSException("Unable to create LoggingQueue", LOCATION);
-		}
-		else 
-		{
-			if (m_LoggingQueue.open( OS_LOGGING_QUEUE, CLIENTS_RECEIVE ) == ASAAC_ERROR)
-				throw OSException("Unable to open LoggingQueue", LOCATION);
-		}
-		
+		m_LoggingQueue.initialize( IsMaster, OS_LOGGING_QUEUE, CLIENTS_RECEIVE, OS_MAX_ERROR_QUEUESIZE, sizeof( LogReportData ) );
 	}
 	catch ( ASAAC_Exception& e )
 	{
@@ -87,7 +77,7 @@ void LoggingManager::deinitialize()
 	
 	try
 	{
-		m_LoggingQueue.close();
+		m_LoggingQueue.deinitialize();
 		
 		FileManager* FM = FileManager::getInstance();
 		

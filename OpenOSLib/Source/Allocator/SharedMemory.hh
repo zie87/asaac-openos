@@ -116,7 +116,7 @@ protected:
 	ASAAC_CharacterSequence m_Name;
 	
 	bool 					m_IsMaster;
-	long 					m_FileHandle;
+	ASAAC_PrivateId			m_FileHandle;
 	unsigned long 			m_BaseMemorySize;
 	unsigned long 			m_UsedMemory;
 	

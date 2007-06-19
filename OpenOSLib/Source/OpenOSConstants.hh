@@ -1,7 +1,7 @@
 #ifndef ASAACCONSTANTS_HH_
 #define ASAACCONSTANTS_HH_
 
-#define OS_MAGIC_NUMBER						 0x0A5AAC05
+#define OS_MAGIC_NUMBER						 	 0x0A5AAC05
 
 #define OS_UNLIMITED                     		 0xffffffff
 
@@ -83,19 +83,14 @@
 
 #define OS_MAX_NUMBER_OF_VC_THREADS_ATTACHED	 32
 
-
-#define OS_MAX_NUMBER_OF_FILES			 		 256
+#define OS_MAX_NUMBER_OF_LOCAL_FILES			 32
+#define OS_MAX_NUMBER_OF_GLOBAL_FILES		    (OS_MAX_NUMBER_OF_PROCESSES * OS_MAX_NUMBER_OF_LOCAL_FILES)
 
 /* SIGNALS */
-#define ASAAC_SIGNAL_KILL				 		 SIGRTMIN
-#define ASAAC_SIGNAL_SUSPEND					(SIGRTMIN+1)
-#define ASAAC_SIGNAL_RESUME			    		(SIGRTMIN+2)
+#define OS_SIGNAL_KILL				 		     SIGRTMIN
+#define OS_SIGNAL_SUSPEND					    (SIGRTMIN+1)
+#define OS_SIGNAL_RESUME			    		(SIGRTMIN+2)
 
-#ifdef _ELINOS_4_1_
-#define OS_PROCESS_STARTER				 		 CharacterSequence("OpenOSProcess").asaac_str()
-#else
-#define OS_PROCESS_STARTER				 		 CharacterSequence("OpenOSProcess/Debug/OpenOSProcess").asaac_str()
-#endif
 #define OS_ERROR_QUEUE					 		 CharacterSequence("/errorq").asaac_str()
 #define OS_LOGGING_QUEUE				 		 CharacterSequence("/loggingq").asaac_str()
 #define OS_TEMP							 		 CharacterSequence("Temp/").asaac_str()
@@ -104,5 +99,16 @@
 #define OS_SIMPLE_COMMAND_TIMEOUT   	 		 TimeInterval( 1000, MilliSeconds ).asaac_Interval() 
 #define OS_COMPLEX_COMMAND_TIMEOUT  	 		 TimeInterval(    2, Seconds ).asaac_Interval() 
 
+#define OS_TIME_INFINITY_SECONDS				 2147483647
+#define OS_TIME_INFINITY_NANOSECONDS			 999999999
+
+/* ENVIRONMENT */
+#define OS_ENV_ASAACHANDLE_COUNTER				 "OS_ASAACHANDLE_COUNTER"
+
+#define OS_ENV_ASAACHANDLE						 "OS_ASAACHANDLE_"
+#define OS_ENV_ASAACHANDLELIST					 "OS_ASAACHANDLELIST"
+
+#define OS_ENV_ID_CPU				 			 "OS_ID_CPU"
+#define OS_ENV_ID_PROCESS				 		 "OS_ID_PROCESS"
 
 #endif /*ASAACCONSTANTS_HH_*/

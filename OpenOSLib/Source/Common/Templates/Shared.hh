@@ -134,7 +134,8 @@ template <class T> Shared<T>::~Shared()
 
 template <class T> void Shared<T>::deinitialize()
 {
-	if ( ! m_IsInitialized ) return;
+	if ( m_IsInitialized == false ) 
+		return;
 
 	try
 	{		

@@ -86,8 +86,10 @@ public:
 	//! get Process' Global ASAAC_PublicId
 	ASAAC_PublicId			getId();
 	
+	ProcessAlias			getAlias();
+	
 	//! get Process' POSIX PID (process id) and store it inside the object
-	ASAAC_ReturnStatus		getPID();
+	ASAAC_ReturnStatus		refreshPosixPid();
 		
 	//! set up a thread inside the process
 	ASAAC_ReturnStatus		createThread( const ASAAC_ThreadDescription& Description );
@@ -233,10 +235,6 @@ public:
 	
 	bool					isOSScope();
     
-    bool                    isAPOSProcess();
-
-    bool                    isSMOSProcess();
-	
 	ASAAC_ReturnStatus      invokeOSScope(OSScopeFunction foo, OSScopeCommandBuffer param);
 	
     SchedulingData          getOSScopeSchedulingData();
@@ -314,7 +312,7 @@ private:
     typedef union {
         CommandBuffer       Buffer;
         ASAAC_ReturnStatus  Return;
-        pid_t               PID;
+        pid_t               PosixPid;
     } PIDCommandData;
     
 	typedef union  
@@ -359,7 +357,7 @@ private:
 	
 	Thread						m_Threads[ OS_MAX_NUMBER_OF_THREADS ];
 	
-	pid_t						m_PID;
+	pid_t						m_PosixPid;
     
 public:
 

@@ -14,84 +14,36 @@ MessageQueue::~MessageQueue()
 }
 
 
-ASAAC_ReturnStatus MessageQueue::create( ASAAC_CharacterSequence Name, QueueDirection Direction, unsigned long QueueSize, unsigned long MessageSize )
+void MessageQueue::initialize( const bool IsMaster, const ASAAC_CharacterSequence Name, const QueueDirection Direction, const unsigned long QueueSize, const unsigned long MessageSize )
 {
 	if ( m_IsInitialized ) 
-		return ASAAC_ERROR;
-	
-	oal_mq_attr QueueAttribute;
+		throw DoubleInitializationException(LOCATION);
 
-	long iFlags;
-
-	if ( Direction == CLIENTS_SEND )
-	{	
-		iFlags 	= O_WRONLY;
-	}
-	else
+	try
 	{
-		iFlags   = O_RDONLY;
+		m_IsInitialized = true;
+		
+		m_IsMaster = IsMaster;
+		m_Name = Name;
+
+		if (m_IsMaster)
+			FileManager::getInstance()->createMessageQueue( m_Name, ASAAC_RW, QueueSize, MessageSize );
+	
+		const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
+		FileManager::getInstance()->openMessageQueue( m_Name, UseOption, m_QueueHandle );
 	}
-
-
-	if (QueueSize > 10) QueueSize=10;
-
-	QueueAttribute.mq_flags   = 0;
-	QueueAttribute.mq_maxmsg  = QueueSize;
-	QueueAttribute.mq_msgsize = MessageSize;
-	QueueAttribute.mq_curmsgs = 0;
-	
-	m_Name = Name;
-
-	//if queue is still linked, unlink it first
-	oal_mq_unlink( m_Name.c_str()); 
-	
-	m_QueueHandle = oal_mq_open(  m_Name.c_str(), 
-				      O_RDWR | O_CREAT, 
-				      S_IRUSR | S_IWUSR,
-				      &QueueAttribute );
-	
-	if ( m_QueueHandle == -1 ) 
-        throw OSException( strerror(errno), LOCATION );
-
-	m_IsInitialized = true;
-	m_IsMaster      = true;
-	
-	return ASAAC_SUCCESS;
+	catch ( ASAAC_Exception &e )
+	{
+		deinitialize();
+		
+		e.addPath("Error initializing MessageQueue", LOCATION);
+		
+		throw;
+	}
 }
 
 
-ASAAC_ReturnStatus MessageQueue::open( ASAAC_CharacterSequence Name, QueueDirection Direction )
-{
-	if ( m_IsInitialized ) 
-		return ASAAC_ERROR;
-
-	long iFlags;
-
-	if ( Direction == CLIENTS_SEND )
-	{	
-		iFlags 	= O_WRONLY;
-	}
-	else
-	{
-		iFlags   = O_RDONLY;
-	}
-	//iFlags = O_RDWR;
-	
-	m_QueueHandle = FileManager::getInstance()->getFileHandle( Name, MESSAGE_QUEUE, iFlags );
-							
-	if ( m_QueueHandle < 0 ) 
-		return ASAAC_ERROR;
-	
-	m_IsMaster = false;
-	m_Name = Name;
-	
-	m_IsInitialized = true;
-	
-	return ASAAC_SUCCESS;
-}
-
-
-void MessageQueue::close()
+void MessageQueue::deinitialize()
 {
 	if (  m_IsInitialized == false  ) 
 		return;
@@ -100,18 +52,14 @@ void MessageQueue::close()
 	
 	try
 	{
+		FileManager::getInstance()->closeFile( m_QueueHandle );
+
 		if ( m_IsMaster )
-		{
-			FileManager::getInstance()->removeFile( m_QueueHandle );
-		}
-		else 
-		{
-			FileManager::getInstance()->closeFile( m_QueueHandle );
-		}
+			FileManager::getInstance()->deleteMessageQueue( m_Name, ASAAC_NORMAL, TimeIntervalInstant );
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.addPath("Error closing MessageQueue", LOCATION);
+		e.addPath("Error deinitializing MessageQueue", LOCATION);
 		e.raiseError();
 	}
 }

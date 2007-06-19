@@ -2,10 +2,6 @@
 
 #include "OpenOS.hh"
 
-const long TimeInfinitySec = 2147483647;
-const long TimeInfinityNSec = 999999999;
-
-
 TimeInterval::TimeInterval()
 {
 	reset();
@@ -65,8 +61,8 @@ TimeInterval & TimeInterval::addMinutes(long minutes)
 
 TimeInterval & TimeInterval::addSeconds(long seconds)
 {
-	if ((TimeInfinitySec - m_Interval.sec) < seconds)
-		m_Interval.sec = TimeInfinitySec;
+	if ((OS_TIME_INFINITY_SECONDS - m_Interval.sec) < seconds)
+		m_Interval.sec = OS_TIME_INFINITY_SECONDS;
 	else m_Interval.sec += seconds;	
 	
 	return *this;
@@ -102,8 +98,8 @@ TimeInterval & TimeInterval::addNanoSeconds(long nano_seconds)
 		addSeconds(+1);
 	}
 
-	if (m_Interval.sec == TimeInfinitySec)
-		m_Interval.nsec = TimeInfinityNSec;
+	if (m_Interval.sec == OS_TIME_INFINITY_SECONDS)
+		m_Interval.nsec = OS_TIME_INFINITY_NANOSECONDS;
 
 	return *this;
 }
@@ -120,7 +116,7 @@ bool TimeInterval::isInstant()
 
 bool TimeInterval::isInfinity()
 {
-	return ((m_Interval.sec == TimeInfinitySec) && (m_Interval.nsec == TimeInfinityNSec));	
+	return ((m_Interval.sec == OS_TIME_INFINITY_SECONDS) && (m_Interval.nsec == OS_TIME_INFINITY_NANOSECONDS));	
 }
 
 TimeInterval  TimeInterval::Instant()
@@ -130,10 +126,7 @@ TimeInterval  TimeInterval::Instant()
 
 TimeInterval  TimeInterval::Infinity()
 {
-	TimeInterval Interval;
-	Interval.m_Interval.sec = TimeInfinitySec;
-	Interval.m_Interval.nsec = TimeInfinityNSec;
-	return Interval;
+	return TimeInterval(TimeIntervalInfinity);
 }
 
 void TimeInterval::reset()

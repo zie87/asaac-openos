@@ -50,7 +50,7 @@ void ParameterParser::parse(CharacterSequence &Sequence)
 			{
 				if (parseString(Index, "$", 1) == 1)
 				{
-					m_Configuration.ProcessConfiguration.List[p].Alias = PROC_Undefined;
+					m_Configuration.ProcessConfiguration.List[p].Alias = PROC_UNDEFINED;
 					m_Configuration.ProcessConfiguration.List[p].Description.global_pid = OS_UNUSED_ID;
 					
 					if (parseString(Index, "APOS", 1) == 1)
@@ -66,13 +66,13 @@ void ParameterParser::parse(CharacterSequence &Sequence)
 					if (parseString(Index, "SM", 1) == 1)
 						m_Configuration.ProcessConfiguration.List[p].Alias = PROC_SM;
 						
-					if (m_Configuration.ProcessConfiguration.List[p].Alias == PROC_Undefined)
+					if (m_Configuration.ProcessConfiguration.List[p].Alias == PROC_UNDEFINED)
 						throw OSException(LOCATION);
 				}
 				else 
 				{
 					m_Configuration.ProcessConfiguration.List[p].Description.global_pid = parsePublicId(Index);
-					m_Configuration.ProcessConfiguration.List[p].Alias = PROC_Undefined;
+					m_Configuration.ProcessConfiguration.List[p].Alias = PROC_UNDEFINED;
 				}
 			}
 			else throw OSException(LOCATION);

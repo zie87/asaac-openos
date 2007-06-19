@@ -167,7 +167,8 @@ template <class T> void SharedCyclicQueue<T>::initialize( Allocator* ThisAllocat
 							 									  BlockingType Blocking )
 {
 	// Check for Double Initialization. If so, throw exception!
-	if ( m_IsInitialized ) throw DoubleInitializationException(LOCATION);
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException(LOCATION);
 
 	m_IsInitialized = true;
 	m_forceRelease = false;
@@ -222,7 +223,8 @@ template <class T> void SharedCyclicQueue<T>::initialize( Allocator* ThisAllocat
 
 template <class T>  ASAAC_ReturnStatus SharedCyclicQueue<T>::setOverwriteCallback( Callback* OverwriteCallback )
 {
-	if (( m_OverwriteCallback != 0 ) && ( OverwriteCallback != 0 ))return ASAAC_ERROR;
+	if (( m_OverwriteCallback != 0 ) && ( OverwriteCallback != 0 ))
+		return ASAAC_ERROR;
 	
 	m_OverwriteCallback = OverwriteCallback;
 	
@@ -234,7 +236,8 @@ template <class T>  ASAAC_ReturnStatus SharedCyclicQueue<T>::setOverwriteCallbac
 
 template <class T> ASAAC_ReturnStatus SharedCyclicQueue<T>::setUpdateCallback( Callback* UpdateCallback )
 {
-	if (( m_UpdateCallback != 0 ) && ( UpdateCallback != 0 )) return ASAAC_ERROR;
+	if (( m_UpdateCallback != 0 ) && ( UpdateCallback != 0 )) 
+		return ASAAC_ERROR;
 	
 	m_UpdateCallback = UpdateCallback;
 	
@@ -245,7 +248,8 @@ template <class T> ASAAC_ReturnStatus SharedCyclicQueue<T>::setUpdateCallback( C
 
 template <class T> void SharedCyclicQueue<T>::deinitialize()
 {
-	if ( m_IsInitialized == false ) return;
+	if ( m_IsInitialized == false ) 
+		return;
 	
 	// release queue buffer
 	m_Buffer.deinitialize();
@@ -267,7 +271,8 @@ template <class T> void SharedCyclicQueue<T>::deinitialize()
 
 template <class T> void SharedCyclicQueue<T>::push( const T Value, const ASAAC_Time& Timeout )
 {
-	if ( ! m_IsInitialized ) throw UninitializedObjectException( LOCATION );
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 	
 	// If the queue is configured to be blocking, wait for free slots, with timeout
 	if ( m_GlobalData->Blocking == BLOCKING )
@@ -386,7 +391,8 @@ template <class T> void SharedCyclicQueue<T>::push( const T Value, const ASAAC_T
 
 template <class T> T SharedCyclicQueue<T>::pop( const ASAAC_Time& Timeout )
 {
-	if ( ! m_IsInitialized ) throw UninitializedObjectException( LOCATION );
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 
 	// wait for data to be available or for timeout
 	ASAAC_TimedReturnStatus WaitStatus = m_ReadSemaphore.wait( Timeout );
@@ -449,7 +455,8 @@ template <class T> T SharedCyclicQueue<T>::pop( const ASAAC_Time& Timeout )
 
 template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForFreeCells( const ASAAC_Time& Timeout )
 {
-	if ( ! m_IsInitialized ) throw UninitializedObjectException( LOCATION );
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 	
 	// If this queue is nonblocking, there are always 'free cells'.
 	if ( m_GlobalData->Blocking != BLOCKING ) return ASAAC_TM_SUCCESS;
@@ -471,7 +478,8 @@ template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForFreeCell
 
 template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForAvailableData( const ASAAC_Time& Timeout )
 {
-	if ( ! m_IsInitialized ) throw UninitializedObjectException( LOCATION );
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 	
 	// Wait for ReadSemaphore
 	ASAAC_TimedReturnStatus Status = m_ReadSemaphore.wait( Timeout );
@@ -490,7 +498,8 @@ template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForAvailabl
 
 template <class T> unsigned long SharedCyclicQueue<T>::getFreeCells() const
 {
-	if ( ! m_IsInitialized ) throw UninitializedObjectException( LOCATION );
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 
 	long iFree;
 
@@ -502,7 +511,8 @@ template <class T> unsigned long SharedCyclicQueue<T>::getFreeCells() const
 
 template <class T> bool SharedCyclicQueue<T>::isEmpty() const
 {
-	if ( ! m_IsInitialized ) throw UninitializedObjectException( LOCATION );
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 
 	return ( m_GlobalData->Free == m_GlobalData->Size );
 }
@@ -510,7 +520,8 @@ template <class T> bool SharedCyclicQueue<T>::isEmpty() const
 
 template <class T> void SharedCyclicQueue<T>::forceRelease()
 {
-	if ( ! m_IsInitialized ) throw UninitializedObjectException( LOCATION );
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 
 	//Another thread is currently releasing the queue, 
 	//nothing to do...

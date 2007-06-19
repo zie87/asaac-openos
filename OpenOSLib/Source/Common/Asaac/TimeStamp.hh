@@ -86,6 +86,6 @@ private:
 };
 
 const ASAAC_Time TimeZero = {0,0};
-const ASAAC_Time TimeInfinity = {0,0};
+const ASAAC_Time TimeInfinity = {OS_TIME_INFINITY_SECONDS, OS_TIME_INFINITY_NANOSECONDS};
 
 #endif /*TIMESTAMP_H_*/

@@ -33,7 +33,7 @@ const EntryPoint EmptyEntryPoint = { { 0, "" }, 0 };
 
 Process::Process() :  m_IsInitialized( false ),  m_IsMaster(false), m_IsServer(false)
 {
-	m_PID = 0;
+	m_PosixPid = 0;
 	m_UseInternalCommandInterface = true;
 	m_ActiveMainLoop = false;
 }
@@ -158,10 +158,10 @@ void Process::launch()
 	
 	try
 	{
-		CharacterSequence LocalPath;
+		ASAAC_CharacterSequence ProcessPath;
 		if (m_ProcessData->Description.access_type == ASAAC_OLI_ACCESS)
 		{
-			LocalPath = FileNameGenerator::getLocalOliPath(m_ProcessData->Description.global_pid);
+			ProcessPath = FileNameGenerator::getLocalOliPath(m_ProcessData->Description.global_pid);
 	
 			ASAAC::OLI::Client OliClient;
 			OliClient.setRequestVc( m_ProcessData->Description.access_info._u.oli_channel.vc_sending );
@@ -170,7 +170,7 @@ void Process::launch()
 			OliClient.setTimeOut( m_ProcessData->Description.timeout );
 			
 			//OLI service successful?
-			Result = OliClient.storeCompleteFile(LocalPath.asaac_str(), m_ProcessData->Description.programme_file_name);
+			Result = OliClient.storeCompleteFile(ProcessPath, m_ProcessData->Description.programme_file_name);
 			
 			if (Result == ASAAC_TM_ERROR)
 				throw OSException("Error executing OLI protocol", LOCATION);
@@ -178,7 +178,7 @@ void Process::launch()
 			if (Result == ASAAC_TM_TIMEOUT)
 				throw TimeoutException("Timeout executing OLI protocol", LOCATION);
 		}
-		else LocalPath = FileNameGenerator::getAsaacPath(m_ProcessData->Description.programme_file_name);
+		else ProcessPath = FileNameGenerator::getAsaacPath(m_ProcessData->Description.programme_file_name);
 		
         //ProcessManager::getInstance()->getCurrentProcess()->suspendAllThreads();
         
@@ -187,13 +187,9 @@ void Process::launch()
         //Starter process
         if (new_pid == 0)
         {
-            CharacterSequence ProcessPath           = LocalPath;
-            CharacterSequence CpuId                 = m_ProcessData->Description.cpu_id;
-            CharacterSequence ProcessId             = m_ProcessData->Description.global_pid;
-                
             try
             {            	
-                OpenOS::getInstance()->initializeProcessStarter(CpuId.asaac_id(), ProcessId.asaac_id());
+                OpenOS::getInstance()->switchState( LAS_PROCESS_INIT, getId() );
 
 				// Enter main cycle of ProcessStarter
 				unsigned long CommandId;
@@ -210,51 +206,9 @@ void Process::launch()
 					if ( CommandId == CMD_RUN_PROCESS ) 
 						break;
 				} 
-    
-                char* ExecArgs[5];
-                char** ExecEnv = environ;
-                
-                char ProcessPathBuffer[512];
-                char CpuIdBuffer[16];
-                char ProcessIdBuffer[16];
-                char HandleBuffer[16];
-                char ShellNameBuffer[1] = "";
-        
-                // Now, save state of the File Manager,
-                // prepare handles to be handed over to application     
-                long Handle = 0;
-                FileManager::getInstance()->saveState( Handle );
-                        
-                // create parameter buffers.             
-                ProcessPath.convertTo( ProcessPathBuffer );
-                CpuId.convertTo( CpuIdBuffer );
-                ProcessId.convertTo( ProcessIdBuffer );
-                CharSeq(Handle).convertTo(HandleBuffer);
-                            
-                // assign buffers to parameter list
-                ExecArgs[0] = CpuIdBuffer;
-                ExecArgs[1] = ProcessIdBuffer;
-                ExecArgs[2] = HandleBuffer;
-                ExecArgs[3] = ShellNameBuffer;
-                ExecArgs[4] = 0; //zero terminated
-                
-                // For APOS processes drop all privileges. set uid and gid == nobody
-                if (OpenOS::getInstance()->isSMOSProcess( ProcessId.asaac_id() ) == false)
-                {
-                    setuid( 65534 );
-                    setgid( 65534 );
-                } 
-        
-        		// Log, which binary we now want to load
-		        CharacterSequence LogMsg;
-		        LogMsg << "Start ClientProcess: " << LocalPath;
-		        ErrorHandler::getInstance()->logMessage(LogMsg.asaac_str(), ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE);
-		        
+                    
 		        // Load and execute the binary
-                execve( ProcessPathBuffer, ExecArgs, ExecEnv);
-                
-                // bloody hell, what happens?
-                throw OSException( strerror(errno), LOCATION );
+		        FileManager::getInstance()->executeFile( ProcessPath, getAlias() );
             }
             catch ( ASAAC_Exception &e )
             {
@@ -279,7 +233,7 @@ void Process::launch()
         
         //Fork succeeded
         if (new_pid > 0)
-            m_PID = new_pid;
+            m_PosixPid = new_pid;
 
         //ProcessManager::getInstance()->getCurrentProcess()->resumeAllThreads();
 	}
@@ -314,14 +268,14 @@ void Process::deinitialize()
 		
 		m_ProcessData.deinitialize();
 		
-		m_PID = 0;
-	
 		// Only one of the following two will have been initialized.
 		// however, DEinitializing twice doesn't matter, and
 		// we don't need to store WHICH one of the two was initialized
 		// this way
 		m_LocalAllocator.deinitialize();
 		m_SharedAllocator.deinitialize();
+		
+		m_PosixPid = 0;
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -341,17 +295,51 @@ ASAAC_PublicId Process::getId()
 }
 
 
-ASAAC_ReturnStatus Process::getPID()
+ProcessAlias Process::getAlias()
 {
-	PIDCommandData Data;
-	
-	ASAAC_TimedReturnStatus Result = sendCommand( CMD_GET_PID, Data.Buffer, 
-											      TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time());
-
-	if ( Result == ASAAC_TM_SUCCESS ) 
-        m_PID = Data.PID;
+	if ( (getId() >=0) && (getId() <= OS_PROCESSID_APOS_MAX) )
+		return PROC_APOS;
 		
-	return ( Result == ASAAC_TM_SUCCESS ? ASAAC_SUCCESS : ASAAC_ERROR );
+	if ( (getId() > OS_PROCESSID_APOS_MAX) && (getId() <= OS_PROCESSID_SMOS_MAX) )
+	{
+		if ( getId() == OS_PROCESSID_GSM )
+			return PROC_GSM;	
+	
+		if ( getId() == OS_PROCESSID_PCS )
+			return PROC_PCS;	
+			
+		if ( getId() == OS_PROCESSID_OLI )
+			return PROC_OLI;	
+	
+		if ( getId() == OS_PROCESSID_SM )
+			return PROC_SM;
+			
+		return PROC_SMOS;
+	}
+	
+	return PROC_UNDEFINED; 
+}
+
+
+ASAAC_ReturnStatus Process::refreshPosixPid()
+{
+	if ( m_IsServer )
+	{
+		m_PosixPid = getpid();
+	}
+	else
+	{
+		PIDCommandData Data;
+		
+		ASAAC_TimedReturnStatus Result = sendCommand( CMD_GET_PID, Data.Buffer, 
+												      TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time());
+	
+		if ( Result == ASAAC_TM_SUCCESS ) 
+	        m_PosixPid = Data.PosixPid;
+	    else return ASAAC_ERROR;
+	}	
+	
+	return ASAAC_SUCCESS;
 }
 
 
@@ -787,7 +775,7 @@ ASAAC_ReturnStatus Process::run()
 	{
 	    CommandData Data;
     
-		bool ReacquirePID = ( getState() == PROCESS_INITIALIZED );
+		bool RefreshPosixPid = ( getState() == PROCESS_INITIALIZED );
 	
 		if ( sendCommand( CMD_RUN_PROCESS, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() )  != ASAAC_TM_SUCCESS )
 		{
@@ -799,8 +787,8 @@ ASAAC_ReturnStatus Process::run()
 			// wait for process to send its PID,
 			// thus also signalling its readiness to
 			// respond.
-            if (ReacquirePID)
-                getPID();
+            if (RefreshPosixPid)
+                refreshPosixPid();
 		}
 		
 		return Data.Return;
@@ -1080,7 +1068,7 @@ ASAAC_ReturnStatus Process::destroy()
 				
 		if (P->getId() != this->getId())
 		{
-			pid_t PID = m_PID;
+			pid_t PosixPid = m_PosixPid;
 			int Dummy;
 			
 			ASAAC_TimedReturnStatus SignalStatus = SignalManager::getInstance()->waitForSignal( SIGCHLD, Dummy, OS_SIMPLE_COMMAND_TIMEOUT  );
@@ -1092,8 +1080,8 @@ ASAAC_ReturnStatus Process::destroy()
 
 			if ( SignalStatus == ASAAC_TM_TIMEOUT )
 			{	
-				if ( PID != 0 ) 
-					oal_kill( PID, SIGTERM );
+				if ( PosixPid != 0 ) 
+					oal_kill( PosixPid, SIGTERM );
 				else OSException("Kill Signal cannot be send, because pid is unknown (PID=0).", LOCATION).raiseError();
 			}
 			
@@ -1204,24 +1192,6 @@ bool Process::isOSScope()
         throw UninitializedObjectException(LOCATION);
 
 	return (getCurrentThread() == NULL);
-}
-
-
-bool Process::isAPOSProcess()
-{
-    if (m_IsInitialized == false) 
-        throw UninitializedObjectException(LOCATION);
-
-    return OpenOS::getInstance()->isAPOSProcess(getId());   
-}
-
-
-bool Process::isSMOSProcess()
-{
-    if (m_IsInitialized == false) 
-        throw UninitializedObjectException(LOCATION);
-
-    return OpenOS::getInstance()->isSMOSProcess(getId());   
 }
 
 

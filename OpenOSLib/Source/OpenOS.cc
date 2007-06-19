@@ -13,10 +13,12 @@
 #include "FaultManagement/LoggingManager.hh"
 #include "FaultManagement/ErrorHandler.hh"
 
+
 OpenOS::OpenOS()
 {
 	m_IsInitialized = false;
-	m_Context = OS_Undefined;
+	m_IsMaster = true;
+	m_ActivityState = LAS_UNDEFINED;
 }
 
 
@@ -55,96 +57,68 @@ size_t OpenOS::predictSize()
 }	
 
 
-void OpenOS::initializeRemote( )
+void OpenOS::initialize( LocalActivityState State )
 {
-	if (m_IsInitialized)
-		throw DoubleInitializationException(LOCATION);
-
-	m_Context = OS_Remote;
-	
-	//TODO: initialize remote environment
-}
-
-
-void OpenOS::initializeEntity( ASAAC_PublicId CpuId, bool &FlushSession )
-{
-	if (m_IsInitialized)
-		throw DoubleInitializationException(LOCATION);
-
-	m_Context = OS_Entity;
-				
-	bool IsFirstSession;
-	initialize( IsFirstSession );
-	
-	if (( FlushSession ) || ( IsFirstSession ))
-	{
-		flushSession( IsFirstSession );
-		initializeSystem( true, CpuId );
-	}
-	else
-	{
-		initializeSystem( false, CpuId );
-	}
-
-    //Register CommandHandler for OS Level (for entities only)
-    ProcessManager::getInstance()->addCommandHandler(CMD_FLUSH_SESSION, OpenOS::FlushSessionHandler);
-}
-
-
-void OpenOS::initializeProcessStarter( ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
-{
-	if (m_IsInitialized)
-    {
-        if (m_Context != OS_Entity)
-            throw OSException("Transition to ProcessStarter state is only available from Entity state", LOCATION);
-            
-        CommunicationManager::getInstance()->releaseAllGlobalVirtualChannels();
-        
-        ProcessManager::getInstance()->setCurrentProcess(ProcessId);
-        ProcessManager::getInstance()->releaseAllClientProcesses();    
-
-        m_Context = OS_Starter;
-    }
-    else
-    {
-    	m_Context = OS_Starter;
+    CharacterSequence CpuId = getenv(OS_ENV_ID_CPU);
     
-    	bool IsFirstSession = false;
-    	initialize( IsFirstSession );
-    	
-    	if (IsFirstSession == true)
-    		throw FatalException("OpenOS::initialize() forced a flush event. Flushing the session by process starter is permitted.", LOCATION);
-    	
-    	initializeSystem( false, CpuId, ProcessId );
-    }
+    if ( CpuId.empty() )
+        throw OSException("CpuId not in environment", LOCATION);
+    
+    CharacterSequence ProcessId = getenv(OS_ENV_ID_PROCESS);
+    
+    if ( ProcessId.empty() )
+        throw OSException("ProcessId not in environment", LOCATION);
+        
+    initialize( State, CpuId.asaac_id(), ProcessId.asaac_id() );
 }
 
 
-void OpenOS::initializeProcess( ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
+void OpenOS::initialize( LocalActivityState State,  ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
 {
 	if (m_IsInitialized)
 		throw DoubleInitializationException(LOCATION);
+    
+    setenv(OS_ENV_ID_CPU, CharSeq(CpuId).c_str(), 1);
+    setenv(OS_ENV_ID_PROCESS, CharSeq(ProcessId).c_str(), 1);
 
-	m_Context = OS_Process;
-
-	bool IsFirstSession = false;
-	initialize( IsFirstSession );
+	m_ActivityState = State;
 	
-	if (IsFirstSession == true)
-		throw FatalException("OpenOS::initialize() forced a flush event. Flushing the session by client processes is permitted.", LOCATION);
-	
-	initializeSystem( false, CpuId, ProcessId );
+	initializeThisObject();	
+	initializeGlobalObjects( CpuId, ProcessId );
 }
 
+
+void OpenOS::switchState( LocalActivityState State,  ASAAC_PublicId ProcessId )
+{
+	try
+	{
+	    if ((State != LAS_PROCESS_INIT) || (m_ActivityState != LAS_ENTITY))
+	        throw OSException("Transition is only implemented from entity state to process_init state", LOCATION);
 	
-void OpenOS::initialize( bool &IsFirstSession )
+	    CommunicationManager::getInstance()->releaseAllGlobalVirtualChannels();
+	    
+	    ProcessManager::getInstance()->setCurrentProcess(ProcessId);
+	    ProcessManager::getInstance()->releaseAllClientProcesses();    
+	
+	    m_ActivityState = LAS_PROCESS_INIT;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error switching to new state", LOCATION);
+		
+		throw;
+	}
+}
+
+
+void OpenOS::initializeThisObject()
 {
 	if (m_IsInitialized)
 		throw DoubleInitializationException(LOCATION);
 		
 	try
 	{
-		IsFirstSession = true;
+		m_IsMaster = true;
 		 
 		try
 		{
@@ -153,7 +127,7 @@ void OpenOS::initialize( bool &IsFirstSession )
 			
 			//If memory found, this is an advise of existing other objects
 			//Otherwise m_Allocator.initialize would throw an exception
-			IsFirstSession = false;			
+			m_IsMaster = false;			
 		}
 		catch ( ASAAC_Exception &e)
 		{
@@ -170,6 +144,10 @@ void OpenOS::initialize( bool &IsFirstSession )
 		srand(seed);
 
 		m_IsInitialized = true;
+		
+		//After initialization shared objects must be initialized, if this process is master
+		if ( m_IsMaster  == true )
+			flushSession();
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -192,38 +170,63 @@ void OpenOS::initialize( bool &IsFirstSession )
 }
 
 
-void OpenOS::initializeSystem( bool IsMaster, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
+void OpenOS::deinitializeThisObject()
 {
-	//Initialize ProcessManager with dedicated rights
-	if (m_Context == OS_Entity)
-	{	
-		ProcessManager::getInstance()->initializeEntityProcess( IsMaster, &m_Allocator, CpuId);
+	if (m_IsInitialized == false)
+		return;
+
+	try
+	{
+		m_CpuAllocator.deinitialize();
+	
+		m_MutexData.deinitialize();
+		m_CpuId.deinitialize();
+	
+		m_Allocator.deinitialize();
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing OpenOS object", LOCATION);
+		e.raiseError();
 	}
 
-	if ( (m_Context == OS_Starter) || (m_Context == OS_Process) )
-	{	
-		//TODO: LOCAL memory doesn't work for APOS processes. why?
-		//if ( isSMOSProcess(ProcessId) )	
-			ProcessManager::getInstance()->initializeClientProcess( &m_Allocator, CpuId, ProcessId, SHARED );
-		//else ProcessManager::getInstance()->initializeClientProcess( &m_Allocator, CpuId, ProcessId, LOCAL );
+	m_IsInitialized = false;	
+}
+
+
+void OpenOS::initializeGlobalObjects( ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
+{
+	ProcessManager *PM = ProcessManager::getInstance();
+
+	//Initialize ProcessManager with dedicated rights
+	switch ( m_ActivityState )
+	{
+		case LAS_UNDEFINED:			break;
+		case LAS_ENTITY:			PM->initializeEntityProcess( m_IsMaster, &m_Allocator, CpuId);
+								    PM->addCommandHandler(CMD_FLUSH_SESSION, OpenOS::FlushSessionHandler);
+									break;
+		case LAS_PROCESS_INIT:
+		case LAS_PROCESS_RUNNING:	PM->initializeClientProcess( &m_Allocator, CpuId, ProcessId, SHARED );
+									break;
+		case LAS_REMOTE:			break;
 	}
 	
 	//Initialize CommunicatinManager
-	CommunicationManager::getInstance()->initialize( IsMaster, &m_Allocator );
+	CommunicationManager::getInstance()->initialize( m_IsMaster, &m_Allocator );
 		
 	// Initialize Fault Manager and Logging Manager
     // These two must be initialized before the ProcessStarter is
     // called for the first time, in order to allow it to connect
     // to the error and log queues
-    FaultManager::getInstance()->initialize(IsMaster);
-    LoggingManager::getInstance()->initialize(IsMaster);
+    FaultManager::getInstance()->initialize( m_IsMaster );
+    LoggingManager::getInstance()->initialize( m_IsMaster );
     
     //Initialize Error Handler
     ErrorHandler::getInstance()->initialize();		
 }
 
 
-void OpenOS::deinitializeSystem()
+void OpenOS::deinitializeGlobalObjects()
 {
 	CommunicationManager::getInstance()->deinitialize();
 	    
@@ -242,16 +245,9 @@ void OpenOS::deinitialize()
 
 	try
 	{
-		
-		deinitializeSystem();
+		deinitializeGlobalObjects();
 
-		if ( m_CpuAllocator.isInitialized() )
-			m_CpuAllocator.deinitialize();
-
-		m_MutexData.deinitialize();
-		m_CpuId.deinitialize();
-
-		m_Allocator.deinitialize();
+		deinitializeThisObject();
 
 		FileManager::getInstance()->closeAllFiles();
 	}
@@ -264,8 +260,6 @@ void OpenOS::deinitialize()
 	{
 		FatalException("Error deinitializing OpenOS", LOCATION).raiseError();
 	}	
-
-	m_IsInitialized = false;	
 }
 
 
@@ -373,9 +367,9 @@ SessionId OpenOS::getSessionId()
 }
 
 
-OpenOSContext OpenOS::getContext()
+LocalActivityState OpenOS::getActivityState()
 {
-	return m_Context;
+	return m_ActivityState;
 }
 
 
@@ -391,18 +385,6 @@ long OpenOS::getCpuIndex( ASAAC_PublicId CpuId )
 	}
 			 
 	return -1;	
-}
-
-
-bool OpenOS::isSMOSProcess(ASAAC_PublicId ProcessId)
-{
-    return ( (ProcessId >= OS_PROCESSID_SMOS) && (ProcessId <= OS_PROCESSID_SMOS_MAX) );
-}
-
-
-bool OpenOS::isAPOSProcess(ASAAC_PublicId ProcessId)
-{
-    return ( (ProcessId >= OS_PROCESSID_APOS) && (ProcessId <= OS_PROCESSID_APOS_MAX) );
 }
 
 
@@ -452,12 +434,12 @@ ASAAC_ReturnStatus OpenOS::unregisterCpu(ASAAC_PublicId cpu_id)
 }
 
 
-void OpenOS::flushSession(bool IsFirstSession)
+void OpenOS::flushSession()
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	if ( IsFirstSession )
+	if ( m_IsMaster )
 	{
 		for (long Index = 0; Index < OS_MAX_NUMBER_OF_CPU; Index++)
 		{

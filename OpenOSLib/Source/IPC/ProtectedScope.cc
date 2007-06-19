@@ -78,7 +78,7 @@ ProtectedScope::~ProtectedScope()
 				{
 					if (  ThisThread->isSuspendPending() )
 					{
-						oal_thread_kill( oal_thread_self(), ASAAC_SIGNAL_SUSPEND );
+						oal_thread_kill( oal_thread_self(), OS_SIGNAL_SUSPEND );
 					}
 				}
 			}

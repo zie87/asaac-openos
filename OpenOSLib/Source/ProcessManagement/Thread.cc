@@ -36,7 +36,7 @@ public:
 			if ( ThisThread != 0 ) 
 				ThisThread->setSuspendPending( false );
 			
-			SignalManager::getInstance()->waitForSignal( ASAAC_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
+			SignalManager::getInstance()->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
 	
 			if ( ThisThread != 0 ) 
 				ThisThread->setSuspendPending( false );
@@ -85,14 +85,14 @@ Thread::Thread() : m_ParentProcess(0), m_IsInitialized(false), m_SuspendPending(
 	if ( SignalManagerInitialized == false )
 	{
 		// register signal for termination of threads
-		SignalManager::getInstance()->registerSignalHandler( ASAAC_SIGNAL_KILL,    KillCallback );
+		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_KILL,    KillCallback );
 		
 		// register signal for suspension of threads
-		SignalManager::getInstance()->registerSignalHandler( ASAAC_SIGNAL_SUSPEND, SuspendCallback );
+		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_SUSPEND, SuspendCallback );
 		
 		// register signal to catch superfluous 'resume' signals, to
 		// avoid program abortion
-		SignalManager::getInstance()->registerSignalHandler( ASAAC_SIGNAL_RESUME,  ResumeCallback );
+		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_RESUME,  ResumeCallback );
 		
 		SignalManagerInitialized = true;
 	}
@@ -360,7 +360,7 @@ ASAAC_ReturnStatus Thread::stop()
 	oal_thread_cancel( m_ThreadData->PosixThread );
 
 	// resume, so cancellation may be performed
-	oal_thread_kill( m_ThreadData->PosixThread, ASAAC_SIGNAL_RESUME );
+	oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_RESUME );
 	
 	waitForTermination();
 		
@@ -414,7 +414,7 @@ ASAAC_ReturnStatus Thread::suspend()
 		if ( m_ThreadData->SuspendLevel == 1 )
 		{
 			m_SuspendPending = true;
-	 		oal_thread_kill( m_ThreadData->PosixThread, ASAAC_SIGNAL_SUSPEND );
+	 		oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_SUSPEND );
 	 		
 	 		while ( m_SuspendPending ) 
 	 		{ 
@@ -455,7 +455,7 @@ ASAAC_ReturnStatus Thread::resume()
 	{
 			m_SuspendPending = true;
 
-			oal_thread_kill( m_ThreadData->PosixThread, ASAAC_SIGNAL_RESUME );
+			oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_RESUME );
 	
 			while ( m_SuspendPending ) 
 			{
@@ -532,7 +532,7 @@ ASAAC_ReturnStatus Thread::terminate()
 		
 	m_ThreadData->Status = ASAAC_DORMANT;
 	
-	oal_thread_kill( m_ThreadData->PosixThread, ASAAC_SIGNAL_KILL );
+	oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_KILL );
 	return ASAAC_SUCCESS;
 }
 

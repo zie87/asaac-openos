@@ -49,6 +49,6 @@ private:
 };
 
 const ASAAC_TimeInterval TimeIntervalInstant = {0,0};
-const ASAAC_TimeInterval TimeIntervalInfinity = {0,0};
+const ASAAC_TimeInterval TimeIntervalInfinity = {OS_TIME_INFINITY_SECONDS, OS_TIME_INFINITY_NANOSECONDS};
 
 #endif /*TIMEINTERVAL_HH_*/

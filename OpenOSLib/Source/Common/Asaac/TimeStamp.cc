@@ -4,9 +4,6 @@
 
 #include "Managers/TimeManager.hh"
 
-const long TimeInfinitySec = 2147483647;
-const long TimeInfinityNSec = 999999999;
-
 TimeStamp::TimeStamp(unsigned long seconds, unsigned long nano_seconds)
 {
 	reset();
@@ -53,8 +50,8 @@ TimeStamp & TimeStamp::addSeconds(long seconds)
 	    (seconds < 0))
 		throw FatalException("Time value beyond zero"); //beyond zero
 	
-	if ((TimeInfinitySec - m_Time.sec) < seconds)
-		m_Time.sec = TimeInfinitySec;
+	if ((OS_TIME_INFINITY_SECONDS - m_Time.sec) < seconds)
+		m_Time.sec = OS_TIME_INFINITY_SECONDS;
 	else m_Time.sec += seconds;	
 	
 	return *this;
@@ -89,8 +86,8 @@ TimeStamp & TimeStamp::addNanoSeconds(long nano_seconds)
 		addSeconds(+1);
 	}
 
-	if (m_Time.sec == TimeInfinitySec)
-		m_Time.nsec = TimeInfinityNSec;
+	if (m_Time.sec == OS_TIME_INFINITY_SECONDS)
+		m_Time.nsec = OS_TIME_INFINITY_NANOSECONDS;
 	
 	return *this;
 }
@@ -180,7 +177,7 @@ const unsigned long long TimeStamp::nsec()
  
 bool TimeStamp::isInfinity()
 {
-	return ((m_Time.sec == TimeInfinitySec) && (m_Time.nsec == TimeInfinityNSec));
+	return ((m_Time.sec == OS_TIME_INFINITY_SECONDS) && (m_Time.nsec == OS_TIME_INFINITY_NANOSECONDS));
 }
 
 bool TimeStamp::isZero()
@@ -337,7 +334,7 @@ TimeStamp TimeStamp::Instant()
 
 TimeStamp TimeStamp::Infinity()
 {
-	return TimeStamp(TimeInfinitySec, TimeInfinityNSec);
+	return TimeStamp(TimeInfinity);
 }
 
 void TimeStamp::reset()

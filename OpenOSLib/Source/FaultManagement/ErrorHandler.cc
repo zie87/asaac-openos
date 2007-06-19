@@ -46,11 +46,8 @@ void ErrorHandler::initialize()
 		
 		CurrentProcess->addCommandHandler( CMD_ACTIVATE_ERROR_HANDLER, ErrorHandler::activateErrorHandler );
 
-		if (m_ErrorMessageQueue.open( OS_ERROR_QUEUE, CLIENTS_SEND ) == ASAAC_ERROR)
-			throw OSException("Unable to connect to error queue", LOCATION);
-			
-		if (m_LoggingMessageQueue.open( OS_LOGGING_QUEUE, CLIENTS_SEND ) == ASAAC_ERROR)
-			throw OSException("Unable to connect to logging queue", LOCATION);
+		m_ErrorMessageQueue.initialize( false, OS_ERROR_QUEUE, CLIENTS_SEND );			
+		m_LoggingMessageQueue.initialize( false, OS_LOGGING_QUEUE, CLIENTS_SEND );
 		
 		m_LocalAllocator.initialize( Trigger::predictSize() );
 		m_ErrorHandlerTrigger.initialize( &m_LocalAllocator, true );

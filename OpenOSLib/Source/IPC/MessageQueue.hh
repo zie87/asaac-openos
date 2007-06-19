@@ -31,7 +31,7 @@ public:
 	virtual ~MessageQueue();
 	
 	//! create a POSIX message queue for communication
-	ASAAC_ReturnStatus create( ASAAC_CharacterSequence Name, QueueDirection Direction, unsigned long QueueSize, unsigned long MessageSize );
+	void initialize( const bool IsMaster, const ASAAC_CharacterSequence Name, const QueueDirection Direction, const unsigned long QueueSize = 0, const unsigned long MessageSize = 0 );
 	/*!< this call creates a POSIX message queue and sets up its parameters for communication
 	 *   as indicated by the parameters. This operation in many environments requires special
 	 *   (root) privileges.
@@ -46,20 +46,8 @@ public:
 	 */
 	
 	
-	//! connect to an already created POSIX message queue
-	ASAAC_ReturnStatus open( ASAAC_CharacterSequence Name, QueueDirection Direction );
-	/*!< connect to a POSIX message queue that was previously created via create(). Name and Direction must
-	 *   match those chosen at the queue creation. Otherwise, the operation will fail.
-	 * 
-	 * \param[in] Name	Name of the message queue to be connected to.
-	 * \param[in] Direction Communication direction of the message queue.
-	 * 
-	 *   \returns ASAAC_SUCCESS on successful creation of the message queue. ASAAC_ERROR if an error occurred.
-	 */
-	
-	
 	//! close/disconnect from a POSIX message queue
-	void close();
+	void deinitialize();
 	/*!< closes the connection to the POSIX message queue handled by this object instance.
 	 *   If the current instance was the creator of the message queue, the message queue is removed.
 	 *   However, due to the specifications of the POSIX environment, the actual OS resources of the queue
@@ -85,12 +73,12 @@ public:
 	
 private:
 	
-	bool				m_IsInitialized;
-	ASAAC_PublicId     	m_QueueHandle;
+	bool					m_IsInitialized;
+	ASAAC_PrivateId    		m_QueueHandle;
 	
-	bool				m_IsMaster;
+	bool					m_IsMaster;
 	
-	CharacterSequence	m_Name;
+	ASAAC_CharacterSequence	m_Name;
 	
 };
 

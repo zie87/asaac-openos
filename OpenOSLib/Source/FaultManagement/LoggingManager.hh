@@ -45,7 +45,7 @@ private:
 	bool 			m_IsInitialized;
 	bool			m_IsMaster;
 	
-	long 			m_LogFileDescriptors[ 4 ];
+	ASAAC_PrivateId	m_LogFileDescriptors[ 4 ];
 	
 	MessageQueue	m_LoggingQueue;
 

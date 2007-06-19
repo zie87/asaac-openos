@@ -431,7 +431,7 @@ ASAAC_TimedReturnStatus ProcessManager::createClientProcess( const ASAAC_Process
 		
 				NewProcess->launch();
 				
-				if ( NewProcess->getPID() == ASAAC_ERROR ) 
+				if ( NewProcess->refreshPosixPid() == ASAAC_ERROR ) 
 					throw TimeoutException("Timeout requesting pid of client process", LOCATION);
 			}
 			catch ( ASAAC_Exception& e )
@@ -505,7 +505,7 @@ ASAAC_TimedReturnStatus ProcessManager::createClientProcess( const ASAAC_Process
 		if (CreatedProcess == 0)
 			return ASAAC_TM_ERROR;
 			
-		if ( CreatedProcess->getPID() == ASAAC_ERROR ) 
+		if ( CreatedProcess->refreshPosixPid() == ASAAC_ERROR ) 
 			return ASAAC_TM_TIMEOUT;
 				
 		return d.Return;
@@ -775,7 +775,7 @@ ASAAC_ReturnStatus ProcessManager::destroyAllClientProcesses()
             {
                 if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCpuId()) && 
                      (m_ProcessObject[ Index ].getId() != getCurrentProcess()->getId()) &&
-                     (m_ProcessObject[ Index ].isAPOSProcess()) ) 
+                     (m_ProcessObject[ Index ].getAlias() == PROC_APOS ) ) 
                 {   
                     m_ProcessObject[ Index ].destroy();
                     m_ProcessObject[ Index ].deinitialize();
@@ -788,8 +788,7 @@ ASAAC_ReturnStatus ProcessManager::destroyAllClientProcesses()
             if (m_ProcessObject[ Index ].isInitialized())
             {
                 if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCpuId()) && 
-                     (m_ProcessObject[ Index ].getId() != getCurrentProcess()->getId()) &&
-                     (m_ProcessObject[ Index ].isSMOSProcess()) ) 
+                     (m_ProcessObject[ Index ].getId() != getCurrentProcess()->getId()) ) 
                 {   
                     m_ProcessObject[ Index ].destroy();
                     m_ProcessObject[ Index ].deinitialize();

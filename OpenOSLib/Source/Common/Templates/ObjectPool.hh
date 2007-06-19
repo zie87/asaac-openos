@@ -86,7 +86,8 @@ template <class T, unsigned long N> ObjectPool<T,N>::~ObjectPool()
 
 template <class T, unsigned long N> T* ObjectPool<T,N>::acquireObject( const ASAAC_TimeInterval& Timeout )
 {
-	try {
+	try 
+	{
 		return m_FreeObjectPointers.pop( TimeStamp(Timeout).asaac_Time() );
 	}
 	catch ( ResourceException &E )

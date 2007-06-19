@@ -43,16 +43,10 @@ SharedMemory::SharedMemory() :
 void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaster, unsigned long Size, bool EraseMemory, bool EvaluateSession )
 {
 	if ( m_IsInitialized )
-	{
-		//cout << "SharedMemory::double init" << endl;
 		throw OSException("Double Initialisation",LOCATION);
-	}
 	
 	if ( Size == 0 )
-	{
-		//cout << "SharedMemory::zero" << endl;
 		throw OSException( "Trying to open zero size ShMO.", LOCATION );
-	}
 	
 	m_IsMaster = IsMaster;
 	
@@ -62,45 +56,26 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 	m_HeaderAddress.ptr = 0;
 	m_MemoryAddress.ptr = 0;
 	
-	// We want to read and write in the shared memory segment
-	long iFlags = O_RDWR;
-	// S_IRWXU == owner has all rights
-	
 	try
 	{
         m_IsInitialized = true;
         
         CharacterSequence ErrorString;
  		
+ 		// If Master, create Shared Memory File
 		if ( m_IsMaster )
-		{
-	
-			// The master ( Initialize == true ) shall create the
-			// shared memory file. Non-masters will and shall fail
-			// if no master is present.
-			iFlags = iFlags | O_CREAT;		
-		}
+			FileManager::getInstance()->createSharedMemory(m_Name, ASAAC_RW, Size + sizeof(MemoryHeader));
 		
-		// Allocate Posix Shared Memory File handle
-		m_FileHandle = FileManager::getInstance()->getFileHandle( m_Name, SHARED_MEMORY_OBJECT, iFlags, Size + sizeof(MemoryHeader) );
+		// Open Shared Memory File
+		const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
+		FileManager::getInstance()->openSharedMemory( m_Name, UseOption, m_FileHandle );
 
 		
         if (m_IsMaster == false)
         {
 			//	Map header of Shared Memory Area to virtual memory
-			m_BaseAddress.ptr = oal_mmap( 0,                    // Start ASAAC_Address
-									sizeof(MemoryHeader),		// Size
-									PROT_READ | PROT_WRITE,	    // Permissions
-									MAP_SHARED,					// Mode
-									m_FileHandle,				// File Handle
-									0 );						// Offset
+			FileManager::getInstance()->mapFile( m_FileHandle, sizeof(MemoryHeader), 0, m_BaseAddress.ptr ); 
 			
-			if ( m_BaseAddress.ptr == MAP_FAILED )
-			{
-				//cout << "SharedMemory::map once failed" << endl;
-                throw OSException( strerror(errno), LOCATION );
-			}
-	
 			m_BaseMemorySize = sizeof(MemoryHeader);
 			
 			m_HeaderAddress = m_BaseAddress;
@@ -127,25 +102,14 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 				
 			Size = getMemoryHeader()->Size;
 			
-			oal_munmap( m_HeaderAddress.ptr, sizeof(MemoryHeader) );
+			FileManager::getInstance()->unmapFile( m_HeaderAddress.ptr, sizeof(MemoryHeader) );
 			
 			
 		}		
 		
 		// Map whole Shared Memory Area to virtual memory
-		m_BaseAddress.ptr = oal_mmap( 0,	// Start ASAAC_Address
-								Size + sizeof(MemoryHeader),// Size
-								PROT_READ | PROT_WRITE,		// Permissions
-								MAP_SHARED,					// Mode
-								m_FileHandle,				// File Handle
-								0 );						// Offset
+		FileManager::getInstance()->mapFile( m_FileHandle, Size + sizeof(MemoryHeader), 0, m_BaseAddress.ptr ); 
 	
-		if ( m_BaseAddress.ptr == MAP_FAILED )
-		{
-		    //cout << "SharedMemory::map again failed" << endl;
-            throw OSException( strerror(errno), LOCATION );
-		}
-
 		m_BaseMemorySize = Size + sizeof(MemoryHeader);
 	
 		m_HeaderAddress.number = m_BaseAddress.number;
@@ -233,13 +197,13 @@ void SharedMemory::deinitialize()
 			ErrorHandler::getInstance()->logMessage(LogMsg.asaac_str(), ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE);
 	
 			// Unmap memory mapping of shared memory file.	
-			if ( oal_munmap( m_BaseAddress.ptr, m_BaseMemorySize ) < 0 )
+			if ( FileManager::getInstance()->unmapFile( m_BaseAddress.ptr, m_BaseMemorySize ) < 0 )
 				throw OSException("Error unmapping shared memory", LOCATION );
 	
             // Check if no more objects using the memory    
             if (AllocationCounter == 0 )
             {
-                if (FileManager::getInstance()->removeFile(m_FileHandle) == ASAAC_ERROR)
+                if (FileManager::getInstance()->deleteSharedMemory(m_Name, ASAAC_NORMAL, TimeIntervalInstant) != ASAAC_TM_SUCCESS)
                     throw OSException("Error deleting shared memory.", LOCATION);
             }
 
