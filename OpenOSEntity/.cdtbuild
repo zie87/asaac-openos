@@ -27,6 +27,8 @@
 <option superClass="gnu.cpp.link.option.paths" id="gnu.cpp.link.option.paths.1840393156" valueType="stringList">
 <listOptionValue value="$(ASAAC_OS)/OpenOSLib/Debug" builtIn="false"/>
 </option>
+<option superClass="gnu.cpp.link.option.shared" id="gnu.cpp.link.option.shared.509824234" value="false" valueType="boolean"/>
+<option superClass="gnu.cpp.link.option.soname" id="gnu.cpp.link.option.soname.829735132" value="" valueType="string"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug" id="cdt.managedbuild.tool.gnu.assembler.exe.debug.1106505967" name="GCC Assembler"/>
 <macros/>

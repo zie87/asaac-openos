@@ -3,8 +3,6 @@
 	<name>OpenOSEntity</name>
 	<comment></comment>
 	<projects>
-		<project>DummyApplication</project>
-		<project>GSM-Application</project>
 		<project>OpenOSLib</project>
 	</projects>
 	<buildSpec>

@@ -81,8 +81,11 @@ int main( char argc, char** argv )
     try
     {    	
         // Initialize OS
-        OpenOS::getInstance()->initializeEntity(entityConfiguration.CpuId, entityConfiguration.Flush);
-
+        OpenOS::getInstance()->initialize( LAS_ENTITY, entityConfiguration.CpuId );
+        
+		if ( entityConfiguration.Flush )
+			OpenOS::getInstance()->flushSession();
+			
         // Determine entry points
         parseConfiguration();
 
@@ -123,7 +126,7 @@ void initializeConfiguration()
 		
 	for (unsigned short p = 0; p < OS_MAX_NUMBER_OF_PROCESSES; p++)
 	{
-		entityConfiguration.ProcessConfiguration.List[p].Alias = PROC_Undefined;
+		entityConfiguration.ProcessConfiguration.List[p].Alias = PROC_UNDEFINED;
 		entityConfiguration.ProcessConfiguration.List[p].Description.global_pid = OS_UNUSED_ID;
 		entityConfiguration.ProcessConfiguration.List[p].Description.programme_file_name = CharSeq("").asaac_str();
 		entityConfiguration.ProcessConfiguration.List[p].Description.programme_file_Size = 0;
