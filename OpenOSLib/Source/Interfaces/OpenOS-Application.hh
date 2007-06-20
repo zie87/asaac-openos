@@ -7,11 +7,11 @@
 
 #ifdef __cplusplus
 	#define ASAAC_ENTITY 		void registerThreads() {}
-	#define ASAAC_APPLICATION 	int main( int argc, char** argv ){	return applicationMain(argc, argv ); } void registerThreads() {}
+	#define ASAAC_APPLICATION 	int main( int argc, char** argv ){	return applicationMain(); } void registerThreads() {}
 	#define ASAAC_THREAD(x) 	void *x( void *Data ); ASAAC_ReturnStatus OpenOS_registered##x = OpenOS_registerThread(#x, x); void * x (void* Data)
 #else
 	#define ASAAC_ENTITY 		
-	#define ASAAC_APPLICATION 	int main( int argc, char** argv ){	return applicationMain(argc, argv ); } 
+	#define ASAAC_APPLICATION 	int main( int argc, char** argv ){	return applicationMain(); } 
 	#define ASAAC_THREAD(x) 	OpenOS_registerThread(#x, x)
 #endif
 
@@ -62,7 +62,7 @@ extern
 #ifdef __cplusplus
 "C"
 #endif
-long applicationMain( char argc, char** argv );
+int applicationMain();
 
 extern 
 #ifdef __cplusplus

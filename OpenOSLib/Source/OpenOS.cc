@@ -95,6 +95,8 @@ void OpenOS::switchState( LocalActivityState State,  ASAAC_PublicId ProcessId )
 	    if ((State != LAS_PROCESS_INIT) || (m_ActivityState != LAS_ENTITY))
 	        throw OSException("Transition is only implemented from entity state to process_init state", LOCATION);
 	
+	    setenv(OS_ENV_ID_PROCESS, CharSeq(ProcessId).c_str(), 1);
+
 	    CommunicationManager::getInstance()->releaseAllGlobalVirtualChannels();
 	    
 	    ProcessManager::getInstance()->setCurrentProcess(ProcessId);

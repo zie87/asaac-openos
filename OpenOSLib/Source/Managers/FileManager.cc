@@ -13,6 +13,8 @@
 FileManager::FileManager()
 {
     m_IsInitialized = false;
+    
+    initialize();
 }
 
 

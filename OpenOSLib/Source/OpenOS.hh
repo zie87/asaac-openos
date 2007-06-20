@@ -24,13 +24,15 @@ public:
 	~OpenOS();
 	
 	void initialize( LocalActivityState State );
-	void initialize( LocalActivityState State,  ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId );
+	void initialize( LocalActivityState State,  ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId = OS_UNUSED_ID );
 
 	void switchState( LocalActivityState State,  ASAAC_PublicId ProcessId );
 	
 	void deinitialize();
 
 	bool isInitialized();
+
+	void flushSession();	
 
 	ASAAC_ReturnStatus       destroyAllEntities();
 	ASAAC_TimedReturnStatus  sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
@@ -55,7 +57,6 @@ private:
 	void registerCpu( ASAAC_PublicId cpu_id );
 	ASAAC_ReturnStatus unregisterCpu( ASAAC_PublicId cpu_id );	
 
-	void flushSession();	
 	void flushLocalSession( SessionId NewSessionId );
 	
 	void initializeMutex();

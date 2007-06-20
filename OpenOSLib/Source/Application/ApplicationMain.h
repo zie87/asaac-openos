@@ -6,7 +6,7 @@ extern
 #ifdef __cplusplus
 "C"
 #endif
-long applicationMain( char argc, char** argv );
+int applicationMain( char argc, char** argv );
 
 
 extern 
