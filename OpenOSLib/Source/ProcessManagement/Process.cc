@@ -189,7 +189,7 @@ void Process::launch()
         {
             try
             {            	
-                OpenOS::getInstance()->switchState( LAS_PROCESS_INIT, getId() );
+                OpenOS::getInstance()->switchState( false, LAS_PROCESS_INIT, getId() );
 
 				// Enter main cycle of ProcessStarter
 				unsigned long CommandId;

@@ -57,7 +57,7 @@ size_t OpenOS::predictSize()
 }	
 
 
-void OpenOS::initialize( LocalActivityState State )
+void OpenOS::initialize( bool IsMaster, LocalActivityState State )
 {
     CharacterSequence CpuId = getenv(OS_ENV_ID_CPU);
     
@@ -69,11 +69,11 @@ void OpenOS::initialize( LocalActivityState State )
     if ( ProcessId.empty() )
         throw OSException("ProcessId not in environment", LOCATION);
         
-    initialize( State, false, CpuId.asaac_id(), ProcessId.asaac_id() );
+    initialize( IsMaster, State, CpuId.asaac_id(), ProcessId.asaac_id() );
 }
 
 
-void OpenOS::initialize( LocalActivityState State,  bool Flush, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
+void OpenOS::initialize( bool IsMaster, LocalActivityState State, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
 {
 	if (m_IsInitialized)
 		throw DoubleInitializationException(LOCATION);
@@ -81,23 +81,26 @@ void OpenOS::initialize( LocalActivityState State,  bool Flush, ASAAC_PublicId C
     setenv(OS_ENV_ID_CPU, CharSeq(CpuId).c_str(), 1);
     setenv(OS_ENV_ID_PROCESS, CharSeq(ProcessId).c_str(), 1);
 
+	m_IsMaster = IsMaster;
 	m_ActivityState = State;
 	
 	initializeThisObject();	
 	
-	if ( Flush == true )
+	if ( IsMaster == true )
 		flushSession();
 	
 	initializeGlobalObjects( CpuId, ProcessId );
 }
 
 
-void OpenOS::switchState( LocalActivityState State,  ASAAC_PublicId ProcessId )
+void OpenOS::switchState( bool IsMaster, LocalActivityState State,  ASAAC_PublicId ProcessId )
 {
 	try
 	{
 	    if ((State != LAS_PROCESS_INIT) || (m_ActivityState != LAS_ENTITY))
 	        throw OSException("Transition is only implemented from entity state to process_init state", LOCATION);
+	
+		m_IsMaster = IsMaster;
 	
 	    setenv(OS_ENV_ID_PROCESS, CharSeq(ProcessId).c_str(), 1);
 

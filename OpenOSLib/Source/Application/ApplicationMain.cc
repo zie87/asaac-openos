@@ -14,7 +14,7 @@ int applicationMain( void )
 
 	try
 	{		
-		OpenOS::getInstance()->initialize( LAS_PROCESS_RUNNING );
+		OpenOS::getInstance()->initialize( false, LAS_PROCESS_RUNNING );
 			
 		Process* P = ProcessManager::getInstance()->getCurrentProcess();
 		

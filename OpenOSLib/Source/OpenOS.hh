@@ -23,10 +23,10 @@ public:
 	static OpenOS *getInstance();
 	~OpenOS();
 	
-	void initialize( LocalActivityState State );
-	void initialize( LocalActivityState State,  bool Flush, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId = OS_UNUSED_ID );
+	void initialize( bool IsMaster, LocalActivityState State );
+	void initialize( bool IsMaster, LocalActivityState State, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId = OS_UNUSED_ID );
 
-	void switchState( LocalActivityState State,  ASAAC_PublicId ProcessId );
+	void switchState( bool IsMaster, LocalActivityState State, ASAAC_PublicId ProcessId );
 	
 	void deinitialize();
 
