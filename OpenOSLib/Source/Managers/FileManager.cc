@@ -984,9 +984,9 @@ FileManager::FileInfoData FileManager::getFileInfoData( ASAAC_CharacterSequence 
 	
 	Data.Name                 =                               Seq.asaac_str(0, Colon1);
 	Data.Type                 =                    (FileType) Seq.c_uint(Colon1+1, Colon2-Colon1-1);
-	Data.UseOption.use_access =       (ASAAC_UseAccessRights) Seq.c_uint(Colon1+1, Colon3-Colon2-1);
-	Data.UseOption.use_concur = (ASAAC_UseConcurrencePattern) Seq.c_uint(Colon1+1, Colon4-Colon3-1);
-	Data.PosixHandle 		  =                               Seq.c_int(Colon1+1, Seq.size()-Colon4-1);
+	Data.UseOption.use_access =       (ASAAC_UseAccessRights) Seq.c_uint(Colon2+1, Colon3-Colon2-1);
+	Data.UseOption.use_concur = (ASAAC_UseConcurrencePattern) Seq.c_uint(Colon3+1, Colon4-Colon3-1);
+	Data.PosixHandle 		  =                               Seq.c_int(Colon4+1, Seq.size()-Colon4-1);
 	
 	Data.Derived = true;
 	
@@ -996,49 +996,81 @@ FileManager::FileInfoData FileManager::getFileInfoData( ASAAC_CharacterSequence 
 
 void FileManager::writeFileInfoListToEnvironment()
 {
-	CharacterSequence HandleList;
-	CharacterSequence Handle;
-	CharacterSequence HandleData;
-	
-	for ( unsigned long Index = 0; Index < m_FileInfoList.getCount(); Index++ )
+	try
 	{
-		ASAAC_PrivateId AsaacHandle = m_FileInfoList.idOf(Index);
+		CharacterSequence HandleList;
+		CharacterSequence Handle;
+		CharacterSequence HandleData;
 		
-		HandleList << AsaacHandle << ",";
-
-		Handle = OS_ENV_ASAACHANDLE + AsaacHandle;
-		HandleData = getFileInfoString( m_FileInfoList[Index] );
-		
-		setenv( Handle.c_str(), HandleData.c_str(), 1 ); 
-	}
+		for ( unsigned long Index = 0; Index < m_FileInfoList.getCount(); Index++ )
+		{
+			ASAAC_PrivateId AsaacHandle = m_FileInfoList.idOf(Index);
+			
+			HandleList << AsaacHandle << ",";
 	
-	HandleList.erase(HandleList.size()-1);
-
-	setenv( OS_ENV_ASAACHANDLELIST, HandleList.c_str(), 1 ); 
+			Handle.erase();
+			Handle << OS_ENV_ASAACHANDLE << AsaacHandle;
+			HandleData = getFileInfoString( m_FileInfoList[Index] );
+			
+			setenv( Handle.c_str(), HandleData.c_str(), 1 ); 
+		}
+		
+		HandleList.erase(HandleList.size()-1);
+	
+		setenv( OS_ENV_ASAACHANDLELIST, HandleList.c_str(), 1 );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error writing FileInfo to environment", LOCATION);
+		
+		e.raiseError();
+		
+		throw;
+	} 
+	
 }
 
 
 void FileManager::readFileInfoListFromEnvironment()
 {
-	CharacterSequence HandleList = getenv( OS_ENV_ASAACHANDLELIST );
-	CharacterSequence Handle;
-	CharacterSequence HandleData;
-	
-	unsigned long Index = 0;
-	unsigned long Len;
-	
-	while ( Index < HandleList.size() )
+	try
 	{
-		Len = HandleList.find(":", false, Index) - Index;
+		CharacterSequence HandleList = getenv( OS_ENV_ASAACHANDLELIST );
+		CharacterSequence Handle;
+		CharacterSequence HandleData;
 		
-		ASAAC_PrivateId AsaacHandle = HandleList.asaac_id( Index, Len );
-
-		Handle = OS_ENV_ASAACHANDLE + AsaacHandle;
-		HandleData = getenv( Handle.c_str() );
+		long NewIndex = 0;
+		long Index = 0;
+		unsigned long Len;
 		
-		m_FileInfoList.add( AsaacHandle, getFileInfoData( HandleData.asaac_str() ) );
+		while ( Index < (long)HandleList.size() )
+		{
+			NewIndex = HandleList.find(",", false, Index);
+			
+			if (NewIndex == -1)
+				Len = HandleList.size() - Index;
+			else Len = NewIndex - Index;
+			
+			ASAAC_PrivateId AsaacHandle = HandleList.asaac_id( Index, Len );
+			
+			Handle.erase();
+			Handle << OS_ENV_ASAACHANDLE << AsaacHandle;
+			HandleData = getenv( Handle.c_str() );
+			
+			FileInfoData Data = getFileInfoData( HandleData.asaac_str() );
+			
+			m_FileInfoList.add( AsaacHandle, Data );
+			
+			Index = Index + Len + 1;
+		}
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath( "Error reading FileInfo from environment", LOCATION );
 		
-		Index = Index + Len + 1;
+		e.raiseError();
+		
+		throw;
 	}
 }
 
