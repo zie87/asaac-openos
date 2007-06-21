@@ -145,13 +145,15 @@ template <class TID, class T> long SharedMap<TID, T>::add( const TID Id, const T
 	
 		if (m_List[Index].Id < Id)
 			l = Index+1;
-		else u = Index-1;			
+		else u = Index;			
 	}
 	
 	Index = l;
 	
 	const MapData Data =  {Id, Value};
-	return m_List.insert(Index, Data, Timeout);
+	m_List.insert(Index, Data, Timeout);
+	
+	return Index;
 }
 
 
@@ -223,7 +225,7 @@ template <class TID, class T> long SharedMap<TID, T>::indexOf( const TID Id )
 	
 		if (m_List[i].Id < Id)
 			l = i+1;
-		else u = i-1;			
+		else u = i;			
 	}
 	
 	return -1;

@@ -928,10 +928,12 @@ long FileManager::indexOf( const ASAAC_CharacterSequence name, FileType type, AS
 
 FileManager::FileInfoData FileManager::getFileDataByAsaacHandle( const ASAAC_PrivateId asaac_handle )
 {
+	CharacterSequence ErrorString;
+	
     long Index = m_FileInfoList.indexOf( asaac_handle );
     
     if (Index == -1)
-    	throw OSException("data for given asaac_handle is not available", LOCATION);
+    	throw OSException( (ErrorString << "data for given asaac_handle (" << asaac_handle << ") is not available").c_str() , LOCATION);
     	
     return m_FileInfoList[ Index ];	    
 }

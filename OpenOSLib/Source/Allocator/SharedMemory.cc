@@ -49,7 +49,6 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 		throw OSException( "Trying to open zero size ShMO.", LOCATION );
 	
 	m_IsMaster = IsMaster;
-	
 	m_Name = Name;
 	
 	m_BaseAddress.ptr = 0;
