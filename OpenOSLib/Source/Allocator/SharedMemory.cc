@@ -68,7 +68,8 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 		
 		// Open Shared Memory File
 		const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
-		FileManager::getInstance()->openSharedMemory( m_Name, UseOption, m_FileHandle );
+		if (FileManager::getInstance()->openSharedMemory( m_Name, UseOption, m_FileHandle ) == ASAAC_ERROR)
+			throw OSException("SharedMemory could not be opened", LOCATION);
 
 		
         if (m_IsMaster == false)

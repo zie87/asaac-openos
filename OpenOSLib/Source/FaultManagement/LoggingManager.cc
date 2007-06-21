@@ -54,7 +54,9 @@ void LoggingManager::initialize(bool IsMaster)
 			
 			const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
 			
-			if (FM->openFile( CharSeq(LogFileNames[ Index ]).asaac_str(), UseOption, m_LogFileDescriptors[Index]) == ASAAC_ERROR);
+			ASAAC_ReturnStatus Result = FM->openFile( CharSeq(LogFileNames[ Index ]).asaac_str(), UseOption, m_LogFileDescriptors[Index]);
+			
+			if (Result == ASAAC_ERROR)
 				throw OSException( LogFileNames[ Index ], LOCATION );
 		}
 		

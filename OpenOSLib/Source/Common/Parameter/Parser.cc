@@ -11,15 +11,15 @@ Parser::~Parser()
 }
 
 
-void Parser::setString(CharacterSequence String)
+void Parser::setString( ASAAC_CharacterSequence String )
 {
     m_Sequence = String;
 }
 
 
-CharacterSequence Parser::getString()
+ASAAC_CharacterSequence Parser::getString()
 {
-    return m_Sequence;
+    return m_Sequence.asaac_str();
 }
 
 
@@ -182,7 +182,7 @@ ASAAC_PublicId Parser::parsePublicId(unsigned long &Index)
 {
     unsigned long StartIndex = Index;
     unsigned long Len = parseSample(Index, createSample(xdigit), 10);
-    return getString().asaac_id( StartIndex, Len );
+    return m_Sequence.asaac_id( StartIndex, Len );
 }
 
 
@@ -190,7 +190,7 @@ ASAAC_CharacterSequence Parser::parsePath(unsigned long &Index)
 {
     static ASAAC_CharacterSequence Result;
     unsigned long StartIndex = Index;
-    Result = getString().asaac_str( StartIndex, parseSample(Index, createSample(graph), sizeof(Result.data)) );
+    Result = m_Sequence.asaac_str( StartIndex, parseSample(Index, createSample(graph), sizeof(Result.data)) );
     return Result;
 }
 
@@ -199,7 +199,7 @@ ASAAC_CharacterSequence Parser::parseName(unsigned long &Index)
 {
     static ASAAC_CharacterSequence Result;
     unsigned long StartIndex = Index;
-    Result = getString().asaac_str( StartIndex, parseSample(Index, createSample(alnum), sizeof(Result.data)) );
+    Result = m_Sequence.asaac_str( StartIndex, parseSample(Index, createSample(alnum), sizeof(Result.data)) );
     return Result;
 }
 

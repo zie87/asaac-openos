@@ -31,7 +31,7 @@ public:
 	SharedMap();
 	
 	//! initialization method
-	void initialize( Allocator* ThisAllocator, bool IsMaster = false, unsigned long Size = 0 );
+	void initialize( Allocator* ThisAllocator, const bool IsMaster = false, const unsigned long Size = 0 );
 	/*!< \param[in] ThisAllocator Reference to Allocator to use for the allocation of control and data
 	 *                            structures of the queue
 	 *   \param[in] IsMaster      Flag indicating wether the calling instance shall be the master instance,
@@ -103,12 +103,12 @@ template <class TID, class T> SharedMap<TID, T>::~SharedMap()
 
 
 template <class TID, class T> void SharedMap<TID, T>::initialize( Allocator* ThisAllocator, 
-							 									  bool IsMaster, 
-							 									  unsigned long Size )
+							 									  const bool IsMaster, 
+							 									  const unsigned long Size )
 {
 	try 
 	{
-		m_List.initialize( ThisAllocator, Size );		
+		m_List.initialize( ThisAllocator, IsMaster, Size );		
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -131,14 +131,14 @@ template <class TID, class T> void SharedMap<TID, T>::deinitialize()
 
 template <class TID, class T> long SharedMap<TID, T>::add( const TID Id, const T Value, const ASAAC_Time& Timeout )
 {
-	long Index;
+	long Index = 0;
 	
 	long l = 0;
 	long u = m_List.getCount();
 	
 	while ( u != l )
 	{
-		Index = l + div(l+u, (long)2).quot;
+		Index = l + div(u-l, (long)2).quot;
 
 		if (m_List[Index].Id == Id)
 			throw OSException("Data with dedicated Id already exist", LOCATION);
@@ -147,6 +147,8 @@ template <class TID, class T> long SharedMap<TID, T>::add( const TID Id, const T
 			l = Index+1;
 		else u = Index-1;			
 	}
+	
+	Index = l;
 	
 	const MapData Data =  {Id, Value};
 	return m_List.insert(Index, Data, Timeout);
@@ -214,7 +216,7 @@ template <class TID, class T> long SharedMap<TID, T>::indexOf( const TID Id )
 	
 	while ( u != l )
 	{
-		i = l + div(l+u, (long)2).quot;
+		i = l + div(u-l, (long)2).quot;
 
 		if (m_List[i].Id == Id)
 			return i;

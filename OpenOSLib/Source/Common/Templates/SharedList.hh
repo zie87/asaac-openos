@@ -34,7 +34,7 @@ public:
 	SharedList();
 	
 	//! initialization method
-	void initialize( Allocator* ThisAllocator, bool IsMaster = false, unsigned long Size = 0 );
+	void initialize( Allocator* ThisAllocator, const bool IsMaster = false, const unsigned long Size = 0 );
 	/*!< \param[in] ThisAllocator Reference to Allocator to use for the allocation of control and data
 	 *                            structures of the queue
 	 *   \param[in] IsMaster      Flag indicating wether the calling instance shall be the master instance,
@@ -108,8 +108,8 @@ template <class T> SharedList<T>::~SharedList()
 
 
 template <class T> void SharedList<T>::initialize( Allocator* ThisAllocator, 
-							 									  bool IsMaster, 
-							 									  unsigned long Size )
+							 									  const bool IsMaster, 
+							 									  const unsigned long Size )
 {
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException(LOCATION);

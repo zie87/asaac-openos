@@ -219,7 +219,7 @@ ASAAC_ResourceReturnStatus FileManager::createSharedMemory(const ASAAC_Character
     
     try 
     {
-        int Flags = O_CREAT;
+        int Flags = O_RDWR | O_CREAT;
         int Mode = AccessRightsToMode(access);    
         
 #ifdef _ELINOS_4_1_
@@ -281,6 +281,8 @@ ASAAC_ResourceReturnStatus FileManager::createMessageQueue(const ASAAC_Character
         
         //TODO: check if file exists, then throw a recource exception
 
+		mq_unlink( Path.c_str() );
+		
         Handle = oal_mq_open( Path.c_str(), Flags, Mode, &Attributes);
         
         if (Handle == -1)
@@ -593,7 +595,9 @@ ASAAC_TimedReturnStatus FileManager::readFile(const ASAAC_PrivateId filehandle, 
 {
     try 
     {
-        count_read = read(filehandle, buffer_address, read_count);
+		FileInfoData Data = getFileDataByAsaacHandle(filehandle);
+		
+        count_read = oal_read(Data.PosixHandle, buffer_address, read_count);
         
         if ( count_read == -1)
              throw OSException( strerror(errno), LOCATION );
@@ -623,9 +627,10 @@ ASAAC_TimedReturnStatus FileManager::mapFile(const ASAAC_PrivateId file_handle, 
 	{
 		FileInfoData Data = getFileDataByAsaacHandle(file_handle);
 		
-		if ((Data.Type != REGULAR_FILE) || (Data.Type != SHARED_MEMORY_OBJECT))
+		if ((Data.Type != REGULAR_FILE) && (Data.Type != SHARED_MEMORY_OBJECT))
 			throw OSException("FileType for this handle is not supported", LOCATION); 
 		
+		int PosixHandle = Data.PosixHandle;
 		int Permissions = 0;
 		
 		switch ( Data.UseOption.use_access )
@@ -639,7 +644,7 @@ ASAAC_TimedReturnStatus FileManager::mapFile(const ASAAC_PrivateId file_handle, 
 		int Mode = MAP_SHARED;
 		
 		address = 0;
-		address = oal_mmap( address, size, Permissions, Mode, file_handle, offset );
+		address = oal_mmap( address, size, Permissions, Mode, PosixHandle, offset );
 		
 		if (address == MAP_FAILED)
 			throw OSException( strerror(errno), LOCATION );

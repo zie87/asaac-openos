@@ -26,7 +26,7 @@ class ParameterParser: public Parser
 		ParameterParser();
 		~ParameterParser();
 	
-		void parse( CharacterSequence &Sequence );
+		void parse( ASAAC_CharacterSequence Sequence );
 
 		void setConfiguration( EntityConfiguration Configuration );
 		EntityConfiguration getConfiguration( ); 

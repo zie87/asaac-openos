@@ -28,15 +28,13 @@ void ConfigurationParser::loadFile( ASAAC_CharacterSequence FileName )
     ASAAC_PrivateId Handle;
     FileManager::getInstance()->openFile( FileName, UseOption, Handle );
     
-    long Size = 1024;
     long Read = 0;
-    char Buffer[Size+1];
-    FileManager::getInstance()->readFile( Handle, Buffer, Size, Read, TimeIntervalInfinity );
+    ASAAC_CharacterSequence Buffer;
+    FileManager::getInstance()->readFile( Handle, Buffer.data, ASAAC_OS_MAX_STRING_SIZE, Read, TimeIntervalInfinity );
     
-    Buffer[Read] = 0;
+    Buffer.size = Read;
     
-    CharacterSequence Sequence = Buffer;
-    setString( Sequence );
+    setString( Buffer );
 }
 
 
@@ -160,7 +158,7 @@ void ConfigurationParser::parse( ASAAC_CharacterSequence FileName )
         
     parseSample(Index, createSample(space), Unlimited);
 
-    if (Index != getString().length())
+    if (Index != getString().size)
         throw OSException("Unexpected Characters", LOCATION);
 }
 

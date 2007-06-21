@@ -16,9 +16,9 @@ ParameterParser::~ParameterParser()
 }
 
 
-void ParameterParser::parse(CharacterSequence &Sequence)
+void ParameterParser::parse( ASAAC_CharacterSequence Sequence)
 {
-	setString(Sequence);
+	setString( Sequence );
 	
 	unsigned long Index = 0;
 	
@@ -142,7 +142,7 @@ void ParameterParser::parse(CharacterSequence &Sequence)
 
     parseSample(Index, createSample(space), Unlimited);
 	
-	if (Index != getString().length())
+	if (Index != getString().size)
 		throw OSException(LOCATION);
 }
 

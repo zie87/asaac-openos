@@ -26,8 +26,8 @@ public:
 	Parser();
 	virtual ~Parser();
 
-    void setString(CharacterSequence String);
-    CharacterSequence getString();
+    void setString( ASAAC_CharacterSequence String );
+    ASAAC_CharacterSequence getString();
 
     unsigned long   parseString(unsigned long &Index, char *String, unsigned long Max);
     unsigned long   parseSample(unsigned long &Index, char *Sample, unsigned long Max, bool Inverse = false);

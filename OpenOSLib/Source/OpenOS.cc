@@ -69,21 +69,25 @@ void OpenOS::initialize( LocalActivityState State )
     if ( ProcessId.empty() )
         throw OSException("ProcessId not in environment", LOCATION);
         
-    initialize( State, CpuId.asaac_id(), ProcessId.asaac_id() );
+    initialize( State, false, CpuId.asaac_id(), ProcessId.asaac_id() );
 }
 
 
-void OpenOS::initialize( LocalActivityState State,  ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
+void OpenOS::initialize( LocalActivityState State,  bool Flush, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
 {
 	if (m_IsInitialized)
 		throw DoubleInitializationException(LOCATION);
-    
+
     setenv(OS_ENV_ID_CPU, CharSeq(CpuId).c_str(), 1);
     setenv(OS_ENV_ID_PROCESS, CharSeq(ProcessId).c_str(), 1);
 
 	m_ActivityState = State;
 	
 	initializeThisObject();	
+	
+	if ( Flush == true )
+		flushSession();
+	
 	initializeGlobalObjects( CpuId, ProcessId );
 }
 
@@ -459,6 +463,8 @@ void OpenOS::flushSession()
 	} 
 	while (NewSessionId == m_Allocator.getSessionId());
 	 
+	bool EntityFound = false; 
+	 
 	for (long Index = 0; Index < OS_MAX_NUMBER_OF_CPU; Index++)
 	{
 		if (m_CpuId[Index] == OS_UNUSED_ID)
@@ -476,7 +482,7 @@ void OpenOS::flushSession()
 			continue;
 		}
 
-		//If susseeded, we send our real approach
+		//If succeeded, we send our real approach
 		d.NewSessionId = NewSessionId;
 		Status = sendCommand(m_CpuId[Index], CMD_FLUSH_SESSION, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false);
 		
@@ -487,8 +493,13 @@ void OpenOS::flushSession()
 		}
 			
 		if (d.Return == ASAAC_ERROR)
-			m_CpuId[Index] = OS_UNUSED_ID; //TODO: what else shall we do?
+			m_CpuId[Index] = OS_UNUSED_ID;
+		else EntityFound = true;
 	}
+	
+	// The found SharedMemory was an undeleted one from a former session
+	if (( m_IsMaster == false ) && ( EntityFound == false ))
+		m_IsMaster = true;
 	
 	initializeMutex();
 	
