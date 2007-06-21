@@ -50,7 +50,8 @@ void LoggingManager::initialize(bool IsMaster)
 		
 		for ( long Index = 0; Index < 4; Index ++ )
 		{
-			FM->createFile( CharSeq(LogFileNames[ Index ]).asaac_str(), ASAAC_RW, 0 );
+			if ( IsMaster )
+				FM->createFile( CharSeq(LogFileNames[ Index ]).asaac_str(), ASAAC_RW, 0 );
 			
 			const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
 			

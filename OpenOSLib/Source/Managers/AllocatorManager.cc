@@ -73,7 +73,7 @@ void AllocatorManager::reallocateAllObjects( SessionId NewSessionId )
 	{
 		SharedMemory * ShM = dynamic_cast<SharedMemory*>(m_Allocator[Index]);
 		
-		if (ShM != 0) 
+		if (ShM != NULL) 
 		{
 			if ( ShM->isInitialized() )	
 			{
