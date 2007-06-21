@@ -81,11 +81,8 @@ int main( char argc, char** argv )
     try
     {    	
         // Initialize OS
-        OpenOS::getInstance()->initialize( LAS_ENTITY, entityConfiguration.CpuId );
+        OpenOS::getInstance()->initialize( LAS_ENTITY, entityConfiguration.Flush, entityConfiguration.CpuId );
         
-		if ( entityConfiguration.Flush )
-			OpenOS::getInstance()->flushSession();
-			
         // Determine entry points
         parseConfiguration();
 
@@ -165,7 +162,7 @@ void parseParameter( char argc, char** argv )
 	ParameterParser Parser;
 	Parser.setConfiguration( entityConfiguration );
 	
-	Parser.parse( Parameter );
+	Parser.parse( Parameter.asaac_str() );
 	
 	entityConfiguration = Parser.getConfiguration();
 }
