@@ -81,7 +81,7 @@ int main( char argc, char** argv )
     try
     {    	
         // Initialize OS
-        OpenOS::getInstance()->initialize( LAS_ENTITY, entityConfiguration.Flush, entityConfiguration.CpuId );
+        OpenOS::getInstance()->initialize( entityConfiguration.Flush, LAS_ENTITY, entityConfiguration.CpuId );
         
         // Determine entry points
         parseConfiguration();
