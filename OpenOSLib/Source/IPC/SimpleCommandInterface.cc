@@ -251,6 +251,26 @@ ASAAC_ReturnStatus SimpleCommandInterface::removeAllCommandHandler()
 }
 
 
+void SimpleCommandInterface::sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer )
+{
+	try
+	{
+		ProtectedScope Access( "Sending a command with SimpleCommandInterface", m_CommandSemaphore );
+		
+		m_CommandData->Identifier = CommandIdentifier;
+	
+		memcpy( m_CommandData->Buffer, Buffer, OS_SIZE_OF_SIMPLE_COMMANDBUFFER );
+	
+		m_SendReceiveEvent.setEvent();	
+	}
+	catch (ASAAC_Exception &e)
+	{
+		e.addPath("Error sending a command with SimpleCommandInterface", LOCATION);
+		e.raiseError();
+	}
+}
+
+
 ASAAC_TimedReturnStatus SimpleCommandInterface::sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
 {
 	ASAAC_TimedReturnStatus WaitResult;
@@ -260,6 +280,8 @@ ASAAC_TimedReturnStatus SimpleCommandInterface::sendCommand( unsigned long Comma
 	try
 	{
 		ProtectedScope Access( "Sending a command with SimpleCommandInterface", m_CommandSemaphore, Timeout, Cancelable );
+
+		m_SendReceiveEvent.waitForEventReset( Timeout );
 		
 		if ( Access.timedOut() )
 			return ASAAC_TM_TIMEOUT;
@@ -292,11 +314,6 @@ ASAAC_TimedReturnStatus SimpleCommandInterface::sendCommand( unsigned long Comma
 		e.addPath("Error sending a command with SimpleCommandInterface", LOCATION);
 		e.raiseError();
 		return WaitResult;
-	}
-	catch (...)
-	{
-		FatalException("Error sending a command via SimpleCommandInterface", LOCATION);
-		return ASAAC_TM_ERROR;
 	}
 	
 	return ASAAC_TM_SUCCESS;

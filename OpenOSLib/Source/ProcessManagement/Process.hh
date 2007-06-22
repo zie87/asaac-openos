@@ -221,6 +221,9 @@ public:
 	//! forward for SimpleCommandInterface::sendCommand()
 	ASAAC_TimedReturnStatus sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
 	
+	//! forward for SimpleCommandInterface::sendCommandNonblocking()
+	void sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer );
+	
 	//! forward for SimpleCommandInterface::handleOneCommand()
 	ASAAC_ReturnStatus 	 	handleOneCommand( unsigned long& CommandIdentifier );
 		

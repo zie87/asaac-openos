@@ -193,8 +193,8 @@ void SharedMemory::deinitialize()
 
             if (AllocationCounter > 0 )
             {
-                //if (FileManager::getInstance()->closeFile(m_FileHandle) == ASAAC_ERROR)
-                    //throw OSException("Error closing shared memory.", LOCATION);
+                if (FileManager::getInstance()->closeFile(m_FileHandle) == ASAAC_ERROR)
+                    throw OSException("Error closing shared memory.", LOCATION);
             }
         }
 	}
@@ -203,11 +203,6 @@ void SharedMemory::deinitialize()
 		CharSeq ErrorString;
 		e.addPath( (ErrorString << "Error deinitializing SharedMemory: " << m_Name << " [" << m_BaseMemorySize << "]").c_str(), LOCATION);
 		e.raiseError();
-	}
-	catch (...)
-	{
-		CharSeq ErrorString;
-		FatalException( (ErrorString << "Error deinitializing SharedMemory: " << m_Name << " [" << m_BaseMemorySize << "]").c_str(), LOCATION).raiseError();
 	}
 	
 	m_BaseAddress.ptr = 0;

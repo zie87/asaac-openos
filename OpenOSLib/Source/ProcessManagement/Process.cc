@@ -463,6 +463,15 @@ ASAAC_TimedReturnStatus Process::sendCommand( unsigned long CommandIdentifier, C
 	return ProcessManager::getInstance()->sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
 }
 
+
+void Process::sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer )
+{
+	if 	(m_UseInternalCommandInterface)
+		m_InternalCommandInterface.sendCommandNonblocking( CommandIdentifier, Buffer );
+	ProcessManager::getInstance()->sendCommandNonblocking( CommandIdentifier, Buffer );
+}
+
+
 ASAAC_ReturnStatus Process::handleOneCommand( unsigned long& CommandIdentifier )
 {
 	if 	(m_UseInternalCommandInterface)

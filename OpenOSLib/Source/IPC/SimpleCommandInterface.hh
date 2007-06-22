@@ -59,6 +59,7 @@ public:
 
 	//! execute a command via the SCI	
 	ASAAC_TimedReturnStatus sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
+	void sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer );
 	/*!< this function tries to process a request via the SCI. To this end, it claims control over the
 	 *   SCI resources (or waits for them to become available, if necessary), and writes the data
 	 *   provided by the caller longo the communications buffer, then notifies the server of

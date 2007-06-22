@@ -711,6 +711,16 @@ ASAAC_TimedReturnStatus ProcessManager::sendCommand( unsigned long CommandIdenti
 	return m_CommandInterface.sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
 }
 
+
+void ProcessManager::sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	m_CommandInterface.sendCommandNonblocking( CommandIdentifier, Buffer );
+}
+
+
 ASAAC_ReturnStatus ProcessManager::handleOneCommand( unsigned long& CommandIdentifier )
 {
 	if (m_IsInitialized == false) 
@@ -821,12 +831,7 @@ ASAAC_ReturnStatus ProcessManager::destroyEntity()
 	{
 		CommandData d;
 		
-		// Here it is better not to wait... TODO: Analyse, why command cannot be sent with normal timeout
-		if ( sendCommand( CMD_TERM_ENTITY, d.ReturnBuffer, TimeStamp::Instant().asaac_Time() ) != ASAAC_TM_SUCCESS )
-		//if ( sendCommand( CMD_TERM_ENTITY, d.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() ) != ASAAC_TM_SUCCESS )
-		{
-			return ASAAC_ERROR;
-		}
+		sendCommandNonblocking( CMD_TERM_ENTITY, d.ReturnBuffer );
 		
 		return ASAAC_SUCCESS;
 	}
