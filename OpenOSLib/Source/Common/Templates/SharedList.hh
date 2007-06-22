@@ -224,8 +224,8 @@ template <class T> void SharedList<T>::remove( const long Index, const ASAAC_Tim
 	if (( Index < 0 ) || ( Index >= (long)m_GlobalData->Count ))
 		throw OSException("Index is out of range", LOCATION);
 
-	void *Target = m_Buffer.getLocation() + ( Index    * sizeof(T));
-	void *Source = m_Buffer.getLocation() + ((Index+1) * sizeof(T));
+	void *Target = &m_Buffer[Index];
+	void *Source = &m_Buffer[Index+1];
 	long Size = (m_GlobalData->Count-Index-1) * sizeof(T);
 
 	memmove( Target, Source, Size );

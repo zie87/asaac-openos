@@ -526,9 +526,11 @@ ASAAC_ReturnStatus FileManager::closeFile(const ASAAC_PrivateId file_handle)
     
     try
     {
-        if (oal_close( getFileDataByAsaacHandle( file_handle ).PosixHandle ) < 0)
+		FileInfoData Data = getFileDataByAsaacHandle(file_handle);
+
+        if (oal_close( Data.PosixHandle ) < 0)
             throw OSException( strerror(errno), LOCATION );
-        
+
         releaseFileData( file_handle );
     }
     catch (ASAAC_Exception &e)

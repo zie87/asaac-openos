@@ -157,18 +157,6 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 		
 		throw;
 	}
-	
-    CharacterSequence LogMsg;
-	if(IsMaster)
-	{
-		LogMsg << "SharedMemory: " << Name << " [" << Size << "] has been initialized as master.";
-		ErrorHandler::getInstance()->logMessage(LogMsg.asaac_str(), ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE);
-	}
-    else
-    {
-        LogMsg << "SharedMemory: " << Name << " [" << Size << "] has been initialized as client.";
-        ErrorHandler::getInstance()->logMessage(LogMsg.asaac_str(), ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE);
-    }
 }
 			
 
@@ -192,10 +180,6 @@ void SharedMemory::deinitialize()
 			
 			unsigned long AllocationCounter = getMemoryHeader()->AllocationCounter; 
 
-			CharacterSequence LogMsg;
-			LogMsg << "SharedMemory: " << m_Name << " [" << m_BaseMemorySize << "] deinitializing (AllocationCounter=" << AllocationCounter << ")";
-			ErrorHandler::getInstance()->logMessage(LogMsg.asaac_str(), ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE);
-	
 			// Unmap memory mapping of shared memory file.	
 			if ( FileManager::getInstance()->unmapFile( m_BaseAddress.ptr, m_BaseMemorySize ) < 0 )
 				throw OSException("Error unmapping shared memory", LOCATION );
