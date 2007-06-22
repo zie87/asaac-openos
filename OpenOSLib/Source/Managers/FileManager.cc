@@ -588,15 +588,56 @@ ASAAC_ReturnStatus FileManager::unlockFile(const ASAAC_PrivateId filehandle)
 
 ASAAC_ReturnStatus FileManager::getFileAttributes(const ASAAC_PrivateId filehandle, ASAAC_AccessRights &access, ASAAC_LockStatus &lock_status)
 {
-    OSException("APOS::getFileAttributes - not yet implemented.", LOCATION).raiseError();
-	return ASAAC_ERROR;
+    try 
+    {
+		FileInfoData Data = getFileDataByAsaacHandle(filehandle);
+		
+		access = UseOptionToAccessRights( Data.UseOption );		
+    }
+    catch ( ASAAC_Exception &e )
+    {
+        e.addPath("APOS::getFileAttributes", LOCATION);
+        e.raiseError();
+        
+        return ASAAC_ERROR;
+    }
+    
+    return ASAAC_SUCCESS;
 }
 
 
 ASAAC_ReturnStatus FileManager::seekFile(const ASAAC_PrivateId filehandle, const ASAAC_SeekMode seek_mode, const long set_pos, unsigned long &new_pos)
 {
-    OSException("APOS::seekFile - not yet implemented.", LOCATION).raiseError();
-	return ASAAC_ERROR;
+    try 
+    {
+		FileInfoData Data = getFileDataByAsaacHandle(filehandle);
+
+		int whence;
+
+    	switch ( seek_mode )
+    	{
+	    	case ASAAC_START_OF_FILE:    whence = SEEK_SET; break;
+		    case ASAAC_CURRENT_POSITION: whence = SEEK_CUR; break;
+		    case ASAAC_END_OF_FILE:      whence = SEEK_END; break;
+		    default: throw OSException("SeekMode is out of range", LOCATION);
+    	}
+		
+		ssize_t result = oal_lseek( Data.PosixHandle, new_pos, whence ); 
+
+        if ( result == -1)
+             throw OSException( strerror(errno), LOCATION );
+             
+        new_pos = result;
+    }
+    catch ( ASAAC_Exception &e )
+    {
+        e.addPath("APOS::seekFile", LOCATION);
+        e.raiseError();
+        
+        return ASAAC_ERROR;
+    }
+    
+    return ASAAC_SUCCESS;
 }
 
 
@@ -606,10 +647,12 @@ ASAAC_TimedReturnStatus FileManager::readFile(const ASAAC_PrivateId filehandle, 
     {
 		FileInfoData Data = getFileDataByAsaacHandle(filehandle);
 		
-        count_read = oal_read(Data.PosixHandle, buffer_address, read_count);
+        ssize_t result = oal_read(Data.PosixHandle, buffer_address, read_count);
         
-        if ( count_read == -1)
+        if ( result == -1)
              throw OSException( strerror(errno), LOCATION );
+             
+        count_read = result;
     }
     catch ( ASAAC_Exception &e )
     {
@@ -625,8 +668,26 @@ ASAAC_TimedReturnStatus FileManager::readFile(const ASAAC_PrivateId filehandle, 
 
 ASAAC_TimedReturnStatus FileManager::writeFile(const ASAAC_PrivateId file_handle, const ASAAC_Address buffer_address, const unsigned long write_count, unsigned long &count_written, const ASAAC_TimeInterval timeout)
 {
-    OSException("APOS::writeFile - not yet implemented.", LOCATION).raiseError();
-	return ASAAC_TM_ERROR;
+    try 
+    {
+		FileInfoData Data = getFileDataByAsaacHandle( file_handle );
+		
+        ssize_t result = oal_write(Data.PosixHandle, buffer_address, write_count);
+        
+        if ( result == -1)
+             throw OSException( strerror(errno), LOCATION );
+             
+        count_written = result;
+    }
+    catch ( ASAAC_Exception &e )
+    {
+        e.addPath("APOS::writeFile", LOCATION);
+        e.raiseError();
+        
+        return ASAAC_TM_ERROR;
+    }
+    
+    return ASAAC_TM_SUCCESS;
 }
 
 
