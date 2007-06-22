@@ -2,6 +2,7 @@
 
 #include "Exceptions/Exceptions.hh"
 #include "ProcessManagement/ProcessManager.hh"
+#include "Managers/AllocatorManager.hh"
 
 #include "OpenOS.hh"
 
@@ -105,8 +106,14 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
     
     deinitialize();
     
+    //deallocate objects, because after execve all objects will be lost
+    AllocatorManager::getInstance()->deallocateAllObjects();
+    
     //Now load and execute the file
     execve( CharSeq(name).c_str(), 0, environ);
+
+	//reallocate all objects, because execve failed.
+    AllocatorManager::getInstance()->reallocateAllObjects();
     
     //if the last call returned, an error occured
     OSException e( strerror(errno), LOCATION );

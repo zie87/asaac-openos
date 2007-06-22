@@ -104,6 +104,8 @@ void OpenOS::switchState( bool IsMaster, LocalActivityState State,  ASAAC_Public
 	
 	    setenv(OS_ENV_ID_PROCESS, CharSeq(ProcessId).c_str(), 1);
 
+		AllocatorManager::getInstance()->reallocateAllObjects( getSessionId() );
+
 	    CommunicationManager::getInstance()->releaseAllGlobalVirtualChannels();
 	    
 	    ProcessManager::getInstance()->setCurrentProcess(ProcessId);

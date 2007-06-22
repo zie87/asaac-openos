@@ -65,6 +65,32 @@ void AllocatorManager::unregisterAllocator( Allocator *Object )
 }
 
 
+void AllocatorManager::deallocateAllObjects()
+{
+	unsigned short Index;
+
+	for (Index = 0; Index < m_AllocatorCounter; Index++)
+	{
+		SharedMemory * ShM = dynamic_cast<SharedMemory*>(m_Allocator[Index]);
+		
+		if (ShM != NULL) 
+		{
+			if ( ShM->isInitialized() )	
+			{
+				//dekrement AllocationCounter to global indicate allocation of object
+				ShM->setAllocationCounter( ShM->getAllocationCounter() - 1 );
+			}
+		}
+	}
+}
+
+
+void AllocatorManager::reallocateAllObjects()
+{
+	reallocateAllObjects( OpenOS::getInstance()->getSessionId() );
+}
+
+
 void AllocatorManager::reallocateAllObjects( SessionId NewSessionId )
 {
 	unsigned short Index;

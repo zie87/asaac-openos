@@ -180,12 +180,13 @@ void Process::launch()
 		}
 		else ProcessPath = FileNameGenerator::getAsaacPath(m_ProcessData->Description.programme_file_name);
 		
-        //ProcessManager::getInstance()->getCurrentProcess()->suspendAllThreads();
-        
-		pid_t new_pid = fork();
+		m_PosixPid = fork();
+
+        if (m_PosixPid == -1)
+            throw OSException( strerror(errno), LOCATION );                
         
         //Starter process
-        if (new_pid == 0)
+        if (m_PosixPid == 0)
         {
             try
             {            	
@@ -215,27 +216,23 @@ void Process::launch()
                 e.addPath("Exception in ProcessStarter", LOCATION); 
                 e.raiseError();
                 
+                OpenOS::getInstance()->deinitialize();
+                
                 exit(-1);
             }
             catch (...)
             {
                 OSException("Unknown Exception in ProcessStarter", LOCATION).raiseError();
                 
+                OpenOS::getInstance()->deinitialize();
+
                 exit(-2);
             }
             
-            exit(0);            
-        }   
-        
-        //Fork failed
-        if (new_pid == -1)
-            throw OSException( strerror(errno), LOCATION );                
-        
-        //Fork succeeded
-        if (new_pid > 0)
-            m_PosixPid = new_pid;
+            OpenOS::getInstance()->deinitialize();
 
-        //ProcessManager::getInstance()->getCurrentProcess()->resumeAllThreads();
+            exit(0);            
+        }           
 	}
 	catch (ASAAC_Exception &e)
 	{

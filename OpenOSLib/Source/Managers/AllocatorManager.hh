@@ -14,6 +14,8 @@ class AllocatorManager
 		void registerAllocator( Allocator *Object );
 		void unregisterAllocator( Allocator *Object );
 		
+		void deallocateAllObjects();
+		void reallocateAllObjects();
 		void reallocateAllObjects( SessionId NewSessionId );
 	private:
 		AllocatorManager();
