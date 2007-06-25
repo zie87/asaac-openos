@@ -199,8 +199,8 @@ template <class T> long SharedList<T>::insert( const long Index, const T Value, 
 	if ( (Index < 0) || (Index > (long)m_GlobalData->Count) )
 		throw OSException("Index is out of range", LOCATION);
 	
-	void *Target = m_Buffer.getLocation() + ((Index+1) * sizeof(T));
-	void *Source = m_Buffer.getLocation() + ( Index    * sizeof(T));
+	void *Target = &m_Buffer[Index+1];
+	void *Source = &m_Buffer[Index];
 	long Size = (m_GlobalData->Count-Index) * sizeof(T);
 
 	memmove( Target, Source, Size );

@@ -120,9 +120,13 @@ template <class T> void Shared<T>::initialize( Allocator* ThisAllocator, unsigne
 	
 		m_Allocator = ThisAllocator;
 	}
-	catch (...)
+	catch ( ASAAC_Exception &e )
 	{
 		deinitialize();
+
+		e.addPath("Error initializing shared data", LOCATION);
+				
+		throw;
 	}
 }
 

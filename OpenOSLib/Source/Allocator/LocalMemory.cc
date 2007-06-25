@@ -12,27 +12,43 @@
 #include "LocalMemory.hh"
 #include "Exceptions/Exceptions.hh"
 
-LocalMemory::LocalMemory(long Size) : m_IsInitialized(false), m_BaseAddress(0),m_MemorySize(0), m_UsedMemory(0)
+LocalMemory::LocalMemory(long Size) : m_IsInitialized(false)
 {
 	initialize( Size );
 }
 
-LocalMemory::LocalMemory() : m_IsInitialized(false), m_BaseAddress(0),m_MemorySize(0), m_UsedMemory(0)
+LocalMemory::LocalMemory() : m_IsInitialized(false)
 {
 }
 
 
 void LocalMemory::initialize( long Size )
 {
-	if ( m_IsInitialized ) throw DoubleInitializationException( LOCATION );
-	
-	m_BaseAddress = new char[Size];
-	
-	if ( m_BaseAddress == 0 ) throw OSException( "Allocation Error" );
-
-	m_MemorySize = Size;
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException( LOCATION );
 	
 	m_IsInitialized = true;
+
+	try
+	{
+		m_BaseAddress = 0;
+		m_UsedMemory = 0;
+		
+		m_BaseAddress = new char[Size];
+		
+		if ( m_BaseAddress == 0 ) 
+			throw OSException( "Allocation Error" );
+	
+		m_MemorySize = Size;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error initializing LocalMemory", LOCATION);
+
+		deinitialize();
+
+		throw;
+	}	
 }
 
 
@@ -41,9 +57,16 @@ void LocalMemory::deinitialize()
 	if (m_IsInitialized == false)
 		return; 
 	
-	if ( m_BaseAddress != 0 )
+	try
 	{
-		delete[] m_BaseAddress;
+		if ( m_BaseAddress != 0 )
+		{
+			delete[] m_BaseAddress;
+		}
+	}
+	catch ( ... )
+	{
+		OSException("Error deinitializing LocalMemory", LOCATION).raiseError();
 	}
 	
 	m_IsInitialized = false;
@@ -60,7 +83,7 @@ ASAAC_Address LocalMemory::allocate( long Size )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
-
+		
 	// If new total memory exceeds allocatable size, throw Exception
 	if ( Size + m_UsedMemory > m_MemorySize ) 
         throw ResourceException("LocalMemory is out of memory", LOCATION);

@@ -3,6 +3,7 @@
 #include "Exceptions/Exceptions.hh"
 #include "ProcessManagement/ProcessManager.hh"
 #include "Managers/AllocatorManager.hh"
+#include "IPC/BlockingScope.hh"
 
 #include "OpenOS.hh"
 
@@ -57,24 +58,27 @@ void FileManager::initialize()
 }
 
 
-void FileManager::deinitialize()
+void FileManager::deinitialize( const bool do_throw )
 {
     if (m_IsInitialized == false)
         return;
     
+    m_IsInitialized = false;
+
     try
     {
         writeFileInfoListToEnvironment();
 
         m_FileInfoList.deinitialize();
+        
+        m_Allocator.deinitialize();
     }
     catch (ASAAC_Exception &e)
     {
         e.addPath("Error while deinitializing FileManager", LOCATION);
-        e.raiseError();
-    }
-    
-    m_IsInitialized = false;
+
+        e.raiseError( do_throw );
+    }    
 }
 
 
@@ -97,37 +101,51 @@ FileManager* FileManager::getInstance()
 
 void FileManager::executeFile( const ASAAC_CharacterSequence name, const ProcessAlias alias )
 {
-    // For APOS processes drop all privileges. set uid and gid == nobody
-    if ( alias == PROC_APOS )
-    {
-        setuid( 65534 );
-        setgid( 65534 );
-    } 
-    
-    deinitialize();
-    
-    //deallocate objects, because after execve all objects will be lost
-    AllocatorManager::getInstance()->deallocateAllObjects();
-    
-    //Now load and execute the file
-    execve( CharSeq(name).c_str(), 0, environ);
+	try
+	{
+	    // For APOS processes drop all privileges. set uid and gid == nobody
+	    if ( alias == PROC_APOS )
+	    {
+	    	// It is important here first to set the group id and then the user id
+	    	
+	        if (setgid( 65534 ) == -1)
+	        	throw OSException( strerror(errno), LOCATION );
 
-	//reallocate all objects, because execve failed.
-    AllocatorManager::getInstance()->reallocateAllObjects();
-    
-    //if the last call returned, an error occured
-    OSException e( strerror(errno), LOCATION );
-    
-    try
-    {
-    	initialize();
-    }
-    catch ( ... )
-    {
-    	e.addPath("Reinitialization of FileManager failed.", LOCATION);
-    }
-    
-    throw e;
+	        if (setuid( 65534 ) == -1)
+	        	throw OSException( strerror(errno), LOCATION );
+	    } 
+	    
+	    deinitialize( true );
+	    
+	    //deallocate objects, because after execve all objects will be lost
+	    AllocatorManager::getInstance()->deallocateAllObjects();
+
+	    //Now load and execute the file
+	    execve( CharSeq(name).c_str(), 0, environ);
+	
+	    //if the last call returned, an error occured
+	    OSException e( strerror(errno), LOCATION );
+
+		//reallocate all objects, because execve failed.
+	    AllocatorManager::getInstance()->reallocateAllObjects();
+	    	    
+	    try
+	    {
+	    	initialize();
+	    }
+	    catch ( ... )
+	    {
+	    	e.addPath("Reinitialization of FileManager failed.", LOCATION);
+	    }
+	    
+	    throw e;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error executing file", LOCATION);
+		
+		throw;
+	}
 }
 
 
@@ -172,7 +190,7 @@ ASAAC_TimedReturnStatus FileManager::deleteDirectory(const ASAAC_CharacterSequen
         e.addPath("APOS::deleteDirectory", LOCATION);
         e.raiseError();
         
-        return ASAAC_TM_ERROR;
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
     }
     
 	return ASAAC_TM_SUCCESS;
@@ -333,7 +351,7 @@ ASAAC_TimedReturnStatus FileManager::deleteFile(const ASAAC_CharacterSequence na
         e.addPath( "APOS::deleteFile", LOCATION);
         e.raiseError();
         
-        return ASAAC_TM_ERROR;
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
     }
     
     return ASAAC_TM_SUCCESS;
@@ -362,7 +380,7 @@ ASAAC_TimedReturnStatus FileManager::deleteSharedMemory(const ASAAC_CharacterSeq
         e.addPath( "APOS::deleteSharedMemory", LOCATION);
         e.raiseError();
         
-        return ASAAC_TM_ERROR;
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
     }
     
     return ASAAC_TM_SUCCESS;
@@ -385,7 +403,7 @@ ASAAC_TimedReturnStatus FileManager::deleteMessageQueue(const ASAAC_CharacterSeq
         e.addPath( "APOS::deleteMessageQueue", LOCATION);
         e.raiseError();
         
-        return ASAAC_TM_ERROR;
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
     }
     
     return ASAAC_TM_SUCCESS;
@@ -612,6 +630,9 @@ ASAAC_ReturnStatus FileManager::seekFile(const ASAAC_PrivateId filehandle, const
     {
 		FileInfoData Data = getFileDataByAsaacHandle(filehandle);
 
+        if (( Data.Type != REGULAR_FILE ) && ( Data.Type != SHARED_MEMORY_OBJECT ))
+        	throw OSException("FileType is not provided.", LOCATION); 
+
 		int whence;
 
     	switch ( seek_mode )
@@ -645,10 +666,44 @@ ASAAC_TimedReturnStatus FileManager::readFile(const ASAAC_PrivateId filehandle, 
 {
     try 
     {
+    	BlockingScope TimeoutScope();
+    	
 		FileInfoData Data = getFileDataByAsaacHandle(filehandle);
 		
-        ssize_t result = oal_read(Data.PosixHandle, buffer_address, read_count);
-        
+		TimeStamp Timeout( timeout );
+		
+		ssize_t result;
+		timespec TimeSpecTimeout = Timeout.timespec_Time();
+		
+		switch ( Data.Type )
+		{
+        	case REGULAR_FILE:
+        	case SHARED_MEMORY_OBJECT: 
+        	{
+		        result = oal_read(Data.PosixHandle, buffer_address, read_count);
+        	}
+		    break;
+		        
+        	case MESSAGE_QUEUE: 
+        	{
+				unsigned Prio;		
+				
+				do 
+				{
+					if (Timeout.isInfinity())
+						result = oal_mq_receive( Data.PosixHandle, (char*)buffer_address, read_count, &Prio );
+					else result = oal_mq_timedreceive( Data.PosixHandle, (char*)buffer_address, read_count, &Prio, &TimeSpecTimeout );
+					
+					if (( result <= 0 ) && ( errno == ETIMEDOUT )) 
+						throw TimeoutException( LOCATION );
+				} 
+				while (( result <= 0 ) && ( errno == EINTR ));
+        	}				
+			break;
+				        	
+        	default: throw OSException("FileType is not provided", LOCATION);
+		}
+		
         if ( result == -1)
              throw OSException( strerror(errno), LOCATION );
              
@@ -659,7 +714,7 @@ ASAAC_TimedReturnStatus FileManager::readFile(const ASAAC_PrivateId filehandle, 
         e.addPath("APOS::readFile", LOCATION);
         e.raiseError();
         
-        return ASAAC_TM_ERROR;
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
     }
     
     return ASAAC_TM_SUCCESS;
@@ -670,21 +725,54 @@ ASAAC_TimedReturnStatus FileManager::writeFile(const ASAAC_PrivateId file_handle
 {
     try 
     {
+    	BlockingScope TimeoutScope();
+
 		FileInfoData Data = getFileDataByAsaacHandle( file_handle );
 		
-        ssize_t result = oal_write(Data.PosixHandle, buffer_address, write_count);
+		TimeStamp Timeout( timeout );
+		
+		ssize_t result;
+		timespec TimeSpecTimeout = Timeout.timespec_Time();
+
+		switch ( Data.Type )
+		{
+        	case REGULAR_FILE:
+        	case SHARED_MEMORY_OBJECT: 
+        	{
+		        result = oal_write(Data.PosixHandle, buffer_address, write_count);
+		        count_written = result;
+        	}
+        	break;
+        	
+        	case MESSAGE_QUEUE: 
+        	{
+				do 
+				{
+					if (Timeout.isInfinity())
+						result = oal_mq_send( Data.PosixHandle, (const char*)buffer_address, write_count, 1 );
+					else result = oal_mq_timedsend( Data.PosixHandle, (const char*)buffer_address, write_count, 1, &TimeSpecTimeout );
+					
+					if (( result <= 0 ) && ( errno == ETIMEDOUT )) 
+						throw TimeoutException( LOCATION );
+				} 
+				while (( result <= 0 ) && ( errno == EINTR ));
+				
+		        count_written = write_count;
+        	}
+        	break;
+        	
+        	default: throw OSException("FileType is not provided", LOCATION);
+		}
         
         if ( result == -1)
              throw OSException( strerror(errno), LOCATION );
-             
-        count_written = result;
     }
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::writeFile", LOCATION);
         e.raiseError();
         
-        return ASAAC_TM_ERROR;
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
     }
     
     return ASAAC_TM_SUCCESS;
@@ -698,7 +786,7 @@ ASAAC_TimedReturnStatus FileManager::mapFile(const ASAAC_PrivateId file_handle, 
 		FileInfoData Data = getFileDataByAsaacHandle(file_handle);
 		
 		if ((Data.Type != REGULAR_FILE) && (Data.Type != SHARED_MEMORY_OBJECT))
-			throw OSException("FileType for this handle is not supported", LOCATION); 
+			throw OSException("FileType is not provided", LOCATION); 
 		
 		int PosixHandle = Data.PosixHandle;
 		int Permissions = 0;
@@ -724,7 +812,7 @@ ASAAC_TimedReturnStatus FileManager::mapFile(const ASAAC_PrivateId file_handle, 
 		e.addPath("APOS::mapFile", LOCATION);
 		e.raiseError();
 		
-		return ASAAC_TM_ERROR;
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
 	}	
 	
 	return ASAAC_TM_SUCCESS;
@@ -1095,8 +1183,6 @@ void FileManager::writeFileInfoListToEnvironment()
 	{
 		e.addPath("Error writing FileInfo to environment", LOCATION);
 		
-		e.raiseError();
-		
 		throw;
 	} 
 	
@@ -1139,8 +1225,6 @@ void FileManager::readFileInfoListFromEnvironment()
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath( "Error reading FileInfo from environment", LOCATION );
-		
-		e.raiseError();
 		
 		throw;
 	}

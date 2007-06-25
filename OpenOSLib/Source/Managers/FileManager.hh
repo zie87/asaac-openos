@@ -44,7 +44,7 @@ public:
         static size_t predictSize();
            
         void initialize();
-        void deinitialize();     
+        void deinitialize( const bool do_throw = false );     
         virtual ~FileManager();
 
 		void                       executeFile( const ASAAC_CharacterSequence name, const ProcessAlias alias );

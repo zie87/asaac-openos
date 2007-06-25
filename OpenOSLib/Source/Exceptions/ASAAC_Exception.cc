@@ -204,13 +204,20 @@ void ASAAC_Exception::logMessage( ASAAC_LogMessageType message_type ) const
 }
 
 
-void ASAAC_Exception::raiseError() const
+void ASAAC_Exception::raiseError( const bool do_throw ) const
 {
-    ASAAC_CharacterSequence error_message = CharSeq(getMessage()).asaac_str(); 
+	if ( do_throw == true )
+	{
+	/*	cout << "test" << endl;
+		throw;
+		throw *this;*/
+	}
 
 #ifdef DEBUG
     printMessage();
 #endif
+
+    ASAAC_CharacterSequence error_message = CharSeq(getMessage()).asaac_str(); 
 
     ErrorHandler* eh = ErrorHandler::getInstance();
 

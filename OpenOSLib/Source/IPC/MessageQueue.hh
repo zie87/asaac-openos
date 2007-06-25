@@ -65,7 +65,7 @@ public:
     							   unsigned long Size, 
     							   const ASAAC_Time& Timeout );
 
-    virtual ASAAC_TimedReturnStatus receiveMessage( ASAAC_Address BufferReference, 
+    virtual ASAAC_TimedReturnStatus receiveMessage( const ASAAC_Address BufferReference, 
     								  unsigned long MaxSize, 
     								  unsigned long& ActualSize, 
     								  const ASAAC_Time& Timeout );

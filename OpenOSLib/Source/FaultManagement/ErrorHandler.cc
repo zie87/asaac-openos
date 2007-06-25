@@ -101,65 +101,85 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 {
 	if ( m_IsInitialized == false ) 
 		return ASAAC_ERROR;
-	
-	Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-	Thread *ThisThread = ProcessManager::getInstance()->getCurrentThread();
 
+	static bool Executing = false;
+	if ( Executing == true ) return ASAAC_ERROR;
+	Executing = true;
 		
-	ASAAC_Time absolute_local_time;
-	ASAAC_Time absolute_global_time;
-	ASAAC_Time relative_local_time;
+	try
+	{	
+		Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
+		Thread *ThisThread = ProcessManager::getInstance()->getCurrentThread();
 	
-	if (TimeManager::getAbsoluteLocalTime( absolute_local_time ) == ASAAC_ERROR)
-		absolute_local_time = TimeZero;
 
-	if (TimeManager::getAbsoluteGlobalTime( absolute_global_time ) == ASAAC_ERROR)
-		absolute_local_time = TimeZero;
-
-	if (TimeManager::getRelativeLocalTime( relative_local_time ) == ASAAC_ERROR)
-		absolute_local_time = TimeZero;
-
-
-	ASAAC_PublicId process_id = 0;
-	ASAAC_PublicId thread_id = OS_UNUSED_ID;
-	
-	if (ThisProcess != 0)
-		if (ThisProcess->isInitialized())
-			process_id = ThisProcess->getId();
-
-	if (ThisThread != 0)
-		if (ThisThread->isInitialized())
-			thread_id = ThisThread->getId();
-
-	
-	m_ErrorInformation.error_code           = error_code;
-	m_ErrorInformation.error_message        = error_message;
-	m_ErrorInformation.absolute_global_time = absolute_global_time;
-	m_ErrorInformation.absolute_local_time  = absolute_local_time;
-	m_ErrorInformation.relative_local_time  = relative_local_time;
-	m_ErrorInformation.error_type           = error_type;
-	m_ErrorInformation.process_id		    = process_id;
-	m_ErrorInformation.thread_id		    = thread_id;
-
-	m_ErrorInformation.cfm_id               = 0; //TODO: where is this information stored?
-	m_ErrorInformation.pe_id                = 0; //TODO: where is this information stored?
-	
-	m_ErrorInformation.vc_id                = vc_id;
-	m_ErrorInformation.tc_id                = tc_id;
-	m_ErrorInformation.network              = network;
-	m_ErrorInformation.location             = location;
-	
-	m_HaveNewErrorInformation				= true;
-	m_HaveErrorInformation					= true;
+		ASAAC_Time absolute_local_time;
+		ASAAC_Time absolute_global_time;
+		ASAAC_Time relative_local_time;
 		
-	// TODO: check whether timeout should be set to TimeInstant rather (non-blocking) (jbm)
-	// TODO: In case of timeout try to send the information later. Store it in a local queue. 
-	// TODO: In case of non initialisation store it in a queue too.
-	ASAAC_TimedReturnStatus Result = ASAAC_TM_ERROR;
-	//Result = m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeInfinity );
-	Result = m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeStamp::Instant().asaac_Time() );
-
-	return ( Result == ASAAC_TM_SUCCESS ? ASAAC_SUCCESS : ASAAC_ERROR );
+		if (TimeManager::getAbsoluteLocalTime( absolute_local_time ) == ASAAC_ERROR)
+			absolute_local_time = TimeZero;
+	
+		if (TimeManager::getAbsoluteGlobalTime( absolute_global_time ) == ASAAC_ERROR)
+			absolute_local_time = TimeZero;
+	
+		if (TimeManager::getRelativeLocalTime( relative_local_time ) == ASAAC_ERROR)
+			absolute_local_time = TimeZero;
+	
+	
+		ASAAC_PublicId process_id = 0;
+		ASAAC_PublicId thread_id = OS_UNUSED_ID;
+		
+		if (ThisProcess != 0)
+			if (ThisProcess->isInitialized())
+				process_id = ThisProcess->getId();
+	
+		if (ThisThread != 0)
+			if (ThisThread->isInitialized())
+				thread_id = ThisThread->getId();
+	
+		
+		m_ErrorInformation.error_code           = error_code;
+		m_ErrorInformation.error_message        = error_message;
+		m_ErrorInformation.absolute_global_time = absolute_global_time;
+		m_ErrorInformation.absolute_local_time  = absolute_local_time;
+		m_ErrorInformation.relative_local_time  = relative_local_time;
+		m_ErrorInformation.error_type           = error_type;
+		m_ErrorInformation.process_id		    = process_id;
+		m_ErrorInformation.thread_id		    = thread_id;
+	
+		m_ErrorInformation.cfm_id               = 0; //TODO: where is this information stored?
+		m_ErrorInformation.pe_id                = 0; //TODO: where is this information stored?
+		
+		m_ErrorInformation.vc_id                = vc_id;
+		m_ErrorInformation.tc_id                = tc_id;
+		m_ErrorInformation.network              = network;
+		m_ErrorInformation.location             = location;
+		
+		m_HaveNewErrorInformation				= true;
+		m_HaveErrorInformation					= true;
+			
+		// TODO: check whether timeout should be set to TimeInstant rather (non-blocking) (jbm)
+		// TODO: In case of timeout try to send the information later. Store it in a local queue. 
+		// TODO: In case of non initialisation store it in a queue too.
+		ASAAC_TimedReturnStatus Result = ASAAC_TM_ERROR;
+		//Result = m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeInfinity );
+		Result = m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeStamp::Instant().asaac_Time() );
+		
+		if ( Result != ASAAC_TM_SUCCESS )
+			throw OSException("Error sending the message", LOCATION);
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error couldn't be raised", LOCATION);
+		
+		e.raiseError();
+		
+		Executing = false;
+		return ASAAC_ERROR;
+	}
+	
+	Executing = false;
+	return ASAAC_SUCCESS;
 }
 
 				
@@ -215,68 +235,88 @@ void ErrorHandler::terminateErrorHandler( ASAAC_ReturnStatus return_status )
 
 ASAAC_ReturnStatus ErrorHandler::logMessage( const ASAAC_CharacterSequence& log_message, ASAAC_LogMessageType message_type )
 {
-	LogReportData ThisReportData;
-	ThisReportData.time = TimeStamp::Now().asaac_Time();	
-
-	Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-	Thread *ThisThread = ProcessManager::getInstance()->getCurrentThread();
-
-	ASAAC_PublicId authentication_code = 0;
-	ASAAC_PublicId process_id = OS_UNUSED_ID;
-	ASAAC_PublicId thread_id = OS_UNUSED_ID;
+	static bool Executing = false;	
+	if ( Executing == true ) return ASAAC_ERROR;
+	Executing = true;
 	
-	if (ThisProcess != 0)
-		if (ThisProcess->isInitialized())
-		{
-			process_id = ThisProcess->getId();
-			authentication_code = ThisProcess->getAuthenticationCode();
-		}
-
-	if (ThisThread != 0)
-		if (ThisThread->isInitialized())
-			thread_id = ThisThread->getId();
+	try
+	{	
+		LogReportData ThisReportData;
+		ThisReportData.time = TimeStamp::Now().asaac_Time();	
+	
+		Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
+		Thread *ThisThread = ProcessManager::getInstance()->getCurrentThread();
+	
+		ASAAC_PublicId authentication_code = 0;
+		ASAAC_PublicId process_id = OS_UNUSED_ID;
+		ASAAC_PublicId thread_id = OS_UNUSED_ID;
 		
-	ThisReportData.log_message = log_message;
-	ThisReportData.message_type = message_type;
-
-	ThisReportData.process_authentication_code = authentication_code;
-	ThisReportData.process_id = process_id;
-	ThisReportData.thread_id = thread_id;
-
+		if (ThisProcess != 0)
+			if (ThisProcess->isInitialized())
+			{
+				process_id = ThisProcess->getId();
+				authentication_code = ThisProcess->getAuthenticationCode();
+			}
+	
+		if (ThisThread != 0)
+			if (ThisThread->isInitialized())
+				thread_id = ThisThread->getId();
+			
+		ThisReportData.log_message = log_message;
+		ThisReportData.message_type = message_type;
+	
+		ThisReportData.process_authentication_code = authentication_code;
+		ThisReportData.process_id = process_id;
+		ThisReportData.thread_id = thread_id;
+	
 #ifdef DEBUG
-	CharSeq csTime = TimeStamp::Now().asaac_Time();
-	CharSeq csMessageType = "";
-	CharSeq csProcess = "";
-	CharSeq csThread = "";
-	CharSeq csMessage = log_message;
-	
-	if (process_id != OS_UNUSED_ID)
-		csProcess << " PID:" << CharSeq(process_id);
-	
-	if (thread_id != OS_UNUSED_ID)
-		csThread << " TID:" << CharSeq(thread_id);
-	
-	switch (message_type)
-	{
-		case ASAAC_LOG_MESSAGE_TYPE_ERROR: 			csMessageType << " ASAAC_LOG_MESSAGE_TYPE_ERROR"; break;
-  		case ASAAC_LOG_MESSAGE_TYPE_APPLICATION: 	csMessageType << " ASAAC_LOG_MESSAGE_TYPE_APPLICATION"; break;
-  		case ASAAC_LOG_MESSAGE_TYPE_GSM: 			csMessageType << " ASAAC_LOG_MESSAGE_TYPE_GSM"; break;
-  		case ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE: 	csMessageType << " ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE"; break;
-  		default: csMessageType << " Unknown Message Type";
-	}
-	cout << csTime.c_str() << csProcess.c_str() << csThread.c_str() << csMessageType.c_str() << ": '" << csMessage.c_str() << "'" << endl;
+		CharSeq csTime = TimeStamp::Now().asaac_Time();
+		CharSeq csMessageType = "";
+		CharSeq csProcess = "";
+		CharSeq csThread = "";
+		CharSeq csMessage = log_message;
+		
+		if (process_id != OS_UNUSED_ID)
+			csProcess << " PID:" << CharSeq(process_id);
+		
+		if (thread_id != OS_UNUSED_ID)
+			csThread << " TID:" << CharSeq(thread_id);
+		
+		switch (message_type)
+		{
+			case ASAAC_LOG_MESSAGE_TYPE_ERROR: 			csMessageType << " ASAAC_LOG_MESSAGE_TYPE_ERROR"; break;
+	  		case ASAAC_LOG_MESSAGE_TYPE_APPLICATION: 	csMessageType << " ASAAC_LOG_MESSAGE_TYPE_APPLICATION"; break;
+	  		case ASAAC_LOG_MESSAGE_TYPE_GSM: 			csMessageType << " ASAAC_LOG_MESSAGE_TYPE_GSM"; break;
+	  		case ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE: 	csMessageType << " ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE"; break;
+	  		default: csMessageType << " Unknown Message Type";
+		}
+		cout << csTime.c_str() << csProcess.c_str() << csThread.c_str() << csMessageType.c_str() << ": '" << csMessage.c_str() << "'" << endl;
 #endif
-
-	if ( m_IsInitialized == false ) 
-		return ASAAC_ERROR;
-
-	// TODO: check whether timeout should be set to TimeInstant rather (non-blocking)
-	// TODO: In case of timeout try to send the information later. Store it in a local queue. 
-	ASAAC_TimedReturnStatus Result = ASAAC_TM_ERROR;
-	//Result = m_LoggingMessageQueue.sendMessage( &ThisReportData, sizeof( LogReportData ), TimeInfinity );
-	Result = m_LoggingMessageQueue.sendMessage( &ThisReportData, sizeof( LogReportData ), TimeStamp::Instant().asaac_Time() );
 	
-	return ( Result == ASAAC_TM_SUCCESS ? ASAAC_SUCCESS : ASAAC_ERROR );
+		if ( m_IsInitialized == false ) 
+			throw UninitializedObjectException( LOCATION );
+	
+		// TODO: check whether timeout should be set to TimeInstant rather (non-blocking)
+		// TODO: In case of timeout try to send the information later. Store it in a local queue. 
+		ASAAC_TimedReturnStatus Result = ASAAC_TM_ERROR;
+		//Result = m_LoggingMessageQueue.sendMessage( &ThisReportData, sizeof( LogReportData ), TimeInfinity );
+		Result = m_LoggingMessageQueue.sendMessage( &ThisReportData, sizeof( LogReportData ), TimeStamp::Instant().asaac_Time() );
+
+		if ( Result != ASAAC_TM_SUCCESS )
+			throw OSException("Error sending the message", LOCATION);
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Message couldn't be logged", LOCATION);
+		
+		e.raiseError();
+		
+		Executing = false;
+		return ASAAC_ERROR;
+	}
+	
+	Executing = false;		
+	return ASAAC_SUCCESS;
 }
 	
 
