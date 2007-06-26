@@ -47,38 +47,38 @@ public:
         void deinitialize( const bool do_throw = false );     
         virtual ~FileManager();
 
-		void                       executeFile( const ASAAC_CharacterSequence name, const ProcessAlias alias );
+		void executeFile( const ASAAC_CharacterSequence name, const ProcessAlias alias );
 
-		ASAAC_ResourceReturnStatus createDirectory(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access);				
-        ASAAC_ResourceReturnStatus createFile(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long file_size);
-        ASAAC_ResourceReturnStatus createSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long file_size);
-        ASAAC_ResourceReturnStatus createMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long queue_size, const unsigned long message_size);
+		void createDirectory(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access);				
+        void createFile(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long file_size);
+        void createSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long file_size);
+        void createMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long queue_size, const unsigned long message_size);
 		
-		ASAAC_TimedReturnStatus    deleteDirectory(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout);
-        ASAAC_TimedReturnStatus    deleteFile(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout);
-        ASAAC_TimedReturnStatus    deleteSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout);
-        ASAAC_TimedReturnStatus    deleteMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout);
+		void deleteDirectory(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout);
+        void deleteFile(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout);
+        void deleteSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout);
+        void deleteMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout);
 		
-        ASAAC_ReturnStatus         openFile(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle);
-        ASAAC_ReturnStatus         openSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle);
-        ASAAC_ReturnStatus         openMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle);
+        void openFile(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle);
+        void openSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle);
+        void openMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle);
 		
-		ASAAC_ReturnStatus         closeFile(const ASAAC_PrivateId file_handle);
-        ASAAC_ReturnStatus         closeAllFiles();
+		void closeFile(const ASAAC_PrivateId file_handle);
+        void closeAllFiles();
 		
-		ASAAC_TimedReturnStatus    lockFile(const ASAAC_PrivateId file_handle, const ASAAC_TimeInterval timeout);		
-		ASAAC_ReturnStatus         unlockFile(const ASAAC_PrivateId filehandle);
+		void lockFile(const ASAAC_PrivateId file_handle, const ASAAC_TimeInterval timeout);		
+		void unlockFile(const ASAAC_PrivateId filehandle);
 		
-		ASAAC_ReturnStatus         getFileAttributes(const ASAAC_PrivateId filehandle, ASAAC_AccessRights &access, ASAAC_LockStatus &lock_status);
+		void getFileAttributes(const ASAAC_PrivateId filehandle, ASAAC_AccessRights &access, ASAAC_LockStatus &lock_status);
 				
-		ASAAC_ReturnStatus         seekFile(const ASAAC_PrivateId filehandle, const ASAAC_SeekMode seek_mode, const long set_pos, unsigned long &new_pos);
-		ASAAC_TimedReturnStatus    readFile(const ASAAC_PrivateId filehandle, ASAAC_Address buffer_address, const long read_count, long &count_read, const ASAAC_TimeInterval timeout);				
-		ASAAC_TimedReturnStatus    writeFile(const ASAAC_PrivateId file_handle, const ASAAC_Address buffer_address, const unsigned long write_count, unsigned long &count_written, const ASAAC_TimeInterval timeout);
-		ASAAC_TimedReturnStatus    mapFile(const ASAAC_PrivateId file_handle, const unsigned long size, const unsigned long offset, ASAAC_Address &address);
-		ASAAC_ReturnStatus    	   unmapFile(const ASAAC_Address address, const unsigned long size);
+		void seekFile(const ASAAC_PrivateId filehandle, const ASAAC_SeekMode seek_mode, const long set_pos, unsigned long &new_pos);
+		void readFile(const ASAAC_PrivateId filehandle, ASAAC_Address buffer_address, const long read_count, long &count_read, const ASAAC_TimeInterval timeout);				
+		void writeFile(const ASAAC_PrivateId file_handle, const ASAAC_Address buffer_address, const unsigned long write_count, unsigned long &count_written, const ASAAC_TimeInterval timeout);
+		void mapFile(const ASAAC_PrivateId file_handle, const unsigned long size, const unsigned long offset, ASAAC_Address &address);
+		void unmapFile(const ASAAC_Address address, const unsigned long size);
 		
-		ASAAC_TimedReturnStatus    getFileBuffer(const unsigned long buffer_size, ASAAC_Address &buffer_address, const ASAAC_TimeInterval timeout);		
-		ASAAC_ReturnStatus         releaseFileBuffer(const ASAAC_Address buffer_address);
+		void getFileBuffer(const unsigned long buffer_size, ASAAC_Address &buffer_address, const ASAAC_TimeInterval timeout);		
+		void releaseFileBuffer(const ASAAC_Address buffer_address);
 
 protected:
         void                setDefaultFlagsToPosixHandle( int handle ) const;

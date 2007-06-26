@@ -66,6 +66,12 @@ bool ASAAC_Exception::isTimeout() const
 }
 
 
+bool ASAAC_Exception::isResource() const
+{
+	return false;
+}
+
+
 ASAAC_ErrorCode ASAAC_Exception::getErrorCode() const
 {
 	return 0;

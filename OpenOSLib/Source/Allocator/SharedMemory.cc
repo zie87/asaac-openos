@@ -67,9 +67,7 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 		
 		// Open Shared Memory File
 		const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
-		if (FileManager::getInstance()->openSharedMemory( m_Name, UseOption, m_FileHandle ) == ASAAC_ERROR)
-			throw OSException("SharedMemory could not be opened", LOCATION);
-
+		FileManager::getInstance()->openSharedMemory( m_Name, UseOption, m_FileHandle );
 		
         if (m_IsMaster == false)
         {
@@ -181,20 +179,17 @@ void SharedMemory::deinitialize()
 			unsigned long AllocationCounter = getMemoryHeader()->AllocationCounter; 
 
 			// Unmap memory mapping of shared memory file.	
-			if ( FileManager::getInstance()->unmapFile( m_BaseAddress.ptr, m_BaseMemorySize ) < 0 )
-				throw OSException("Error unmapping shared memory", LOCATION );
+			FileManager::getInstance()->unmapFile( m_BaseAddress.ptr, m_BaseMemorySize );
 	
             // Check if no more objects using the memory    
             if (AllocationCounter == 0 )
             {
-                if (FileManager::getInstance()->deleteSharedMemory(m_Name, ASAAC_NORMAL, TimeIntervalInstant) != ASAAC_TM_SUCCESS)
-                    throw OSException("Error deleting shared memory.", LOCATION);
+                FileManager::getInstance()->deleteSharedMemory(m_Name, ASAAC_NORMAL, TimeIntervalInstant);
             }
 
             if (AllocationCounter > 0 )
             {
-                if (FileManager::getInstance()->closeFile(m_FileHandle) == ASAAC_ERROR)
-                    throw OSException("Error closing shared memory.", LOCATION);
+                FileManager::getInstance()->closeFile(m_FileHandle);
             }
         }
 	}

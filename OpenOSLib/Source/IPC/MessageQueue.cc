@@ -95,10 +95,22 @@ ASAAC_TimedReturnStatus MessageQueue::sendMessage( ASAAC_Address BufferReference
 {
 	if (  m_IsInitialized == false  ) 
 		return ASAAC_TM_ERROR;
+
+	try
+	{	
+		unsigned long Written;
 	
-	unsigned long Written;
-	
-	return FileManager::getInstance()->writeFile( m_QueueHandle, BufferReference, Size, Written, TimeStamp(Timeout).asaac_Interval() );
+		FileManager::getInstance()->writeFile( m_QueueHandle, BufferReference, Size, Written, TimeStamp(Timeout).asaac_Interval() );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error sending a message", LOCATION);
+		e.raiseError();
+		
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;		
+	}
+
+	return ASAAC_TM_SUCCESS;
 }	
 
 
@@ -110,13 +122,22 @@ ASAAC_TimedReturnStatus MessageQueue::receiveMessage( const ASAAC_Address Buffer
 	if (  m_IsInitialized == false  ) 
 		return ASAAC_TM_ERROR;
 		
-	ASAAC_TimedReturnStatus Result;
-	long Read;
-	
-	return FileManager::getInstance()->readFile( m_QueueHandle, BufferReference, MaxSize, Read, TimeStamp(Timeout).asaac_Interval() );
-	
-	ActualSize = Read;
-	
-	return Result;
+	try
+	{	
+		long Read;
+		
+		FileManager::getInstance()->readFile( m_QueueHandle, BufferReference, MaxSize, Read, TimeStamp(Timeout).asaac_Interval() );
+		
+		ActualSize = Read;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error receiving a message", LOCATION);
+		e.raiseError();
+
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+	}
+			
+	return ASAAC_TM_SUCCESS;
 }	
 

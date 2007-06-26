@@ -149,7 +149,7 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 }
 
 
-ASAAC_ResourceReturnStatus FileManager::createDirectory(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access)
+void FileManager::createDirectory(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access)
 {
     try 
     {
@@ -160,23 +160,16 @@ ASAAC_ResourceReturnStatus FileManager::createDirectory(const ASAAC_CharacterSeq
 	    if (mkdir(Name.c_str(), AccessRightsToMode( access )) == -1)
              throw OSException( strerror(errno), LOCATION );             
     }
-    catch ( ResourceException &e )
-    {
-        return ASAAC_RS_RESOURCE;
-    }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::createDirectory", LOCATION);
-        e.raiseError();
+        e.addPath("Error creating directory", LOCATION);
         
-        return ASAAC_RS_ERROR;
+        throw;
     }
-    
-	return ASAAC_RS_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus FileManager::deleteDirectory(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout)
+void FileManager::deleteDirectory(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout)
 {
     try 
     {
@@ -187,23 +180,20 @@ ASAAC_TimedReturnStatus FileManager::deleteDirectory(const ASAAC_CharacterSequen
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::deleteDirectory", LOCATION);
-        e.raiseError();
+        e.addPath("Error deleting directory", LOCATION);
         
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        throw;
     }
-    
-	return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_ResourceReturnStatus FileManager::createFile(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long file_size)
+void FileManager::createFile(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long file_size)
 {
     int Handle = -1;
+    CharSeq Name = name;
     
     try 
     {
-        CharSeq Name = name;
         
         //TODO: check if file exists, then throw a recource exception
 
@@ -218,29 +208,22 @@ ASAAC_ResourceReturnStatus FileManager::createFile(const ASAAC_CharacterSequence
         if (close(Handle) == -1)
              throw OSException( strerror(errno), LOCATION );                  
     }
-    catch ( ResourceException &e )
-    {
-        return ASAAC_RS_RESOURCE;
-    }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::createFile", LOCATION);
-        e.raiseError();
+        e.addPath("Error creating file", LOCATION);
         
         if (Handle != -1)
-            deleteFile( name, ASAAC_IMMEDIATELY, TimeIntervalInstant );
-        
-        return ASAAC_RS_ERROR;
+			oal_remove(Name.c_str());   
+			
+		throw;        
     }
-    
-    return ASAAC_RS_SUCCESS;
 }
 
 
-ASAAC_ResourceReturnStatus FileManager::createSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long file_size)
+void FileManager::createSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long file_size)
 {
     int Handle   = -1;
-    CharSeq Path = name;
+    CharSeq Name = name;
     
     try 
     {
@@ -254,7 +237,7 @@ ASAAC_ResourceReturnStatus FileManager::createSharedMemory(const ASAAC_Character
 #else
         //TODO: check if file exists, then throw a recource exception
         
-        Handle = oal_shm_open( Path.c_str(), Flags, Mode );
+        Handle = oal_shm_open( Name.c_str(), Flags, Mode );
 #endif                          
 
         if (Handle == -1)
@@ -269,26 +252,19 @@ ASAAC_ResourceReturnStatus FileManager::createSharedMemory(const ASAAC_Character
         if (close(Handle) == -1)
              throw OSException( strerror(errno), LOCATION );                  
     }
-    catch ( ResourceException &e )
-    {
-        return ASAAC_RS_RESOURCE;
-    }
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::createSharedMemory", LOCATION);
-        e.raiseError();
         
         if (Handle != -1)
-            deleteSharedMemory( Path.asaac_str(), ASAAC_IMMEDIATELY, TimeIntervalInstant );
-        
-        return ASAAC_RS_ERROR;
+			oal_remove(Name.c_str());   
+
+		throw;        
     }
-    
-    return ASAAC_RS_SUCCESS;
 }
 
 
-ASAAC_ResourceReturnStatus FileManager::createMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long queue_size, const unsigned long message_size)
+void FileManager::createMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_AccessRights access, const unsigned long queue_size, const unsigned long message_size)
 {
     int Handle = -1;
     CharSeq Path = name;
@@ -316,26 +292,24 @@ ASAAC_ResourceReturnStatus FileManager::createMessageQueue(const ASAAC_Character
         if (close(Handle) == -1)
              throw OSException( strerror(errno), LOCATION );                  
     }
-    catch ( ResourceException &e )
-    {
-        return ASAAC_RS_RESOURCE;
-    }
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::createMessageQueue", LOCATION);
-        e.raiseError();
         
-        if (Handle != -1)
-            deleteMessageQueue( Path.asaac_str(), ASAAC_IMMEDIATELY, TimeIntervalInstant );
+		try
+		{
+	        if (Handle != -1)
+	            deleteMessageQueue( Path.asaac_str(), ASAAC_IMMEDIATELY, TimeIntervalInstant );
+        }
+        catch ( ... )
+        {}
         
-        return ASAAC_RS_ERROR;
+        throw;
     }
-    
-    return ASAAC_RS_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus FileManager::deleteFile(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout)
+void FileManager::deleteFile(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout)
 {
     CharacterSequence Name;
     
@@ -348,17 +322,14 @@ ASAAC_TimedReturnStatus FileManager::deleteFile(const ASAAC_CharacterSequence na
     }
     catch (ASAAC_Exception &e)
     {
-        e.addPath( "APOS::deleteFile", LOCATION);
-        e.raiseError();
-        
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        e.addPath( "Error deleting file", LOCATION);
+
+		throw;        
     }
-    
-    return ASAAC_TM_SUCCESS;
 }    
 
         
-ASAAC_TimedReturnStatus FileManager::deleteSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout)
+void FileManager::deleteSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout)
 {
     CharacterSequence Name = name;
     
@@ -377,17 +348,14 @@ ASAAC_TimedReturnStatus FileManager::deleteSharedMemory(const ASAAC_CharacterSeq
     }
     catch (ASAAC_Exception &e)
     {
-        e.addPath( "APOS::deleteSharedMemory", LOCATION);
-        e.raiseError();
-        
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        e.addPath( "Error deleting shared memory", LOCATION);
+		
+		throw;
     }
-    
-    return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus FileManager::deleteMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout)
+void FileManager::deleteMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_DeleteOption del_opt, const ASAAC_TimeInterval timeout)
 {
     CharacterSequence Name = name;
     
@@ -400,17 +368,14 @@ ASAAC_TimedReturnStatus FileManager::deleteMessageQueue(const ASAAC_CharacterSeq
     }
     catch (ASAAC_Exception &e)
     {
-        e.addPath( "APOS::deleteMessageQueue", LOCATION);
-        e.raiseError();
-        
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        e.addPath( "Error deleting message queue", LOCATION);
+		
+		throw;
     }
-    
-    return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus FileManager::openFile( const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle ) 
+void FileManager::openFile( const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle ) 
 {
     CharacterSequence Name = name;
     int PosixHandle = -1;
@@ -440,17 +405,14 @@ ASAAC_ReturnStatus FileManager::openFile( const ASAAC_CharacterSequence name, co
         if (PosixHandle != -1)
             oal_close(PosixHandle);
         
-        e.addPath( "APOS::openFile", LOCATION);
-        e.raiseError();
+        e.addPath( "Error opening file", LOCATION);
         
-        return ASAAC_ERROR;
+		throw;
     }
-        
-    return ASAAC_SUCCESS;   
 }
 
 
-ASAAC_ReturnStatus FileManager::openSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle)
+void FileManager::openSharedMemory(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle)
 {
     CharacterSequence Name = name;
     int PosixHandle = -1;
@@ -486,17 +448,14 @@ ASAAC_ReturnStatus FileManager::openSharedMemory(const ASAAC_CharacterSequence n
         if (PosixHandle != -1)
             oal_close(PosixHandle);
         
-        e.addPath( "APOS::openSharedMemory", LOCATION);
-        e.raiseError();
-        
-        return ASAAC_ERROR;
+        e.addPath( "Error opeing shared memory", LOCATION);
+
+		throw;
     }
-        
-    return ASAAC_SUCCESS;   
 }
 
 
-ASAAC_ReturnStatus FileManager::openMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle)
+void FileManager::openMessageQueue(const ASAAC_CharacterSequence name, const ASAAC_UseOption use_option, ASAAC_PrivateId &file_handle)
 {
     CharacterSequence Name = name;
     int PosixHandle = -1;
@@ -526,21 +485,18 @@ ASAAC_ReturnStatus FileManager::openMessageQueue(const ASAAC_CharacterSequence n
         if (PosixHandle != -1)
             oal_close(PosixHandle);
         
-        e.addPath( "APOS::openMessageQueue", LOCATION);
-        e.raiseError();
-        
-        return ASAAC_ERROR;
+        e.addPath( "Error opening message queue", LOCATION);
+
+		throw;
     }
-        
-    return ASAAC_SUCCESS;   
 }
 
 
-ASAAC_ReturnStatus FileManager::closeFile(const ASAAC_PrivateId file_handle)
+void FileManager::closeFile(const ASAAC_PrivateId file_handle)
 {
     //In LAS_PROCESS_INIT state do not close any file handle to transfer them to OSProcess state
     if (OpenOS::getInstance()->getActivityState() == LAS_PROCESS_INIT)
-        return ASAAC_SUCCESS; 
+        return; 
     
     try
     {
@@ -553,21 +509,18 @@ ASAAC_ReturnStatus FileManager::closeFile(const ASAAC_PrivateId file_handle)
     }
     catch (ASAAC_Exception &e)
     {
-        e.addPath("APOS::closeFile", LOCATION);
-        e.raiseError();
+        e.addPath("Error closing file", LOCATION);
         
-        return ASAAC_ERROR;
+        throw;
     }
-    
-    return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus FileManager::closeAllFiles()
+void FileManager::closeAllFiles()
 {
     //In LAS_PROCESS_INIT state do not close any file handle to transfer them to OSProcess state
     if (OpenOS::getInstance()->getActivityState() == LAS_PROCESS_INIT)
-        return ASAAC_SUCCESS; 
+    	return; 
 
     try
     {   
@@ -581,30 +534,25 @@ ASAAC_ReturnStatus FileManager::closeAllFiles()
     catch (ASAAC_Exception &e)
     {
         e.addPath("Error closing all files", LOCATION);
-        e.raiseError();
         
-        return ASAAC_ERROR;
+        throw;
     }
-    
-    return ASAAC_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus FileManager::lockFile(const ASAAC_PrivateId file_handle, const ASAAC_TimeInterval timeout)
+void FileManager::lockFile(const ASAAC_PrivateId file_handle, const ASAAC_TimeInterval timeout)
 {
-	OSException("APOS::lockFile - not yet implemented.", LOCATION).raiseError();
-	return ASAAC_TM_ERROR;
+	throw OSException("Error locking file - not yet implemented.", LOCATION);
 }
 
 
-ASAAC_ReturnStatus FileManager::unlockFile(const ASAAC_PrivateId filehandle)
+void FileManager::unlockFile(const ASAAC_PrivateId filehandle)
 {
-    OSException("APOS::unlockFile - not yet implemented.", LOCATION).raiseError();
-	return ASAAC_ERROR;
+    throw OSException("Error unlocking file - not yet implemented.", LOCATION);
 }
 
 
-ASAAC_ReturnStatus FileManager::getFileAttributes(const ASAAC_PrivateId filehandle, ASAAC_AccessRights &access, ASAAC_LockStatus &lock_status)
+void FileManager::getFileAttributes(const ASAAC_PrivateId filehandle, ASAAC_AccessRights &access, ASAAC_LockStatus &lock_status)
 {
     try 
     {
@@ -614,17 +562,14 @@ ASAAC_ReturnStatus FileManager::getFileAttributes(const ASAAC_PrivateId filehand
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::getFileAttributes", LOCATION);
-        e.raiseError();
-        
-        return ASAAC_ERROR;
+        e.addPath("Error retrieving file attributes", LOCATION);
+
+		throw;
     }
-    
-    return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus FileManager::seekFile(const ASAAC_PrivateId filehandle, const ASAAC_SeekMode seek_mode, const long set_pos, unsigned long &new_pos)
+void FileManager::seekFile(const ASAAC_PrivateId filehandle, const ASAAC_SeekMode seek_mode, const long set_pos, unsigned long &new_pos)
 {
     try 
     {
@@ -652,17 +597,14 @@ ASAAC_ReturnStatus FileManager::seekFile(const ASAAC_PrivateId filehandle, const
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::seekFile", LOCATION);
-        e.raiseError();
-        
-        return ASAAC_ERROR;
+        e.addPath("Error seeking file", LOCATION);
+
+		throw;
     }
-    
-    return ASAAC_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus FileManager::readFile(const ASAAC_PrivateId filehandle, ASAAC_Address buffer_address, const long read_count, long &count_read, const ASAAC_TimeInterval timeout)
+void FileManager::readFile(const ASAAC_PrivateId filehandle, ASAAC_Address buffer_address, const long read_count, long &count_read, const ASAAC_TimeInterval timeout)
 {
     try 
     {
@@ -711,17 +653,14 @@ ASAAC_TimedReturnStatus FileManager::readFile(const ASAAC_PrivateId filehandle, 
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::readFile", LOCATION);
-        e.raiseError();
-        
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        e.addPath("Error reading file", LOCATION);
+
+		throw;
     }
-    
-    return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus FileManager::writeFile(const ASAAC_PrivateId file_handle, const ASAAC_Address buffer_address, const unsigned long write_count, unsigned long &count_written, const ASAAC_TimeInterval timeout)
+void FileManager::writeFile(const ASAAC_PrivateId file_handle, const ASAAC_Address buffer_address, const unsigned long write_count, unsigned long &count_written, const ASAAC_TimeInterval timeout)
 {
     try 
     {
@@ -769,17 +708,14 @@ ASAAC_TimedReturnStatus FileManager::writeFile(const ASAAC_PrivateId file_handle
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::writeFile", LOCATION);
-        e.raiseError();
-        
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        e.addPath("Error writing file", LOCATION);
+
+		throw;
     }
-    
-    return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus FileManager::mapFile(const ASAAC_PrivateId file_handle, const unsigned long size, const unsigned long offset, ASAAC_Address &address)
+void FileManager::mapFile(const ASAAC_PrivateId file_handle, const unsigned long size, const unsigned long offset, ASAAC_Address &address)
 {
 	try
 	{
@@ -809,17 +745,14 @@ ASAAC_TimedReturnStatus FileManager::mapFile(const ASAAC_PrivateId file_handle, 
 	}
 	catch ( ASAAC_Exception &e)
 	{
-		e.addPath("APOS::mapFile", LOCATION);
-		e.raiseError();
-		
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+		e.addPath("Error mapping file", LOCATION);
+
+		throw;
 	}	
-	
-	return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus FileManager::unmapFile(const ASAAC_Address address, const unsigned long size)
+void FileManager::unmapFile(const ASAAC_Address address, const unsigned long size)
 {
 	try
 	{
@@ -828,27 +761,22 @@ ASAAC_ReturnStatus FileManager::unmapFile(const ASAAC_Address address, const uns
 	}
 	catch ( ASAAC_Exception &e)
 	{
-		e.addPath("APOS::unmapFile", LOCATION);
-		e.raiseError();
-		
-		return ASAAC_ERROR;
+		e.addPath("Error unmapping file", LOCATION);
+
+		throw;
 	}	
-	
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus FileManager::getFileBuffer(const unsigned long buffer_size, ASAAC_Address &buffer_address, const ASAAC_TimeInterval timeout)
+void FileManager::getFileBuffer(const unsigned long buffer_size, ASAAC_Address &buffer_address, const ASAAC_TimeInterval timeout)
 {
-    OSException("APOS::getFileBuffer - not yet implemented.", LOCATION).raiseError();
-	return ASAAC_TM_ERROR;
+    throw OSException("Error retrieving file buffer - not yet implemented.", LOCATION);
 }
 
 
-ASAAC_ReturnStatus FileManager::releaseFileBuffer(const ASAAC_Address buffer_address)
+void FileManager::releaseFileBuffer(const ASAAC_Address buffer_address)
 {
-    OSException("APOS::releaseFileBuffer - not yet implemented.", LOCATION).raiseError();
-	return ASAAC_ERROR;
+    throw OSException("Error releasing file buffer - not yet implemented.", LOCATION);
 }
 
 

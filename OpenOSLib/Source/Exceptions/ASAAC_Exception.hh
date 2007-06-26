@@ -26,6 +26,7 @@ class ASAAC_Exception: public exception {
         virtual const char *what() const throw(); 
         
 		virtual bool isTimeout() const;
+		virtual bool isResource() const;
 		virtual ASAAC_ErrorCode getErrorCode() const;
 		virtual ASAAC_ErrorType getErrorType() const;
 		virtual ASAAC_PublicId getVcId() const;

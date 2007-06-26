@@ -55,10 +55,7 @@ void LoggingManager::initialize(bool IsMaster)
 			
 			const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
 			
-			ASAAC_ReturnStatus Result = FM->openFile( CharSeq(LogFileNames[ Index ]).asaac_str(), UseOption, m_LogFileDescriptors[Index]);
-			
-			if (Result == ASAAC_ERROR)
-				throw OSException( LogFileNames[ Index ], LOCATION );
+			FM->openFile( CharSeq(LogFileNames[ Index ]).asaac_str(), UseOption, m_LogFileDescriptors[Index]);
 		}
 		
 		m_LoggingQueue.initialize( IsMaster, OS_LOGGING_QUEUE, CLIENTS_RECEIVE, OS_MAX_ERROR_QUEUESIZE, sizeof( LogReportData ) );
