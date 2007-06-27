@@ -4,7 +4,7 @@
 #include "Interfaces/TcMessageConsumer.hh"
 #include "Configuration/PCSConfiguration.hh"
 
-#include "Exception.hh"
+#include "Exceptions/Exception.hh"
 
 
 

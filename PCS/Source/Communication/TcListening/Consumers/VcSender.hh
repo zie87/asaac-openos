@@ -3,7 +3,7 @@
 
 #include "Interfaces/VcMessageConsumer.hh"
 
-#include "Exception.hh"
+#include "Exceptions/Exception.hh"
 
 class VcSender : public VcMessageConsumer
 {

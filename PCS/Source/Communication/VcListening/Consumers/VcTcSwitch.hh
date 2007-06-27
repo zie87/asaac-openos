@@ -6,7 +6,7 @@
 
 #include "Configuration/PCSConfiguration.hh"
 
-#include "Exception.hh"
+#include "Exceptions/Exception.hh"
 
 
 class VcTcSwitch : public VcMessageConsumer

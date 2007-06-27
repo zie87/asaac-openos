@@ -1,12 +1,12 @@
 #include "TcRateLimiter.hh"
 
-#include "TimeOperations.hh"
+#include "Operators/TimeOperators.hh"
 
-#include "SemaphoreProtectedScope.hh"
+#include "IPC/SemaphoreProtectedScope.hh"
 
-#include "NameGenerator.hh"
+#include "Common/NameGenerator.hh"
 
-#include "Exception.hh"
+#include "Exceptions/Exception.hh"
 
 
 TcRateLimiter::TcRateLimiter()

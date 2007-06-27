@@ -2,35 +2,30 @@
 #define PCSCLASS_HH_
 
 
-
 #include "Interfaces/VcMessageConsumer.hh"
 #include "Interfaces/TcMessageConsumer.hh"
 
-#include "Consumers/VcSender.hh"
+#include "Communication/DebugConsumers/TcDumper.hh"
+#include "Communication/DebugConsumers/MessageDumper.hh"
 
-#include "Consumers/TcDumper.hh"
+#include "Communication/PmFilter/PmFilter.hh"
 
-#include "Consumers/MessageDumper.hh"
-#include "VcListener.hh"
-#include "TcListener.hh"
+#include "Communication/TcListening/TcListener.hh"
+#include "Communication/TcListening/Consumers/TcUnpacker.hh"
+#include "Communication/TcListening/Consumers/UnMarshallingFilter.hh"
+#include "Communication/TcListening/Consumers/GlobalVcSender.hh"
+#include "Communication/TcListening/Consumers/VcSender.hh"
 
-#include "Consumers/MarshallingFilter.hh"
-#include "Consumers/UnMarshallingFilter.hh"
-
-#include "Consumers/VcTcSwitch.hh"
-#include "Consumers/TcUnpacker.hh"
-#include "Consumers/TcPacker.hh"
-#include "Consumers/TcSender.hh"
-
-#include "Consumers/GlobalVcSender.hh"
+#include "Communication/VcListening/VcListener.hh"
+#include "Communication/VcListening/Consumers/VcTcSwitch.hh"
+#include "Communication/VcListening/Consumers/MarshallingFilter.hh"
+#include "Communication/VcListening/Consumers/TcPacker.hh"
+#include "Communication/VcListening/Consumers/TcRateLimiter.hh"
+#include "Communication/VcListening/Consumers/TcSender.hh"
 
 #include "Configuration/PCSConfiguration.hh"
 
-#include "PmFilter/PmFilter.hh"
-
-#include "TimeOperations.hh"
-
-#include "Consumers/TcRateLimiter.hh"
+#include "Operators/TimeOperators.hh"
 
 #include "Marshalling/MarshallingProcessor.hh"
 

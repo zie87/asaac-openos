@@ -1,6 +1,6 @@
 #include "SemaphoreProtectedScope.hh"
 
-#include "Exception.hh"
+#include "Exceptions/Exception.hh"
 
 SemaphoreProtectedScope::SemaphoreProtectedScope( ASAAC_PublicId SemaphoreId, const ASAAC_TimeInterval& Timeout )
 {

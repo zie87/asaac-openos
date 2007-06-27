@@ -5,7 +5,7 @@
 
 #include "Configuration/PCSConfiguration.hh"
 
-#include "Exception.hh"
+#include "Exceptions/Exception.hh"
 
 //! Generate VcMessage from a message
 

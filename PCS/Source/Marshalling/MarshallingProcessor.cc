@@ -2,7 +2,7 @@
 
 #include "FormatString.hh"
 
-#include "Exception.hh"
+#include "Exceptions/Exception.hh"
 
 #include <iostream>
 

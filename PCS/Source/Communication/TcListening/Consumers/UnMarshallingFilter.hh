@@ -6,7 +6,7 @@
 
 #include "Marshalling/MarshallingProcessor.hh"
 
-#include "Exception.hh"
+#include "Exceptions/Exception.hh"
 
 class UnMarshallingFilter : public VcMessageConsumer
 {
