@@ -25,16 +25,17 @@ ASAAC_CharacterSequence Parser::getString()
 
 unsigned long Parser::parseString(unsigned long &Index, char *String, unsigned long Max)
 {
-    unsigned long Length = strlen(String);
+    unsigned long StringLength = strlen(String);
+    unsigned long Length = m_Sequence.size();
     
     unsigned long i = Index;
     unsigned long c = 0;
     
     bool Flag = true;
     
-    for (; c < Max; c++)
+    for (; (c < Max) && (i < Length); c++)
     {
-        for (unsigned long j = 0; j < Length; j++, i++)
+        for (unsigned long j = 0; (j < StringLength) && (i < Length); j++, i++)
             if ( String[j] != m_Sequence[i] )
             {
                 Flag = false;
@@ -53,7 +54,8 @@ unsigned long Parser::parseString(unsigned long &Index, char *String, unsigned l
 
 unsigned long Parser::parseSample(unsigned long &Index, char *Sample, unsigned long Max, bool Inverse)
 {
-    unsigned long Length = strlen(Sample);
+    unsigned long SampleLength = strlen(Sample);
+    unsigned long Length = m_Sequence.size();
     
     unsigned long i = Index;
     unsigned long c = 0;
@@ -64,9 +66,12 @@ unsigned long Parser::parseSample(unsigned long &Index, char *Sample, unsigned l
     {
         Index = i;
 
+		if (i == Length)
+			break;
+
         Flag = false;
         
-        for (unsigned long j = 0; j < Length; j++)
+        for (unsigned long j = 0; j < SampleLength; j++)
             if (Sample[j] == m_Sequence[i])
             {
                 Flag = true;
@@ -76,6 +81,7 @@ unsigned long Parser::parseSample(unsigned long &Index, char *Sample, unsigned l
         if (Flag == Inverse)
             break;
     }
+    
     return c;
 }
 

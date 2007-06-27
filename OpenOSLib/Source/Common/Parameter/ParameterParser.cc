@@ -141,7 +141,7 @@ void ParameterParser::parse( ASAAC_CharacterSequence Sequence)
     m_Configuration.ConfigurationFile = parsePath(Index);
 
     parseSample(Index, createSample(space), Unlimited);
-	
+
 	if (Index != getString().size)
 		throw OSException(LOCATION);
 }
