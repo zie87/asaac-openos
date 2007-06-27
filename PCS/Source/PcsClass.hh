@@ -5,8 +5,8 @@
 #include "Interfaces/VcMessageConsumer.hh"
 #include "Interfaces/TcMessageConsumer.hh"
 
-#include "Communication/DebugConsumers/TcDumper.hh"
-#include "Communication/DebugConsumers/MessageDumper.hh"
+#include "Communication/Debug/TcDumper.hh"
+#include "Communication/Debug/MessageDumper.hh"
 
 #include "Communication/PmFilter/PmFilter.hh"
 
