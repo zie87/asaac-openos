@@ -4,7 +4,6 @@
 	<comment></comment>
 	<projects>
 		<project>NII</project>
-		<project>OpenOSLib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

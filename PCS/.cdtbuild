@@ -12,8 +12,8 @@
 <listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/OpenOSLib}/Source&quot;" builtIn="false"/>
 </option>
-<option id="gnu.cpp.compiler.option.preprocessor.def.346070771" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
-<listOptionValue builtIn="false" value="dont_DEBUG_"/>
+<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.346070771" valueType="definedSymbols">
+<listOptionValue value="dont_DEBUG_" builtIn="false"/>
 </option>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.14886845" name="GCC C Compiler"/>
@@ -21,18 +21,19 @@
 <tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.941904374" name="GCC C++ Linker">
 <option superClass="gnu.cpp.link.option.libs" id="gnu.cpp.link.option.libs.164078426" valueType="libs">
 <listOptionValue value="NII" builtIn="false"/>
-<listOptionValue value="OpenOS" builtIn="false"/>
-<listOptionValue value="rt" builtIn="false"/>
 <listOptionValue value="pthread" builtIn="false"/>
+<listOptionValue value="rt" builtIn="false"/>
+<listOptionValue value="OpenOS" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.link.option.paths" id="gnu.cpp.link.option.paths.535234695" valueType="stringList">
-<listOptionValue value="$(ASAAC_OS)/OpenOSLib/Debug" builtIn="false"/>
-<listOptionValue value="$(ASAAC_OS)/NII/Debug" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Debug}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/NII/Debug}&quot;" builtIn="false"/>
 </option>
 </tool>
-<tool id="cdt.managedbuild.tool.gnu.assembler.exe.debug.16450803" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug"/>
+<tool superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug" id="cdt.managedbuild.tool.gnu.assembler.exe.debug.16450803" name="GCC Assembler"/>
 <macros/>
 </toolChain>
 </configuration>
+<macros/>
 </project>
 </ManagedProjectBuildInfo>

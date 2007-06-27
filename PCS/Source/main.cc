@@ -19,10 +19,9 @@ using namespace std;
 
 using namespace ASAAC::PCS;
 
-
 PCS 				pcs;
 PCSConfiguration    pcsConfig;
-Server 				pcsServer;
+ASAAC::PCS::Server 	pcsServer;
  
 
 
@@ -165,7 +164,7 @@ void initializePcsServer()
 {
    	pcsServer.setRequestVc( OS_PCS_SERVER_VC_REQUEST );
  	pcsServer.setReplyVc( OS_PCS_SERVER_VC_REPLY );
-  	pcsServer.setTimeOut( TimeInterval( 1, Seconds ).asaac_Interval() );
+  	pcsServer.setTimeOut( TimeIntervalInfinity );
  
   	pcsServer.registerHandler( ASAAC_PCS_ConfigureInterface, handleConfigureInterface);
   	pcsServer.registerHandler( ASAAC_PCS_GetTransferConnectionDescription, handleGetTransferConnectionDescription);
@@ -225,12 +224,9 @@ ASAAC_THREAD( MainThread )
 		cout << "PCS: Enter Main Loop " << endl;
 #endif
 		
-		ASAAC_TimeInterval interval = {0, 500 }; //wait 500 nano sec
-		
 		for(;;)
 		{
 			pcsServer.handleOneRequest();
-			ASAAC_APOS_sleep(&interval);
 		}
 	}
 	catch ( PCSException &E )
