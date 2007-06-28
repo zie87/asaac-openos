@@ -55,17 +55,17 @@ public:
 	 */
 	
 	
-	virtual ASAAC_ResourceReturnStatus sendMessageNonblocking( ASAAC_Address BufferReference, unsigned long Size );
+	virtual void sendMessageNonblocking( ASAAC_Address BufferReference, unsigned long Size );
 	
-    virtual ASAAC_ResourceReturnStatus receiveMessageNonblocking( ASAAC_Address BufferReference, 
+    virtual void receiveMessageNonblocking( ASAAC_Address BufferReference, 
     												unsigned long MaxSize, 
     												unsigned long& ActualSize );
 
-    virtual ASAAC_TimedReturnStatus sendMessage( ASAAC_Address BufferReference, 
+    virtual void sendMessage( ASAAC_Address BufferReference, 
     							   unsigned long Size, 
     							   const ASAAC_Time& Timeout );
 
-    virtual ASAAC_TimedReturnStatus receiveMessage( const ASAAC_Address BufferReference, 
+    virtual void receiveMessage( const ASAAC_Address BufferReference, 
     								  unsigned long MaxSize, 
     								  unsigned long& ActualSize, 
     								  const ASAAC_Time& Timeout );

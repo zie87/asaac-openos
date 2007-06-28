@@ -113,17 +113,17 @@ bool LocalVc::isInitialized()
 
 
 
-ASAAC_ReturnStatus LocalVc::remove()
+void LocalVc::remove()
 {
     if ( m_IsInitialized == false ) 
         throw UninitializedObjectException(LOCATION);
 
-	return m_ParentGlobalVc->removeLocalVc( m_Description->global_pid, m_Description->local_vc_id );
+	m_ParentGlobalVc->removeLocalVc( m_Description->global_pid, m_Description->local_vc_id );
 }
 
 
 
-ASAAC_ReturnStatus LocalVc::assign( const ASAAC_VcMappingDescription& Description )
+void LocalVc::assign( const ASAAC_VcMappingDescription& Description )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
@@ -158,19 +158,16 @@ ASAAC_ReturnStatus LocalVc::assign( const ASAAC_VcMappingDescription& Descriptio
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error assigning local vc", LOCATION);
-		e.raiseError();
+
+		try { unassign(); } catch ( ... ) {}
 		
-		unassign();
-		
-		return ASAAC_ERROR;
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
 
-ASAAC_ReturnStatus LocalVc::unassign()
+void LocalVc::unassign()
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
@@ -212,12 +209,9 @@ ASAAC_ReturnStatus LocalVc::unassign()
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error unassigning local vc", LOCATION);
-		e.raiseError();
 		
-		return ASAAC_ERROR;
+		throw;
 	}
-		
-	return ASAAC_SUCCESS;
 }
 
 
@@ -232,31 +226,47 @@ ASAAC_PublicId LocalVc::getId()
 
 
 
-ASAAC_ResourceReturnStatus LocalVc::sendMessageNonblocking(ASAAC_Address BufferReference, unsigned long Size)
+void LocalVc::sendMessageNonblocking(ASAAC_Address BufferReference, unsigned long Size)
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
-	return sendMessage( BufferReference, Size, TimeStamp::Instant().asaac_Time() ) == ASAAC_TM_SUCCESS ? 
-        ASAAC_RS_SUCCESS : ASAAC_RS_ERROR;
+	try
+	{
+		sendMessage( BufferReference, Size, TimeStamp::Instant().asaac_Time() );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error sending message nonblocking", LOCATION);
+		
+		throw;
+	} 
 }
 
 
 
-ASAAC_ResourceReturnStatus LocalVc::receiveMessageNonblocking( ASAAC_Address BufferReference, 
+void LocalVc::receiveMessageNonblocking( ASAAC_Address BufferReference, 
 														 unsigned long MaxSize, 
 														 unsigned long& ActualSize )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
-	return receiveMessage( BufferReference, MaxSize, ActualSize, TimeStamp::Instant().asaac_Time() ) == ASAAC_TM_SUCCESS ? 
-        ASAAC_RS_SUCCESS : ASAAC_RS_ERROR;
+	try
+	{
+		receiveMessage( BufferReference, MaxSize, ActualSize, TimeStamp::Instant().asaac_Time() );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error receiving message nonblocking", LOCATION);
+		
+		throw;
+	} 
 }
 
 
 
-ASAAC_TimedReturnStatus LocalVc::sendMessage(ASAAC_Address BufferReference, unsigned long Size, const ASAAC_Time& Timeout)
+void LocalVc::sendMessage(ASAAC_Address BufferReference, unsigned long Size, const ASAAC_Time& Timeout)
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -283,13 +293,11 @@ ASAAC_TimedReturnStatus LocalVc::sendMessage(ASAAC_Address BufferReference, unsi
         
         throw;
 	}
-
-	return ASAAC_TM_SUCCESS;
 }
 
 
 
-ASAAC_TimedReturnStatus LocalVc::receiveMessage( ASAAC_Address BufferReference, 
+void LocalVc::receiveMessage( ASAAC_Address BufferReference, 
 										   unsigned long MaxSize, 
 										   unsigned long& ActualSize, 
 										   const ASAAC_Time& Timeout )
@@ -322,13 +330,11 @@ ASAAC_TimedReturnStatus LocalVc::receiveMessage( ASAAC_Address BufferReference,
 
         throw;
 	}
-	
-	return ASAAC_TM_SUCCESS;
 }
 
 
 
-ASAAC_TimedReturnStatus LocalVc::lockBuffer( ASAAC_Address& BufferReference, 
+void LocalVc::lockBuffer( ASAAC_Address& BufferReference, 
 									   unsigned long Size, 
 									   const ASAAC_Time& Timeout )
 {
@@ -366,13 +372,11 @@ ASAAC_TimedReturnStatus LocalVc::lockBuffer( ASAAC_Address& BufferReference,
 		
 		throw;
 	}
-		
-	return ASAAC_TM_SUCCESS;
 }
 
 
 
-ASAAC_TimedReturnStatus LocalVc::sendBuffer( ASAAC_Address BufferReference, 
+void LocalVc::sendBuffer( ASAAC_Address BufferReference, 
 								  unsigned long Size,
 								  const ASAAC_Time& Timeout )
 {
@@ -404,13 +408,11 @@ ASAAC_TimedReturnStatus LocalVc::sendBuffer( ASAAC_Address BufferReference,
         
         throw;
 	}
-	
-	return ASAAC_TM_SUCCESS;
 }
 
 
 
-ASAAC_TimedReturnStatus LocalVc::receiveBuffer( ASAAC_Address& BufferReference, 
+void LocalVc::receiveBuffer( ASAAC_Address& BufferReference, 
 										  unsigned long& Size,
 										  const ASAAC_Time& Timeout )
 {
@@ -435,13 +437,11 @@ ASAAC_TimedReturnStatus LocalVc::receiveBuffer( ASAAC_Address& BufferReference,
         
 		throw;
 	}
-		
-	return ASAAC_TM_SUCCESS;
 }
 
 
 
-ASAAC_ReturnStatus LocalVc::unlockBuffer( ASAAC_Address BufferReference )
+void LocalVc::unlockBuffer( ASAAC_Address BufferReference )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -468,24 +468,21 @@ ASAAC_ReturnStatus LocalVc::unlockBuffer( ASAAC_Address BufferReference )
         
         throw;
     }
-
-	return ASAAC_SUCCESS;
-
 }
 
 
 
-ASAAC_TimedReturnStatus LocalVc::waitForAvailableData( const ASAAC_Time& Timeout )
+void LocalVc::waitForAvailableData( const ASAAC_Time& Timeout )
 {
     if ( m_IsInitialized == false ) 
         throw UninitializedObjectException(LOCATION);
 	
-	return m_Queue.waitForAvailableData( Timeout );
+	m_Queue.waitForAvailableData( Timeout );
 }
 
 
 
-ASAAC_TimedReturnStatus LocalVc::queueBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout )
+void LocalVc::queueBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout )
 {
     if ( m_IsInitialized == false ) 
         throw UninitializedObjectException(LOCATION);
@@ -506,18 +503,16 @@ ASAAC_TimedReturnStatus LocalVc::queueBuffer( unsigned long BufferNumber, const 
         
 		throw;
 	}
-    
-    return ASAAC_TM_SUCCESS;
 }
 	
 
 	
-ASAAC_TimedReturnStatus LocalVc::waitForFreeCells( const ASAAC_Time& Timeout )
+void LocalVc::waitForFreeCells( const ASAAC_Time& Timeout )
 {
     if ( m_IsInitialized == false ) 
         throw UninitializedObjectException(LOCATION);
 	
-	return m_Queue.waitForFreeCells( Timeout );
+	m_Queue.waitForFreeCells( Timeout );
 }
 
 
@@ -526,7 +521,7 @@ ASAAC_VcMappingDescription* LocalVc::getDescription()
     if ( m_IsInitialized == false ) 
         throw UninitializedObjectException(LOCATION);
 	
-	return m_Description.getLocation();
+	m_Description.getLocation();
 }
 
 

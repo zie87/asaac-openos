@@ -928,32 +928,39 @@ ASAAC_ReturnStatus Process::attachLocalVc( ASAAC_PublicId GlobalVcId, ASAAC_Publ
 
 ASAAC_ReturnStatus Process::detachAndDestroyAllLocalVcs()
 {
-	if (m_IsServer == false)
-		return ASAAC_ERROR;
-		
-	ASAAC_ReturnStatus Result = ASAAC_SUCCESS;
-	
-	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_LOCALVCS; Index ++ )
-	{
-		if ( m_LocalVCs[ Index ].GlobalVcId == OS_UNUSED_ID ) 
-			continue;
+	try
+	{	
+		if (m_IsServer == false)
+			throw OSException("This is not the server object", LOCATION);
 
-		if ( m_LocalVCs[ Index ].LocalVcId == OS_UNUSED_ID ) 
-			continue;
+		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_LOCALVCS; Index ++ )
+		{
+			if ( m_LocalVCs[ Index ].GlobalVcId == OS_UNUSED_ID ) 
+				continue;
+	
+			if ( m_LocalVCs[ Index ].LocalVcId == OS_UNUSED_ID ) 
+				continue;
+			
+			LocalVc *LVc = CommunicationManager::getInstance()->getLocalVirtualChannel( getId(), m_LocalVCs[ Index ].GlobalVcId, m_LocalVCs[ Index ].LocalVcId );
+			
+			if (LVc == NULL)
+				continue;
+			
+			LVc->remove();
+			
+			m_LocalVCs[ Index ].GlobalVcId   = OS_UNUSED_ID;
+			m_LocalVCs[ Index ].LocalVcId    = OS_UNUSED_ID;
+		}
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error detaching and destropying all local vcs from process", LOCATION);
+		e.raiseError();
 		
-		LocalVc *LVc = CommunicationManager::getInstance()->getLocalVirtualChannel( getId(), m_LocalVCs[ Index ].GlobalVcId, m_LocalVCs[ Index ].LocalVcId );
-		
-		if (LVc == NULL)
-			continue;
-		
-		if (LVc->remove() == ASAAC_ERROR)
-			Result = ASAAC_ERROR;
-		
-		m_LocalVCs[ Index ].GlobalVcId   = OS_UNUSED_ID;
-		m_LocalVCs[ Index ].LocalVcId    = OS_UNUSED_ID;
+		return ASAAC_ERROR;
 	}
 	
-	return Result;
+	return ASAAC_SUCCESS;
 }
 
 

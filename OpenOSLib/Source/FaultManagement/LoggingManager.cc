@@ -177,18 +177,17 @@ ASAAC_TimedReturnStatus	 LoggingManager::getLogReport( ASAAC_CharacterSequence& 
 	if ( m_IsInitialized == false ) 
 		return ASAAC_TM_ERROR;
 	
-	unsigned long ActualSize;
+	try
+	{
+		unsigned long ActualSize;
+		
+		LogReportData ThisLogReport;
+		
+		m_LoggingQueue.receiveMessage( &ThisLogReport, sizeof( LogReportData ), ActualSize, TimeStamp( Timeout ).asaac_Time() );
+		
+		if ( ActualSize != sizeof( LogReportData ) ) 
+			throw OSException("Size of retrieved message doesn't fit to size of LogReportData", LOCATION);
 	
-	LogReportData ThisLogReport;
-	
-	ASAAC_TimedReturnStatus Result = m_LoggingQueue.receiveMessage( &ThisLogReport, sizeof( LogReportData ), ActualSize, TimeStamp( Timeout ).asaac_Time() );
-	
-	if ( Result == ASAAC_TM_TIMEOUT ) 
-		return ASAAC_TM_TIMEOUT;
-	
-	if ( ActualSize != sizeof( LogReportData ) ) 
-		return ASAAC_TM_ERROR;
-
 //  TODO: Currently it is not possible to check authentity of the master process, because this data is not located
 //  in shared memory
 
@@ -198,10 +197,18 @@ ASAAC_TimedReturnStatus	 LoggingManager::getLogReport( ASAAC_CharacterSequence& 
 //	
 //	// If Message sender has sent wrong authentication code, return ASAAC_TM_ERROR
 //	if ( Sender->getAuthenticationCode() != ThisLogReport.process_authentication_code ) return ASAAC_TM_ERROR;
+		
+		log_message	= ThisLogReport.log_message;
+		message_type = ThisLogReport.message_type;
+		ProcessId    = ThisLogReport.process_id;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error retrieving log report", LOCATION);
+		e.raiseError();
+		
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+	}
 	
-	log_message	= ThisLogReport.log_message;
-	message_type = ThisLogReport.message_type;
-	ProcessId    = ThisLogReport.process_id;
-	
-	return Result;
+	return ASAAC_TM_SUCCESS;
 }

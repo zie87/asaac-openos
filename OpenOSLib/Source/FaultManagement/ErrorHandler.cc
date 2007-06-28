@@ -161,12 +161,8 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 		// TODO: check whether timeout should be set to TimeInstant rather (non-blocking) (jbm)
 		// TODO: In case of timeout try to send the information later. Store it in a local queue. 
 		// TODO: In case of non initialisation store it in a queue too.
-		ASAAC_TimedReturnStatus Result = ASAAC_TM_ERROR;
-		//Result = m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeInfinity );
-		Result = m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeStamp::Instant().asaac_Time() );
-		
-		if ( Result != ASAAC_TM_SUCCESS )
-			throw OSException("Error sending the message", LOCATION);
+		//m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeInfinity );
+		m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeStamp::Instant().asaac_Time() );
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -298,12 +294,8 @@ ASAAC_ReturnStatus ErrorHandler::logMessage( const ASAAC_CharacterSequence& log_
 	
 		// TODO: check whether timeout should be set to TimeInstant rather (non-blocking)
 		// TODO: In case of timeout try to send the information later. Store it in a local queue. 
-		ASAAC_TimedReturnStatus Result = ASAAC_TM_ERROR;
-		//Result = m_LoggingMessageQueue.sendMessage( &ThisReportData, sizeof( LogReportData ), TimeInfinity );
-		Result = m_LoggingMessageQueue.sendMessage( &ThisReportData, sizeof( LogReportData ), TimeStamp::Instant().asaac_Time() );
-
-		if ( Result != ASAAC_TM_SUCCESS )
-			throw OSException("Error sending the message", LOCATION);
+		//m_LoggingMessageQueue.sendMessage( &ThisReportData, sizeof( LogReportData ), TimeInfinity );
+		m_LoggingMessageQueue.sendMessage( &ThisReportData, sizeof( LogReportData ), TimeStamp::Instant().asaac_Time() );
 	}
 	catch ( ASAAC_Exception &e )
 	{

@@ -65,36 +65,44 @@ void MessageQueue::deinitialize()
 }
 
 
-ASAAC_ResourceReturnStatus MessageQueue::sendMessageNonblocking(ASAAC_Address BufferReference, unsigned long Size)
+void MessageQueue::sendMessageNonblocking(ASAAC_Address BufferReference, unsigned long Size)
 {
-	ASAAC_TimedReturnStatus Status = sendMessage( BufferReference, Size, TimeStamp::Instant().asaac_Time() );
-	
-	if ( Status == ASAAC_TM_SUCCESS ) return ASAAC_RS_SUCCESS;
-	if ( Status == ASAAC_TM_TIMEOUT ) return ASAAC_RS_RESOURCE;
-	
-	return ASAAC_RS_ERROR;
+	try
+	{
+		sendMessage( BufferReference, Size, TimeStamp::Instant().asaac_Time() );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error sending message nonblocking", LOCATION);
+			
+		throw;
+	}
 }
 
 
-ASAAC_ResourceReturnStatus MessageQueue::receiveMessageNonblocking( ASAAC_Address BufferReference, 
+void MessageQueue::receiveMessageNonblocking( ASAAC_Address BufferReference, 
 														 unsigned long MaxSize, 
 														 unsigned long& ActualSize )
 {
-	ASAAC_TimedReturnStatus Status = receiveMessage( BufferReference, MaxSize, ActualSize, TimeStamp::Instant().asaac_Time() );
-	
-	if ( Status == ASAAC_TM_SUCCESS ) return ASAAC_RS_SUCCESS;
-	if ( Status == ASAAC_TM_TIMEOUT ) return ASAAC_RS_RESOURCE;
-	
-	return ASAAC_RS_ERROR;
+	try
+	{
+		receiveMessage( BufferReference, MaxSize, ActualSize, TimeStamp::Instant().asaac_Time() );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error receiving message nonblocking", LOCATION);
+			
+		throw;
+	}
 }
 
 
-ASAAC_TimedReturnStatus MessageQueue::sendMessage( ASAAC_Address BufferReference, 
+void MessageQueue::sendMessage( ASAAC_Address BufferReference, 
   							   unsigned long Size, 
     							   const ASAAC_Time& Timeout )
 {
-	if (  m_IsInitialized == false  ) 
-		return ASAAC_TM_ERROR;
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 
 	try
 	{	
@@ -105,22 +113,19 @@ ASAAC_TimedReturnStatus MessageQueue::sendMessage( ASAAC_Address BufferReference
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error sending a message", LOCATION);
-		e.raiseError();
 		
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;		
+        throw;		
 	}
-
-	return ASAAC_TM_SUCCESS;
 }	
 
 
-ASAAC_TimedReturnStatus MessageQueue::receiveMessage( const ASAAC_Address BufferReference, 
+void MessageQueue::receiveMessage( const ASAAC_Address BufferReference, 
     								  unsigned long MaxSize, 
     								  unsigned long& ActualSize, 
     								  const ASAAC_Time& Timeout )
 {
-	if (  m_IsInitialized == false  ) 
-		return ASAAC_TM_ERROR;
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 		
 	try
 	{	
@@ -133,11 +138,8 @@ ASAAC_TimedReturnStatus MessageQueue::receiveMessage( const ASAAC_Address Buffer
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error receiving a message", LOCATION);
-		e.raiseError();
 
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        throw;
 	}
-			
-	return ASAAC_TM_SUCCESS;
 }	
 

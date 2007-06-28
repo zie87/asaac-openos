@@ -689,13 +689,7 @@ ASAAC_TimedReturnStatus CommunicationManager::getPMData(ASAAC_PublicId &vc_id, A
 			throw TimeoutException("Timeout while a PM request was send to PCS", LOCATION);
 		
 		//Now receive this data on local vc
-	    status = LVc->receiveBuffer( message_buffer_reference, msg_length, abs_timeout );
-
-		if (status == ASAAC_TM_ERROR)
-			throw OSException("Error while receiving SM data", LOCATION);
-
-		if (status == ASAAC_TM_TIMEOUT)
-			throw OSException("Timeout while receiving SM data", LOCATION);
+	    LVc->receiveBuffer( message_buffer_reference, msg_length, abs_timeout );
 			
 		//ReceiveBuffer method returned successfully. Store the buffer reference.	
 	    m_SMLastMessageBufferReference = message_buffer_reference;
@@ -750,13 +744,7 @@ ASAAC_ReturnStatus 		CommunicationManager::returnPMData(const ASAAC_PublicId vc_
 		if ( LVc == 0 ) 
 			throw FatalException("Local VC not found", LOCATION);
 
-	    status = LVc->sendMessage( message_buffer_reference, msg_length, TimeStamp::Infinity().asaac_Time() );
-
-		if (status == ASAAC_TM_ERROR)
-			throw OSException("Error while sending SM data", LOCATION);
-
-		if (status == ASAAC_TM_TIMEOUT)
-			throw OSException("Timeout while sending SM data", LOCATION);
+	    LVc->sendMessage( message_buffer_reference, msg_length, TimeStamp::Infinity().asaac_Time() );
 
 		//Send now reply to PCS to get the data from dedicated vc
 		if (m_PCSClient.returnPMData( vc_id, OS_SM_SERVER_VC_RECEIVE, sm_return_status ) == ASAAC_ERROR)
@@ -1083,16 +1071,19 @@ ASAAC_TimedReturnStatus CommunicationManager::waitOnMultiChannel(const ASAAC_Pub
 		{		
 			vc_set_out.vc_id[ Index ] = 0;
 
-			if ( ( LocalVcObjects[ Index ] != NULL ) &&
-			     ( LocalVcObjects[ Index ]->waitForAvailableData( TimeStamp::Instant().asaac_Time() ) == ASAAC_TM_SUCCESS )
-			   )
+			if ( LocalVcObjects[ Index ] != NULL ) 
 			{
-				vc_set_out.vc_id[ AvailableVcs ] = vc_set_in.vc_id[ Index ];
-				AvailableVcs ++;
-			}
-			else
-			{
-				vc_set_out.vc_id[ Index ] = 0;
+				try
+				{
+			    	LocalVcObjects[ Index ]->waitForAvailableData( TimeStamp::Instant().asaac_Time() );
+			    	
+					vc_set_out.vc_id[ AvailableVcs ] = vc_set_in.vc_id[ Index ];
+					AvailableVcs ++;
+				}
+				catch ( ASAAC_Exception &e )
+				{
+					vc_set_out.vc_id[ Index ] = 0;
+				}
 			}
 		}
 

@@ -61,7 +61,7 @@ public:
     bool isInitialized();
     
 	//! assign LocalVc instance to a distinct mapping
-    ASAAC_ReturnStatus assign( const ASAAC_VcMappingDescription& Description );
+    void assign( const ASAAC_VcMappingDescription& Description );
     /*!< With the assign call, the LocalVc instance is set up to control a specified
      *   local vc port. Due to the way the data of the LocalVc is stored in memory,
      *   the assignment only needs to be carried out on one copy of this LocalVc,
@@ -77,7 +77,7 @@ public:
      */
      
     //! unassign mapping of the LocalVc instance
-    ASAAC_ReturnStatus unassign();
+    void unassign();
     /*!< this function is called by the GlobalVc to remove 
      *   the assignment of a local vc mapping from this instance of
      *   LocalVc and all its (remote) copies. The queue will be emptied and messages queued
@@ -89,7 +89,7 @@ public:
      */
     
     //! hand over request to remove this LocalVc to its parent GlobalVc. Used by Process::destroy()
-    ASAAC_ReturnStatus remove();
+    void remove();
     /*!< this function causes the parent GlobalVc of this LocalVc instance to unassign() this LocalVc instance
      *   and take all precautions to clean up the data structures associated with it.
      * 
@@ -97,14 +97,14 @@ public:
      */
     
     //! get the local vc id of this LocalVc instance
-    ASAAC_PublicId	getId();
+    ASAAC_PublicId getId();
     /*!< \returns ASAAC_PublicId of this LocalVc instance, to be used with the appropriate APOS and SMOS calls,
      *            0, if LocalVc instance is not assigned to a mapping yet.
      */
         
     
     //! Copy a message longo a buffer and send on a VC.
-    virtual ASAAC_ResourceReturnStatus sendMessageNonblocking( ASAAC_Address BufferReference, unsigned long Size );
+    virtual void sendMessageNonblocking( ASAAC_Address BufferReference, unsigned long Size );
     /* The OS shall copy the message data from the  buffer in the caller
      * memory to a buffer in the OS memory that is associated with a VC
      * for sending direction. The OS controls fuerther thransfer of the
@@ -126,7 +126,7 @@ public:
 
     
     //! read the next available buffer associated with the LocalVC. 
-    virtual ASAAC_ResourceReturnStatus receiveMessageNonblocking( ASAAC_Address BufferReference, 
+    virtual void receiveMessageNonblocking( ASAAC_Address BufferReference, 
     												unsigned long MaxSize, 
     												unsigned long& ActualSize );
     /*!< If a message is available, the operating system copies the message
@@ -151,7 +151,7 @@ public:
      
      
     //! copy a message longo a buffer and send on a VC.
-    virtual ASAAC_TimedReturnStatus sendMessage( ASAAC_Address BufferReference, 
+    virtual void sendMessage( ASAAC_Address BufferReference, 
     							   unsigned long Size, 
     							   const ASAAC_Time& Timeout );
     /*!< The function copies the message data from the  buffer in the caller
@@ -181,7 +181,7 @@ public:
 
 
 	//! receive a message on a virtual channel
-    virtual ASAAC_TimedReturnStatus receiveMessage( ASAAC_Address BufferReference, 
+    virtual void receiveMessage( ASAAC_Address BufferReference, 
     								  unsigned long MaxSize, 
     								  unsigned long& ActualSize, 
     								  const ASAAC_Time& Timeout );
@@ -215,7 +215,7 @@ public:
 
 
 	//! lock a buffer to populate it with data and send at a later point
-    ASAAC_TimedReturnStatus lockBuffer( ASAAC_Address& BufferReference, 
+    void lockBuffer( ASAAC_Address& BufferReference, 
     							  unsigned long Size, 
     							  const ASAAC_Time& Timeout );
     /*!< Lock message buffer associated with VC in order to provide
@@ -242,7 +242,7 @@ public:
 
 
 	//! send a formerly locked buffer
-    ASAAC_TimedReturnStatus sendBuffer( ASAAC_Address BufferReference, 
+    void sendBuffer( ASAAC_Address BufferReference, 
     					     	  unsigned long Size,
     					     	  const ASAAC_Time& Timeout = TimeInfinity );
     /*!< Send the passed message buffer through the VC.
@@ -269,7 +269,7 @@ public:
 
 
 	//! receive a message on a virtual channel, leaving the data in OS memory
-    ASAAC_TimedReturnStatus receiveBuffer( ASAAC_Address& BufferReference, 
+    void receiveBuffer( ASAAC_Address& BufferReference, 
     							     unsigned long& Size, 
     							     const ASAAC_Time& Timeout );
     /*!< Provide the next available message buffer that is associated
@@ -295,7 +295,7 @@ public:
 
 
     //! unlock a message buffer associated with the VC.
-    ASAAC_ReturnStatus unlockBuffer( ASAAC_Address BufferReference );
+    void unlockBuffer( ASAAC_Address BufferReference );
     /*!< unlock a buffer resource that has formerly been acquired via receiveBuffer().
      * 
      * \param[in] BufferReference Location of the Buffer's start in memory
@@ -309,7 +309,7 @@ public:
 
 
 	//! wait for data in this buffer to become available
-	ASAAC_TimedReturnStatus waitForAvailableData( const ASAAC_Time& Timeout );
+	void waitForAvailableData( const ASAAC_Time& Timeout );
 	/*!<  transfer the calling thread longo WAITING state until either data
 	 *    is available to be read for the LocalVc, or the Timeout has elapsed.
 	 *    After that, the thread is returned longo RUNNING state.
@@ -323,7 +323,7 @@ public:
 	
 	
 	//! wait for free receiving slots in this local vc
-	ASAAC_TimedReturnStatus waitForFreeCells( const ASAAC_Time& Timeout );
+	void waitForFreeCells( const ASAAC_Time& Timeout );
 	/*!< transfers the calling thread longo WAITING state until either a
 	 *   free slot is available for writing data longo this LocalVc, or the Timeout
 	 *   has elapsed. After that, the thread is returned longo RUNNING state.
@@ -337,7 +337,7 @@ public:
 
 
 	//! push one buffer index number longo the receiver queue of this local vc
-	ASAAC_TimedReturnStatus queueBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout = TimeInfinity );
+	void queueBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout = TimeInfinity );
 	/*!< Interface used by GlobalVc to provide the LocalVc with data. The function waits for
 	 *  a free slot to be available in the LocalVc's queue, or for the timeout to elapse, whatever
 	 *  happens first.

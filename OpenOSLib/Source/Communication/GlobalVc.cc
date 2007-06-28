@@ -391,11 +391,9 @@ ASAAC_ReturnStatus GlobalVc::removeLocalVcsFromProcess( ASAAC_PublicId ProcessId
 	{
 		for ( unsigned long Index = 0; Index < m_Description->max_number_of_threads_attached; Index++ )
 		{
-			if (( m_LocalVc[ Index ].getId() != 0 ) && ( m_LocalVc[ Index ].getDescription()->global_pid == ProcessId ))
-			{
-				if ( removeLocalVc( ProcessId, m_LocalVc[ Index ].getId() ) != ASAAC_SUCCESS ) 
-					throw OSException("Error occured while removing local VC", LOCATION);
-			}
+			if ( ( m_LocalVc[ Index ].getId() != 0 ) && 
+				 ( m_LocalVc[ Index ].getDescription()->global_pid == ProcessId ) )
+				removeLocalVc( ProcessId, m_LocalVc[ Index ].getId() ); 
 		}
 	}
 	catch (ASAAC_Exception &e)
@@ -425,11 +423,7 @@ ASAAC_ReturnStatus GlobalVc::removeAllLocalVcs( )
 				continue;
 			
 			if ( m_LocalVc[ Index ].getId() != OS_UNUSED_ID )
-			{
-
-				if ( removeLocalVc( m_LocalVc[ Index ].getDescription()->global_pid, m_LocalVc[ Index ].getId() ) != ASAAC_SUCCESS ) 
-					throw OSException("Error occured while removing local VC", LOCATION);
-			}
+				removeLocalVc( m_LocalVc[ Index ].getDescription()->global_pid, m_LocalVc[ Index ].getId() ); 
 		}
 	}
 	catch (ASAAC_Exception &e)
@@ -771,8 +765,11 @@ long	GlobalVc::getLocalVcIndex( ASAAC_PublicId ProcessId, ASAAC_PublicId LocalVc
 
 	for ( unsigned long Index = 0; Index < m_Description->max_number_of_threads_attached; Index ++ )
 	{
-		if ( m_LocalVc[ Index ].getDescription()->global_pid != ProcessId ) continue;
-		if ( m_LocalVc[ Index ].getId() == LocalVcId ) return Index;
+		if ( m_LocalVc[ Index ].getDescription()->global_pid != ProcessId ) 
+			continue;
+		
+		if ( m_LocalVc[ Index ].getId() == LocalVcId ) 
+			return Index;
 	}
 
 	return -1;

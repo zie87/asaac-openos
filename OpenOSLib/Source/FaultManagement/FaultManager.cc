@@ -70,20 +70,27 @@ ASAAC_TimedReturnStatus		FaultManager::getError( ASAAC_ErrorInfo& error_info, co
 	if ( m_IsInitialized == false ) 
 		return ASAAC_TM_ERROR;
 
-	unsigned long ActualSize;
-	ASAAC_TimedReturnStatus Result;
-	
-	ASAAC_Time timeOut = TimeStamp(time_out).asaac_Time();
-
-	Result = m_ErrorMessageQueue.receiveMessage( &error_info, sizeof( ASAAC_ErrorInfo ), ActualSize, timeOut );
-	
-	if ( Result == ASAAC_TM_TIMEOUT ) 
-		return ASAAC_TM_TIMEOUT;
+	try
+	{
+		unsigned long ActualSize;
+		ASAAC_TimedReturnStatus Result;
 		
-	if ( ActualSize != sizeof( ASAAC_ErrorInfo ) ) 
-		return ASAAC_TM_ERROR;
+		ASAAC_Time timeOut = TimeStamp(time_out).asaac_Time();
 	
-	return Result;
+		m_ErrorMessageQueue.receiveMessage( &error_info, sizeof( ASAAC_ErrorInfo ), ActualSize, timeOut );
+		
+		if ( ActualSize != sizeof( ASAAC_ErrorInfo ) ) 
+			throw OSException("", LOCATION);
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error retrieving error", LOCATION);
+		e.raiseError();
+				
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+	}
+	
+	return ASAAC_TM_SUCCESS;
 }
 
 	

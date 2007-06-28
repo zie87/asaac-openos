@@ -10,20 +10,20 @@ class MessageInterface
 	public:
 
     //! Copy a message longo a buffer and send on the longerface without waiting
-    virtual ASAAC_ResourceReturnStatus sendMessageNonblocking( ASAAC_Address BufferReference, unsigned long Size ) = 0;
+    virtual void sendMessageNonblocking( ASAAC_Address BufferReference, unsigned long Size ) = 0;
     
     //! read the next available buffer associated with the longerface without waiting
-    virtual ASAAC_ResourceReturnStatus receiveMessageNonblocking( ASAAC_Address BufferReference, 
+    virtual void receiveMessageNonblocking( ASAAC_Address BufferReference, 
     												unsigned long MaxSize, 
     												unsigned long& ActualSize ) = 0;
 
 	//! copy a message longo a buffer and send
-    virtual ASAAC_TimedReturnStatus sendMessage( ASAAC_Address BufferReference, 
+    virtual void sendMessage( ASAAC_Address BufferReference, 
     							   unsigned long Size, 
     							   const ASAAC_Time& Timeout ) = 0;
 
 	//! receive a message 
-    virtual ASAAC_TimedReturnStatus receiveMessage( ASAAC_Address BufferReference, 
+    virtual void receiveMessage( ASAAC_Address BufferReference, 
     								  unsigned long MaxSize, 
     								  unsigned long& ActualSize, 
     								  const ASAAC_Time& Timeout ) = 0;
