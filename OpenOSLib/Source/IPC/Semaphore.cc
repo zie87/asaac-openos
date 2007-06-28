@@ -10,12 +10,9 @@
 //
 #include "Semaphore.hh"
 
-#include "ProcessManagement/ProcessManager.hh"
-
+#include "IPC/BlockingScope.hh"
 #include "Common/Templates/ObjectPool.hh"
-
 #include "Allocator/Allocator.hh"
-
 #include "Exceptions/Exceptions.hh"
 
 Semaphore::Semaphore(Allocator* ThisAllocator, const bool IsMaster, const long InitialCount, const long MaximumCount ) : m_IsInitialized(false)
@@ -96,7 +93,7 @@ void Semaphore::deinitialize()
 }
 
 
-ASAAC_TimedReturnStatus Semaphore::wait( const ASAAC_Time& Timeout )
+void Semaphore::wait( const ASAAC_Time& Timeout )
 {	
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -111,53 +108,46 @@ ASAAC_TimedReturnStatus Semaphore::wait( const ASAAC_Time& Timeout )
 	// oal_sem_wait can be longerrupted by signals and in this case returns with
 	// a nonzero result.
 
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	
-	if ( ThisThread != 0 ) ThisThread->setState( ASAAC_WAITING );
+   	BlockingScope TimeoutScope();
 
 	do 
 	{ 
-
 		if (( Timeout.sec == TimeInfinity.sec ) && ( Timeout.nsec == TimeInfinity.nsec ))
 			iError = oal_sem_wait( &(m_Global->Semaphore) );
 		else iError = oal_sem_timedwait( &(m_Global->Semaphore), &TimeSpecTimeout );
 		
-		if ( ( iError == -1 ) && ( errno == ETIMEDOUT )) break;
-		 
-	} while (( iError !=  0 ) && ( errno = EINTR ));
-
-    ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	if ( ThisThread != 0 ) ThisThread->setState( ASAAC_RUNNING );
+		if ( ( iError == -1 ) && ( errno == ETIMEDOUT )) 
+			break;	 
+	} 
+	while (( iError !=  0 ) && ( errno = EINTR ));
 
 	m_Global->WaitingThreads--;
 	
 	if (( iError == -1 ) && ( errno == ETIMEDOUT ))
-	{
-		return ASAAC_TM_TIMEOUT;
-	}
-	
-	return ASAAC_TM_SUCCESS;
+		throw TimeoutException(LOCATION);
 }
 
 
 
-ASAAC_ReturnStatus Semaphore::post()
+void Semaphore::post()
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
 
-	if ( long(getCount()) == m_Global->MaximumCount )
+	try
 	{
-		throw OSException( "Semaphore exceeding maximum", LOCATION );
+		if ( long(getCount()) == m_Global->MaximumCount )
+			throw OSException( "Semaphore exceeding maximum", LOCATION );
+			
+		if ( oal_sem_post( &(m_Global->Semaphore) ) == -1)
+			throw OSException( strerror(errno), LOCATION );
 	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error posting semaphore", LOCATION);
 		
-	if ( oal_sem_post( &(m_Global->Semaphore) ) == -1)
-	{
-		perror("Semaphore::post() ");	
-		throw OSException( "Error posting semaphore", LOCATION );
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
@@ -169,7 +159,7 @@ unsigned long Semaphore::getCount() const
 	int iReturn;
 	
 	if ( oal_sem_getvalue( &(m_Global->Semaphore), &iReturn ) != 0 ) 
-        throw OSException( LOCATION );
+        throw OSException( strerror(errno), LOCATION );
 	
 	return iReturn;
 }
@@ -192,22 +182,15 @@ size_t Semaphore::predictSize()
 
 /* Generic LockingObject Interfaces */
 
-ASAAC_TimedReturnStatus Semaphore::lock( const ASAAC_Time& Timeout )
+void Semaphore::lock( const ASAAC_Time& Timeout )
 {
-	try 
-	{
-		return wait( Timeout );
-	}
-	catch ( ASAAC_Exception& E )
-	{
-		return ASAAC_TM_ERROR;
-	}
+	wait( Timeout );
 }
 
 
-ASAAC_ReturnStatus Semaphore::release()
+void Semaphore::release()
 {
-	return ( post() == ASAAC_SUCCESS ) ? ASAAC_SUCCESS : ASAAC_ERROR;
+	post();
 }
 
 

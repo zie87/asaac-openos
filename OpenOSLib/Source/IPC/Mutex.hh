@@ -53,8 +53,8 @@ public:
 	void deinitialize();
 
 
-    virtual ASAAC_TimedReturnStatus lock( const ASAAC_Time& Timeout = TimeInfinity );
-    virtual ASAAC_ReturnStatus release();
+    virtual void lock( const ASAAC_Time& Timeout = TimeInfinity );
+    virtual void release();
 
 	
 	//! return amount of memory required from allocator by control and data structures of this object

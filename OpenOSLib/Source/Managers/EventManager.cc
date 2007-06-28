@@ -10,9 +10,7 @@
 
 EventManager::EventManager() : m_IsInitialized(false)
 {
-	printf("Initializing Event Manager..."); fflush(stdout);
 	initialize();
-	printf("done\n"); fflush(stdout);
 }
 
 

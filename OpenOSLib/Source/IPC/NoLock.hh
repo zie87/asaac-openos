@@ -12,8 +12,8 @@
 class NoLock : public LockingObject
 {
 public:
-	virtual ASAAC_ReturnStatus lock() { return ASAAC_SUCCESS; }
-	virtual ASAAC_ReturnStatus release() { return ASAAC_SUCCESS; }
+	virtual void lock() { return ASAAC_SUCCESS; }
+	virtual void release() { return ASAAC_SUCCESS; }
 	
 	
 	virtual ~NoLock() {}

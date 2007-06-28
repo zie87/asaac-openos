@@ -533,15 +533,6 @@ ASAAC_TimedReturnStatus GlobalVc::sendBuffer( unsigned long SourceBuffer, const 
 		cout << "GVC-Id: " << getId() << " : Entry sendBuffer: " << SourceBuffer << endl << endl;
 #endif
 		 
-		if ( Action.timedOut() ) 
-		{
-	
-#ifdef DEBUG_BUFFER
-            cout << "GVC-Id: " << getId() << " : Exit sendBuffer -> TimeOut Semaphore" << endl << endl;
-#endif
-			throw TimeoutException(LOCATION);
-		}	
-	
 #ifdef DEBUG_BUFFER
 		cout << "GVC-Id: " << getId() << " : sendBuffer -> waitForFreeCells: " << SourceBuffer << endl << endl;
 #endif

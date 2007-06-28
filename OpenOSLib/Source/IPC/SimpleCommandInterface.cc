@@ -283,9 +283,6 @@ ASAAC_TimedReturnStatus SimpleCommandInterface::sendCommand( unsigned long Comma
 
 		m_SendReceiveEvent.waitForEventReset( Timeout );
 		
-		if ( Access.timedOut() )
-			return ASAAC_TM_TIMEOUT;
-		
 		m_CommandData->Identifier = CommandIdentifier;
 	
 		memcpy( m_CommandData->Buffer, Buffer, OS_SIZE_OF_SIMPLE_COMMANDBUFFER );

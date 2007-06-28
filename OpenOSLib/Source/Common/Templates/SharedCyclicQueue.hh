@@ -277,17 +277,7 @@ template <class T> void SharedCyclicQueue<T>::push( const T Value, const ASAAC_T
 	// If the queue is configured to be blocking, wait for free slots, with timeout
 	if ( m_GlobalData->Blocking == BLOCKING )
 	{
-		ASAAC_TimedReturnStatus WaitStatus = m_WriteSemaphore.wait( Timeout );
-
-		if ( WaitStatus == ASAAC_TM_TIMEOUT )
-		{
-			throw TimeoutException("Timeout while pushing an element in SharedCyclicQueue", LOCATION);
-		}
-		
-		if ( WaitStatus == ASAAC_TM_ERROR )
-		{
-			throw OSException("Error reported by semaphore while pushing an element in SharedCyclicQueue", LOCATION);
-		}
+		m_WriteSemaphore.wait( Timeout );
 		
 		if ( m_forceRelease == true )
 		{
@@ -395,17 +385,7 @@ template <class T> T SharedCyclicQueue<T>::pop( const ASAAC_Time& Timeout )
 		throw UninitializedObjectException( LOCATION );
 
 	// wait for data to be available or for timeout
-	ASAAC_TimedReturnStatus WaitStatus = m_ReadSemaphore.wait( Timeout );
-
-	if ( WaitStatus == ASAAC_TM_TIMEOUT )
-	{
-		throw TimeoutException("Timeout while pop an element from SharedCyclicQueue", LOCATION);
-	}
-	
-	if ( WaitStatus == ASAAC_TM_ERROR )
-	{
-		throw OSException("Error reported by semaphore while pop an element from SharedCyclicQueue", LOCATION);
-	}
+	m_ReadSemaphore.wait( Timeout );
 
 	if ( m_forceRelease == true )
 	{
@@ -458,20 +438,31 @@ template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForFreeCell
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
 	
-	// If this queue is nonblocking, there are always 'free cells'.
-	if ( m_GlobalData->Blocking != BLOCKING ) return ASAAC_TM_SUCCESS;
-	
-	// Wait for WriteSemaphore
-	ASAAC_TimedReturnStatus Status = m_WriteSemaphore.wait( Timeout );
-	
-	// and if you got it, release it rightaway.
-	if ( Status == ASAAC_TM_SUCCESS ) m_WriteSemaphore.post();
-	
-	// Note that, unless explicitely protected, another thread may
-	// push longo the queue still after this call has been done,
-	// thereby blocking it from writing again.
+	try
+	{
+		// If this queue is nonblocking, there are always 'free cells'.
+		if ( m_GlobalData->Blocking == BLOCKING )
+		{ 
+			// Wait for WriteSemaphore
+			m_WriteSemaphore.wait( Timeout );
+			
+			// and if you got it, release it rightaway.
+			m_WriteSemaphore.post();
+			
+			// Note that, unless explicitely protected, another thread may
+			// push longo the queue still after this call has been done,
+			// thereby blocking it from writing again.
+		}
+	}
+	catch ( ASAAC_Exception &e )
+	{
+        e.addPath("Error waiting for free cells", LOCATION);
+        e.raiseError();
 
-	return Status;
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+	}
+	
+	return ASAAC_TM_SUCCESS;
 }
 
 
@@ -481,17 +472,27 @@ template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForAvailabl
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
 	
-	// Wait for ReadSemaphore
-	ASAAC_TimedReturnStatus Status = m_ReadSemaphore.wait( Timeout );
-	
-	// and if you got it, release it rightaway.
-	if ( Status == ASAAC_TM_SUCCESS ) m_ReadSemaphore.post();
-	
-	// Note that, unless explicitely protected, another thread may
-	// push longo the queue still after this call has been done,
-	// thereby blocking it from writing again.
+	try
+	{
+		// Wait for ReadSemaphore
+		m_ReadSemaphore.wait( Timeout );
+		
+		// and if you got it, release it rightaway.
+		m_ReadSemaphore.post();
+		
+		// Note that, unless explicitely protected, another thread may
+		// push longo the queue still after this call has been done,
+		// thereby blocking it from writing again.	
+	}
+	catch ( ASAAC_Exception &e )
+	{
+        e.addPath("Error waiting for free cells", LOCATION);
+        e.raiseError();
 
-	return Status;
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+	}
+	
+	return ASAAC_TM_SUCCESS;
 }
 
 

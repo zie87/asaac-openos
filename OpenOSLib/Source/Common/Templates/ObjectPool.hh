@@ -92,7 +92,7 @@ template <class T, unsigned long N> T* ObjectPool<T,N>::acquireObject( const ASA
 	}
 	catch ( ResourceException &E )
 	{
-		return 0;
+		return NULL;
 	}
 }
 

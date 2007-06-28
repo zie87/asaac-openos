@@ -1,5 +1,5 @@
 #include "Mutex.hh"
-#include "ProcessManagement/ProcessManager.hh"
+#include "IPC/BlockingScope.hh"
 
 Mutex::Mutex( Allocator* ThisAllocator, bool IsMaster, long Protocol ) : m_IsInitialized(false)
 {
@@ -15,7 +15,9 @@ Mutex::Mutex() : m_IsInitialized(false)
 void Mutex::initialize( Allocator* ThisAllocator, bool IsMaster, long Protocol )
 {
 	// Avoid double initialization of object.
-	if ( m_IsInitialized ) throw DoubleInitializationException(LOCATION);
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException(LOCATION);
+		
 	m_IsInitialized = true;
 
 	m_IsMaster = IsMaster;	
@@ -45,8 +47,10 @@ void Mutex::initialize( Allocator* ThisAllocator, bool IsMaster, long Protocol )
 			if ( oal_thread_mutex_init(&(Global->Mutex), &MutexAttribute ) ) throw OSException( LOCATION );
 		}
 	}
-	catch ( ASAAC_Exception& E )
+	catch ( ASAAC_Exception& e )
 	{
+		e.addPath("Error initializing mutex", LOCATION);
+		
 		deinitialize();
 
 		throw;
@@ -63,7 +67,8 @@ Mutex::~Mutex()
 
 void Mutex::deinitialize()
 {
-	if ( m_IsInitialized == false ) return;
+	if ( m_IsInitialized == false ) 
+		return;
 	
 	// If this is the master object, destroy mutex and condition
 	// deallocation of shared objects will be performed by Shareable<> destructor.
@@ -78,39 +83,35 @@ void Mutex::deinitialize()
 }
 	
 
-ASAAC_TimedReturnStatus Mutex::lock( const ASAAC_Time& Timeout )
+void Mutex::lock( const ASAAC_Time& Timeout )
 {
-	if ( m_IsInitialized == false ) throw OSException( LOCATION );
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 	
+   	BlockingScope TimeoutScope();
 	
-	timespec TimeSpecTimeout; // timespec in guaranteed alignment
-
-	TimeSpecTimeout.tv_sec  = Timeout.sec;
-	TimeSpecTimeout.tv_nsec = Timeout.nsec;
-	
-	
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	if ( ThisThread != 0 ) ThisThread->setState( ASAAC_WAITING );
+	timespec TimeSpecTimeout = TimeStamp(Timeout).timespec_Time();
 		
 	long iError = oal_thread_mutex_timedlock( &( Global->Mutex ), &TimeSpecTimeout );
 
-    ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	if ( ThisThread != 0 ) ThisThread->setState( ASAAC_RUNNING );
-	
-	if ( iError == 0 ) return ASAAC_TM_SUCCESS;
-	if ( iError == ETIMEDOUT ) return ASAAC_TM_TIMEOUT;
-	return ASAAC_TM_ERROR;
+	if ( iError != 0 ) 
+	{
+		if ( iError == ETIMEDOUT ) 
+			throw TimeoutException(LOCATION);
+			
+		throw OSException( strerror(errno) , LOCATION); 
+	}
 }
 
 
-ASAAC_ReturnStatus Mutex::release()
+void Mutex::release()
 {
-	if ( m_IsInitialized == false ) throw OSException( LOCATION );
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
 	
 	long iError = oal_thread_mutex_unlock( &(Global->Mutex) );
 	
-	if ( iError == 0 ) return ASAAC_SUCCESS;
-	
-	return ASAAC_ERROR;
+	if ( iError != 0 )
+		throw OSException( strerror(errno) , LOCATION); 
 }
 

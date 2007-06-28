@@ -2,9 +2,7 @@
 
 
 #include "Exceptions/Exceptions.hh"
-
-#include "ProcessManagement/ProcessManager.hh"
-
+#include "IPC/BlockingScope.hh"
 #include "Common/Templates/ObjectPool.hh"
 
 SpinLock::SpinLock(Allocator* ThisAllocator, const bool IsMaster ) : m_IsInitialized(false)
@@ -44,7 +42,8 @@ SpinLock::~SpinLock()
  
 void SpinLock::deinitialize()
 {
-	if ( m_IsInitialized == false ) return;
+	if ( m_IsInitialized == false ) 
+		return;
 
 	m_IsInitialized = false;
 	
@@ -58,40 +57,29 @@ void SpinLock::deinitialize()
 }
 
 
-ASAAC_TimedReturnStatus SpinLock::lock( const ASAAC_Time& Timeout )
+void SpinLock::lock( const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
-		throw OSException( LOCATION );
+		throw UninitializedObjectException( LOCATION );
 	
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
-
-	if ( ThisThread != 0 ) 
-		ThisThread->setState( ASAAC_WAITING );
+   	BlockingScope TimeoutScope();
 		
 	long iError = oal_thread_spin_lock( SpinLockData.getLocation() );
 
-    ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	if ( ThisThread != 0 ) 
-		ThisThread->setState( ASAAC_RUNNING );
-	
-	if ( iError == 0 ) 
-		return ASAAC_TM_SUCCESS;
-	
-	return ASAAC_TM_ERROR;
+	if ( iError != 0 ) 
+        throw OSException( strerror(errno), LOCATION );
 }
 
 
-ASAAC_ReturnStatus SpinLock::release()
+void SpinLock::release()
 {
 	if ( m_IsInitialized == false ) 
-		throw OSException( LOCATION );
+		throw UninitializedObjectException( LOCATION );
 	
 	long iError = oal_thread_spin_unlock( SpinLockData.getLocation() );
 	
-	if ( iError == 0 ) 
-		return ASAAC_SUCCESS;
-	
-	return ASAAC_ERROR;
+	if ( iError != 0 ) 
+        throw OSException( strerror(errno), LOCATION );
 }
 	
 

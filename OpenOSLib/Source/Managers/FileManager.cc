@@ -916,6 +916,9 @@ ASAAC_AccessRights FileManager::UseOptionToAccessRights( ASAAC_UseOption UseOpti
 
 void FileManager::reopenFiles()
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
     FileInfoData FileInfoArray[ OS_MAX_NUMBER_OF_LOCAL_FILES ];
     
     long Index = 0;
@@ -964,6 +967,9 @@ ASAAC_PrivateId FileManager::generateAsaacHandle()
 
 void FileManager::storeFileData( const ASAAC_PrivateId asaac_handle, const ASAAC_UseOption use_option, ASAAC_CharacterSequence name, FileType type, const int posix_handle )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	try
 	{
 		FileInfoData Data;
@@ -987,6 +993,9 @@ void FileManager::storeFileData( const ASAAC_PrivateId asaac_handle, const ASAAC
 
 long FileManager::indexOf( const int posix_handle )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	long Index;
 	
 	for ( Index = 0; Index < (long)m_FileInfoList.getCount(); Index++)
@@ -999,6 +1008,9 @@ long FileManager::indexOf( const int posix_handle )
 
 long FileManager::indexOf( const ASAAC_CharacterSequence name, FileType type, ASAAC_UseOption use_option )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	long Index;
 	
 	for ( Index = 0; Index < (long)m_FileInfoList.getCount(); Index++)
@@ -1014,6 +1026,9 @@ long FileManager::indexOf( const ASAAC_CharacterSequence name, FileType type, AS
 
 FileManager::FileInfoData FileManager::getFileDataByAsaacHandle( const ASAAC_PrivateId asaac_handle )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	CharacterSequence ErrorString;
 	
     long Index = m_FileInfoList.indexOf( asaac_handle );
@@ -1027,6 +1042,9 @@ FileManager::FileInfoData FileManager::getFileDataByAsaacHandle( const ASAAC_Pri
 
 ASAAC_PrivateId	FileManager::getAsaacHandleByName( const ASAAC_CharacterSequence name, FileType type, ASAAC_UseOption use_option, bool derived )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	long Index = indexOf(name, type, use_option);
 	
 	if (Index == -1)
@@ -1037,6 +1055,9 @@ ASAAC_PrivateId	FileManager::getAsaacHandleByName( const ASAAC_CharacterSequence
 
 void FileManager::releaseFileData( const ASAAC_PrivateId asaac_handle )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	m_FileInfoList.remove( asaac_handle );
 }
 

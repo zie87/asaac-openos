@@ -37,9 +37,6 @@ public:
 	 */
 	
 	
-	//! query whether the ProtectedScope instantiation returned with a timeout
-	bool timedOut();
-	
 	bool isCancelable();
 	
 	ASAAC_Time timeout();

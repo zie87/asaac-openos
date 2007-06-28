@@ -8,32 +8,26 @@ ProtectedScope::ProtectedScope( char * Scope, LockingObject& ThisLockingObject, 
 {
 	m_Scope = Scope;
 	m_Timeout = Timeout;
+
+	try
+	{		
+		m_LockingObject->lock( Timeout );
+	
+		enter();
+	
+		if ( m_Cancelable == false )
+		{
+			oal_thread_setcancelstate( PTHREAD_CANCEL_DISABLE, &m_CancelState );
+		}
+	
+		m_Status = LOCKED;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Protected Scope couldn't be entered", LOCATION);
 		
-	ASAAC_TimedReturnStatus Result = m_LockingObject->lock( Timeout );
-
-	enter();
-
-	if ( m_Cancelable == false )
-	{
-		oal_thread_setcancelstate( PTHREAD_CANCEL_DISABLE, &m_CancelState );
+		throw;		
 	}
-
-	m_Status = LOCKED;
-	
-	if ( Result == ASAAC_TM_TIMEOUT ) 
-		m_Status = TIMEOUT;
-	
-	if ( Result == ASAAC_TM_ERROR )
-	{
-		m_Status = ERROR;
-		throw FatalException("Error in protected scope. Atomic functions are not safe.", LOCATION );
-	}
-}
-
-
-bool ProtectedScope::timedOut()
-{
-	return ( m_Status == TIMEOUT );
 }
 
 
@@ -86,16 +80,9 @@ ProtectedScope::~ProtectedScope()
 	}
 	catch (ASAAC_Exception &e)
 	{
-		CharSeq cs;
-		cs << "Error while exit ProtectedScope: '" << m_Scope << "'";
-		e.addPath( cs.c_str() );
+		CharSeq ErrorString;
+		e.addPath( (ErrorString << "Error exiting ProtectedScope: '" << m_Scope << "'").c_str() );
 		
-		exit();
-		
-		throw;
-	}
-	catch (...)
-	{
 		exit();
 		
 		throw;

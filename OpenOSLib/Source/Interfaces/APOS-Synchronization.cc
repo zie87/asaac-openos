@@ -15,36 +15,108 @@ ASAAC_ResourceReturnStatus ASAAC_APOS_createSemaphore( const ASAAC_CharacterSequ
                             const unsigned long max_value, 
                             const ASAAC_QueuingDiscipline queuing_discipline)
 {
-	return SemaphoreManager::getInstance()->createSemaphore( *name, *semaphore_id, init_value, max_value, queuing_discipline );
+	try
+	{
+		SemaphoreManager::getInstance()->createSemaphore( *name, *semaphore_id, init_value, max_value, queuing_discipline );
+    }
+    catch ( ASAAC_Exception &e )
+    {
+        e.addPath("APOS::createSemaphore", LOCATION);
+        e.raiseError();
+        
+        return e.isResource()?ASAAC_RS_RESOURCE:ASAAC_RS_ERROR;
+    }
+    
+	return ASAAC_RS_SUCCESS;
 }
 									  
 ASAAC_ReturnStatus ASAAC_APOS_deleteSemaphore(const ASAAC_PrivateId semaphore_id)							  
 {
-	return SemaphoreManager::getInstance()->deleteSemaphore( semaphore_id );
+	try
+	{
+		SemaphoreManager::getInstance()->deleteSemaphore( semaphore_id );
+    }
+    catch ( ASAAC_Exception &e )
+    {
+        e.addPath("APOS::deleteSemaphore", LOCATION);
+        e.raiseError();
+        
+        return ASAAC_ERROR;
+    }
+    
+	return ASAAC_SUCCESS;
 }
 
 ASAAC_TimedReturnStatus ASAAC_APOS_waitForSemaphore(const ASAAC_PrivateId semaphore_id, const ASAAC_TimeInterval* timeout)
 {
-	return SemaphoreManager::getInstance()->waitForSemaphore( semaphore_id,
+	try
+	{
+		SemaphoreManager::getInstance()->waitForSemaphore( semaphore_id,
 															  TimeStamp(*timeout).asaac_Time() );
+    }
+    catch ( ASAAC_Exception &e )
+    {
+        e.addPath("APOS::waitForSemaphore", LOCATION);
+        e.raiseError();
+        
+        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+    }
+    
+	return ASAAC_TM_SUCCESS;
 }
                          
 ASAAC_ReturnStatus ASAAC_APOS_postSemaphore(const ASAAC_PrivateId semaphore_id)                                 
 {
-	return SemaphoreManager::getInstance()->postSemaphore( semaphore_id );
+	try
+	{
+		SemaphoreManager::getInstance()->postSemaphore( semaphore_id );
+    }
+    catch ( ASAAC_Exception &e )
+    {
+        e.addPath("APOS::postSemaphore", LOCATION);
+        e.raiseError();
+        
+        return ASAAC_ERROR;
+    }
+    
+	return ASAAC_SUCCESS;
 }
 
 ASAAC_ReturnStatus ASAAC_APOS_getSemaphoreStatus(const ASAAC_PrivateId semaphore_id, 
                                                 unsigned long* current_value, 
                                                 unsigned long* waiting_callers)
 {
-	return SemaphoreManager::getInstance()->getSemaphoreStatus( semaphore_id, *current_value, *waiting_callers );
+	try
+	{
+		SemaphoreManager::getInstance()->getSemaphoreStatus( semaphore_id, *current_value, *waiting_callers );
+    }
+    catch ( ASAAC_Exception &e )
+    {
+        e.addPath("APOS::getSemaphoreStatus", LOCATION);
+        e.raiseError();
+        
+        return ASAAC_ERROR;
+    }
+    
+	return ASAAC_SUCCESS;
 }
                                  
 ASAAC_ReturnStatus ASAAC_APOS_getSemaphoreId(const ASAAC_CharacterSequence* name, 
                                             ASAAC_PrivateId* semaphore_id)
 {
-	return SemaphoreManager::getInstance()->getSemaphoreId( *name, *semaphore_id );
+	try
+	{
+		SemaphoreManager::getInstance()->getSemaphoreId( *name, *semaphore_id );
+    }
+    catch ( ASAAC_Exception &e )
+    {
+        e.addPath("APOS::getSemaphoreId", LOCATION);
+        e.raiseError();
+        
+        return ASAAC_ERROR;
+    }
+    
+	return ASAAC_SUCCESS;
 }
                              
 

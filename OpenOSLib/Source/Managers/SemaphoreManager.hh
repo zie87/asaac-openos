@@ -16,24 +16,24 @@ public:
 	void initialize();
 	void deinitialize();
 	
-	ASAAC_ResourceReturnStatus createSemaphore( const ASAAC_CharacterSequence& Name,
+	void createSemaphore( const ASAAC_CharacterSequence& Name,
 										  ASAAC_PrivateId& SemaphoreId,
 										  unsigned long InitialValue,
 										  unsigned long MaximumValue,
 										  ASAAC_QueuingDiscipline Discipline );
 										  
-	ASAAC_ReturnStatus deleteSemaphore( ASAAC_PrivateId SemaphoreId );
+	void deleteSemaphore( ASAAC_PrivateId SemaphoreId );
 	
-	ASAAC_TimedReturnStatus waitForSemaphore( ASAAC_PrivateId SemaphoreId,
+	void waitForSemaphore( ASAAC_PrivateId SemaphoreId,
 									    const ASAAC_Time& Timeout );
 									    
-	ASAAC_ReturnStatus postSemaphore( ASAAC_PrivateId SemaphoreId );
+	void postSemaphore( ASAAC_PrivateId SemaphoreId );
 	
-	ASAAC_ReturnStatus getSemaphoreStatus( ASAAC_PrivateId SemaphoreId,
+	void getSemaphoreStatus( ASAAC_PrivateId SemaphoreId,
 									 unsigned long& CurrentValue,
 									 unsigned long& WaitingCallers );
 									 
-	ASAAC_ReturnStatus getSemaphoreId( const ASAAC_CharacterSequence& Name, ASAAC_PrivateId& SemaphoreId );
+	void getSemaphoreId( const ASAAC_CharacterSequence& Name, ASAAC_PrivateId& SemaphoreId );
 
 	virtual ~SemaphoreManager();
 	

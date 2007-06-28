@@ -69,7 +69,7 @@ public:
     void deinitialize();
     
     //! wait at semaphore until semaphore is available
-    ASAAC_TimedReturnStatus wait( const ASAAC_Time& Timeout = TimeInfinity );
+    void wait( const ASAAC_Time& Timeout = TimeInfinity );
     /*!< transfer the calling thread longo WAITING state until the counter of the semaphore is positive, or
      *   until the Timeout has elapsed. If the counter is found to be positive, decrease it by one and resume
      *   RUNNING state with the calling thread.
@@ -82,7 +82,7 @@ public:
      */
     
     //! release the semaphore
-    ASAAC_ReturnStatus      post();
+    void post();
     /*!< increase the semaphore counter by one and return.
      * 
      * \returns ASAAC_SUCCESS on successful operation. ASAAC_ERROR if an error occurred.
@@ -98,10 +98,10 @@ public:
     static size_t predictSize();
 
     //! wrapper function for lock() for the LockingObject longerface
-    virtual ASAAC_TimedReturnStatus lock( const ASAAC_Time& Timeout = TimeInfinity );
+    virtual void lock( const ASAAC_Time& Timeout = TimeInfinity );
     
     //! wrapper function for release() for the LockingObject longerface
-    virtual ASAAC_ReturnStatus release();
+    virtual void release();
 
 	//! override for the new operator, to obtain memory-static behaviour
 	void* operator new( size_t size );

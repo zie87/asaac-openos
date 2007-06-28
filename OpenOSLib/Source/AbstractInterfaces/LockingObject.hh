@@ -13,7 +13,7 @@ class LockingObject {
 	
 	public:
 	
-		virtual ASAAC_TimedReturnStatus lock( const ASAAC_Time& Timeout = TimeInfinity ) = 0;
+		virtual void lock( const ASAAC_Time& Timeout = TimeInfinity ) = 0;
 		//!< lock for exclusive execution
 		/*!< \param[in] Timeout Absolute time before the function returns with ASAAC_TM_TIMEOUT.
 		 * 			    If a lock is instantly available, the value of Timeout is not of
@@ -25,7 +25,7 @@ class LockingObject {
 		 */
 		   
 
-		virtual ASAAC_ReturnStatus release() = 0;
+		virtual void release() = 0;
 		//!< return exclusive execution lock
 		/*!< \returns ASAAC_SUCCESS on successful operation. ASAAC_ERROR if an error occured.
 		 */

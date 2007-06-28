@@ -48,8 +48,8 @@ public:
     //! explicit deinitialization
     void deinitialize();
     
-    virtual ASAAC_TimedReturnStatus lock( const ASAAC_Time& Timeout = TimeInfinity );
-    virtual ASAAC_ReturnStatus release();
+    virtual void lock( const ASAAC_Time& Timeout = TimeInfinity );
+    virtual void release();
 
 
     //! get memory amount required from the Allocator by the spinlock's data and control structures
