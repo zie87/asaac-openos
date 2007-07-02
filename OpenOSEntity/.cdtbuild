@@ -8,13 +8,12 @@
 <tool superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.20766341" name="GCC C++ Compiler">
 <option superClass="gnu.cpp.compiler.option.include.paths" id="gnu.cpp.compiler.option.include.paths.1524732174" valueType="includePath">
 <listOptionValue value="&quot;${workspace_loc:/OpenOSLib}/Source&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" id="gnu.cpp.compiler.exe.debug.option.debugging.level.815292171" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option superClass="gnu.cpp.compiler.option.debugging.other" id="gnu.cpp.compiler.option.debugging.other.1820246124" value="-ggdb" valueType="string"/>
-<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.568452770" valueType="definedSymbols">
-<listOptionValue value="DEBUG" builtIn="false"/>
-</option>
+<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.568452770" valueType="definedSymbols"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1224070012" name="GCC C Compiler"/>
 <tool superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug" id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1782911707" name="GCC C Linker"/>
@@ -25,7 +24,7 @@
 <listOptionValue value="rt" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.link.option.paths" id="gnu.cpp.link.option.paths.1840393156" valueType="stringList">
-<listOptionValue value="$(ASAAC_OS)/OpenOSLib/Debug" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Debug}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.link.option.shared" id="gnu.cpp.link.option.shared.509824234" value="false" valueType="boolean"/>
 <option superClass="gnu.cpp.link.option.soname" id="gnu.cpp.link.option.soname.829735132" value="" valueType="string"/>

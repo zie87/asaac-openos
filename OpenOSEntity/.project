@@ -3,7 +3,6 @@
 	<name>OpenOSEntity</name>
 	<comment></comment>
 	<projects>
-		<project>OpenOSLib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
