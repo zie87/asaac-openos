@@ -1,15 +1,15 @@
 #ifndef SMOSWRAPPER_HH_
 #define SMOSWRAPPER_HH_
 
-#include "OpenOSIncludes.hh"
+#include "ASAAC.h"
 
 ASAAC_ReturnStatus createProcess(
 	const char *name, 
 	ASAAC_PublicId pid, 
 	ASAAC_PublicId cpu_id = 0,
 	ASAAC_AccessType access_type = ASAAC_LOCAL_ACCESS, 
-	ASAAC_PublicId vc_sending = OS_OLI_CLIENT_VC_REQUEST, 
-	ASAAC_PublicId vc_receiving = OS_OLI_CLIENT_VC_REPLY);
+	ASAAC_PublicId vc_sending = 0, 
+	ASAAC_PublicId vc_receiving = 1);
 
 ASAAC_ReturnStatus createThread(
 	const char *name, 

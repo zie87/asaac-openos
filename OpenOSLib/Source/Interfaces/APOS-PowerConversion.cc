@@ -1,4 +1,4 @@
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 
 ASAAC_ReturnStatus ASAAC_APOS_setPowerSwitch(const ASAAC_PublicId switch_id, const ASAAC_SwitchOp switch_op)

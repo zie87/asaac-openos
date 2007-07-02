@@ -1,4 +1,4 @@
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 
 ASAAC_ReturnStatus ASAAC_SMOS_configureClock(const ASAAC_ClockInfo* clock_info)

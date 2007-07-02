@@ -1,7 +1,7 @@
 #include "PCSServer.hh"
 #include "PCSMessages.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "Managers/FileNameGenerator.hh"
 

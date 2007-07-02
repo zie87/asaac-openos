@@ -1,4 +1,4 @@
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "Managers/SemaphoreManager.hh"
 #include "Managers/EventManager.hh"

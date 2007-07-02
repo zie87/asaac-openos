@@ -1,7 +1,7 @@
 #include "BlockingScope.hh"
 
 #include "ProcessManagement/ProcessManager.hh"
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 BlockingScope::BlockingScope()
 {

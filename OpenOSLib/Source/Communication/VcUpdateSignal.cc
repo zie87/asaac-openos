@@ -1,6 +1,6 @@
 #include "VcUpdateSignal.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "Allocator/AllocatedArea.hh"
 

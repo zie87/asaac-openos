@@ -1,6 +1,6 @@
 #include "ConfigurationParser.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 #include "Managers/FileManager.hh"
 #include "Managers/FileNameGenerator.hh"
 

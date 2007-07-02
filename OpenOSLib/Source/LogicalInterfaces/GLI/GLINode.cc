@@ -1,6 +1,6 @@
 #include "GLINode.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 namespace ASAAC
 {

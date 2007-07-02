@@ -1,6 +1,6 @@
 #include "OLIServer.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "Managers/FileNameGenerator.hh"
 

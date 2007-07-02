@@ -1,6 +1,6 @@
 #include "ProcessManager.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "AbstractInterfaces/Callback.hh"
 

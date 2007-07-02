@@ -1,6 +1,6 @@
 #include "OLIClient.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "ProcessManagement/ProcessManager.hh"
 

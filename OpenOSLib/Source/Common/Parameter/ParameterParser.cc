@@ -1,6 +1,6 @@
 #include "ParameterParser.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 
 const unsigned long Unlimited = 0xffffffff;

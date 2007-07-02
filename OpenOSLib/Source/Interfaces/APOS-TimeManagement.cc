@@ -1,4 +1,4 @@
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "Managers/TimeManager.hh"
 #include "ProcessManagement/ProcessManager.hh"

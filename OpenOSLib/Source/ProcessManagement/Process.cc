@@ -1,6 +1,6 @@
 #include "Process.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "Allocator/SharedMemory.hh"
 #include "Allocator/LocalMemory.hh"

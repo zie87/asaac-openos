@@ -1,7 +1,7 @@
 #include "ProcessManagement/ThreadManager.hh"
 #include "ProcessManagement/ProcessManager.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 
 

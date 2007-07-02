@@ -1,6 +1,6 @@
 #include "GLISuperNode.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "Common/Algorithms/Primes.hh"
 #include "Common/Algorithms/DiffieHellman.hh"

@@ -1,6 +1,6 @@
 #include "AllocatedArea.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 using namespace std;
 

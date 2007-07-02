@@ -1,7 +1,7 @@
 #include "PCSClient.hh"
 #include "PCSMessages.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "ProcessManagement/ProcessManager.hh"
 #include "ProcessManagement/Process.hh"

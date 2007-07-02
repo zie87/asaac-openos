@@ -1,6 +1,6 @@
 #include "TimeStamp.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "Managers/TimeManager.hh"
 

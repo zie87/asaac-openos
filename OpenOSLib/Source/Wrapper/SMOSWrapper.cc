@@ -1,5 +1,5 @@
 #include "SMOSWrapper.hh"
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 
 ASAAC_ReturnStatus createProcess(

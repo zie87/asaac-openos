@@ -1,4 +1,4 @@
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "FaultManagement/FaultManager.hh"
 

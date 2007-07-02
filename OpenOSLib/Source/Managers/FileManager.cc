@@ -5,7 +5,7 @@
 #include "Managers/AllocatorManager.hh"
 #include "IPC/BlockingScope.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 
 //***********************************************************************************************

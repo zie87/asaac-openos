@@ -2,7 +2,7 @@
 
 #include "Allocator/SharedMemory.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 
 AllocatorManager::AllocatorManager()

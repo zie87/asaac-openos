@@ -10,14 +10,12 @@
 <listOptionValue value="&quot;${workspace_loc:/OpenOSLib}/Source&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
 </option>
-<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.1606245775" valueType="definedSymbols">
-<listOptionValue value="DEBUG" builtIn="false"/>
-</option>
+<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.1606245775" valueType="definedSymbols"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.c.compiler.so.debug" id="cdt.managedbuild.tool.gnu.c.compiler.so.debug.1475074070" name="GCC C Compiler"/>
 <tool superClass="cdt.managedbuild.tool.gnu.c.linker.so.debug" id="cdt.managedbuild.tool.gnu.c.linker.so.debug.1659905067" name="GCC C Linker"/>
 <tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.debug" id="cdt.managedbuild.tool.gnu.cpp.linker.so.debug.909619692" name="GCC C++ Linker">
-<option superClass="gnu.cpp.link.option.libs" id="gnu.cpp.link.option.libs.258006395" valueType="libs"/>
+<option superClass="gnu.cpp.link.option.libs" id="gnu.cpp.link.option.libs.258006395"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.assembler.so.debug" id="cdt.managedbuild.tool.gnu.assembler.so.debug.107137715" name="GCC Assembler"/>
 <macros/>

@@ -1,4 +1,4 @@
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "Common/Templates/Shared.hh"
 #include "Allocator/SharedMemory.hh"

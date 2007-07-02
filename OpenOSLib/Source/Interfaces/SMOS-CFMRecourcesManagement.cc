@@ -1,4 +1,4 @@
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 
 ASAAC_TimedReturnStatus ASAAC_SMOS_requestDownloadToCfm(const ASAAC_CfmDescription* remoteCfm)

@@ -1,6 +1,6 @@
 #include "TimeInterval.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 TimeInterval::TimeInterval()
 {

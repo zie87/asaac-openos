@@ -1,17 +1,13 @@
-#ifndef OPENOS_HH_
-#define OPENOS_HH_
+#ifndef OPENOSOBJECT_HH_
+#define OPENOSOBJECT_HH_
 
 #include "OpenOSIncludes.hh"
 
 #include "Exceptions/Exceptions.hh"
-#include "Interfaces/OpenOS-Application.hh"
 
 #include "Common/Templates/Shared.hh"
 #include "Allocator/SharedMemory.hh"
 #include "IPC/SimpleCommandInterface.hh"
-
-
-typedef void* Address;
 
 
 class ProcessManager;
@@ -95,4 +91,4 @@ public:
 	
 };
 
-#endif /*OPENOS_HH_*/
+#endif /*OPENOSOBJECT_HH_*/

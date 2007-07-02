@@ -1,5 +1,5 @@
 #include "Primes.hh"
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 
 #define PRIME_COUNT 9592

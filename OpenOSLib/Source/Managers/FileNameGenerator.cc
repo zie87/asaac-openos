@@ -1,6 +1,6 @@
 #include "FileNameGenerator.hh"
 
-#include "OpenOS.hh"
+#include "OpenOSObject.hh"
 #include "ProcessManagement/ProcessManager.hh"
 #include "Communication/CommunicationManager.hh"
 
