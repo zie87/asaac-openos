@@ -1,12 +1,5 @@
-/// @file nii.hh
-/// @brief Contains the declaration of Class cMosNii
-
-// Created:   21.08.2004
-// Authors:   S.Stratbuecker
-// Copyright (c)  ESG GmbH 2006.
-
-#ifndef NII_CLASS_HH
-#define NII_CLASS_HH
+#ifndef MOSNII_HH_
+#define MOSNII_HH_
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -21,10 +14,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include "nii_types.h"
+#include "NIITypes.h"
 
-/////////////////////////////////////////////
-/// This class encapsulates STANAG 4626 conform communication services within MOS (Module Support Layer to Operating System Interface)
 
 class cMosNii
 {
@@ -200,12 +191,11 @@ class cMosNii
     /// Constructs a default object with no configured interfaces and no open transfer channels
     cMosNii();  
     
-    TcData      tcData[MAX_TC_DATA];  ///< Used to associate a Transfer Connection with a Network
-    NwData      nwData[MAX_NW_DATA];  ///< Used to associate an Interface with a Network
+    TcData      tcData[NII_MAX_NUMBER_OF_TC_CONNECTIONS];  ///< Used to associate a Transfer Connection with a Network
+    NwData      nwData[NII_MAX_NUMBER_OF_NETWORKS];  ///< Used to associate an Interface with a Network
         
     Port        niiLocalPort;         ///< This is the current local port to open new sockets. It is inkremented from each time and initialized in constructor @see cMosNii()
 
 };
 
-
-#endif
+#endif /*MOSNII_HH_*/

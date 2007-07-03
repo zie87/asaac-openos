@@ -1,8 +1,8 @@
-#include "nii.hh"
+#include "NII.hh"
 
 #include <errno.h>
 
-char receiveBuffer[NO_RECEIVE_BUFFER][NII_RECEIVE_BUFFER_SIZE]; //< Buffer for received data
+char receiveBuffer[NII_MAX_NUMBER_OF_RECEIVEBUFFERS][NII_MAX_SIZE_OF_RECEIVEBUFFER]; //< Buffer for received data
 
 unsigned int currentBuffer = 0;     //< Currently used buffer for received data
 
@@ -14,20 +14,20 @@ using namespace std;
 
 cMosNii* cMosNii::getInstance()
 {
-    static cMosNii ThisNii;
+    static cMosNii Instance;
     
-    return &ThisNii;
+    return &Instance;
 }
 
 
 // Constructs a default object with no configured interfaces and no open transfer channels
 cMosNii::cMosNii()
 {
-  for(Index i = 0; i < MAX_TC_DATA; ++i)
+  for(Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
   {
     tcData[i].valid = 0;
   }
-  for(Index i = 0; i < MAX_NW_DATA; ++i)
+  for(Index i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
   {
     nwData[i].valid = 0;
   }
@@ -38,7 +38,7 @@ cMosNii::cMosNii()
 // Destroys all configurations and open transfer channels
 cMosNii::~cMosNii()
 {
-  for(Index i = 0; i < MAX_NW_DATA; ++i)
+  for(Index i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
   {
     nwData[i].valid = 0;
   }
@@ -453,7 +453,7 @@ NiiReturnStatus cMosNii::receiveNetwork(const NetworkDescriptor& network_id, cha
     cout << "cMosNii::receiveNetwork() adding all TCs on network [" << network_id.network << "," << network_id.port << "] to selection " << endl;
    #endif
    
-    for(Index i = 0; i < MAX_TC_DATA; ++i)
+    for(Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
     {
         if(tcData[i].valid && tcData[i].nw->id.network == network_id.network && tcData[i].nw->id.port == network_id.port)
         {
@@ -496,7 +496,7 @@ NiiReturnStatus cMosNii::receiveNetwork(const NetworkDescriptor& network_id, cha
        cerr << "cMosNii::receiveNetwork() Data is available now." << endl;
       #endif
        
-        for(Index i = 0; i < MAX_TC_DATA; ++i)
+        for(Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
         {       
             //FD_ISSET(fd, &rfds) will be true
             
@@ -574,7 +574,7 @@ NiiReturnStatus cMosNii::destroyTransfer(PublicId tc_id,
 // Returns TRUE, if network descriptor is available and associated with a valid interface and socket
 bool cMosNii::getIndex(Index& index, const NetworkDescriptor& network_id)
 {
-  for(Index i = 0; i < MAX_NW_DATA; ++i)
+  for(Index i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
   {
     if(nwData[i].valid && memcmp(&nwData[i].id,&network_id, sizeof(NetworkDescriptor)) == 0)
     {
@@ -588,7 +588,7 @@ bool cMosNii::getIndex(Index& index, const NetworkDescriptor& network_id)
 // Returns TRUE, if the transfer connection is available and associated with a valid network interface
 bool cMosNii::getIndex(Index& index, PublicId tc_id)
 {
-  for(Index i = 0; i < MAX_TC_DATA; ++i)
+  for(Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
   {
     if(tcData[i].valid && tcData[i].id == tc_id)
     {
@@ -602,7 +602,7 @@ bool cMosNii::getIndex(Index& index, PublicId tc_id)
 // Returns TRUE, if an invalid, empty slot for a new connection was found and index is given as argument
 bool cMosNii::getEmptyTc(Index& index)
 {
-  for(Index i = 0; i < MAX_TC_DATA; ++i)
+  for(Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
   {
     if(tcData[i].valid == 0)
     {
@@ -616,7 +616,7 @@ bool cMosNii::getEmptyTc(Index& index)
 // Returns TRUE, if an invalid, empty slot for a new network socket was found and index is given as argument
 bool cMosNii::getEmptyNw(Index& index)
 {
-  for(Index i = 0; i < MAX_NW_DATA; ++i)
+  for(Index i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
   {
     if(nwData[i].valid == 0)
     {
@@ -774,7 +774,7 @@ void* cMosNii::streamTcThread(void* pTcData)
 #ifdef _DEBUG_
             cerr << "streamTcThread: try to read from socket "  << endl;
 #endif
-            read_bytes = read(client_socket,tc->config_data.stream_buffer,STREAM_BUFFER_SIZE);
+            read_bytes = read(client_socket,tc->config_data.stream_buffer, NII_MAX_SIZE_OF_STREAMBUFFER);
             if(read_bytes < 0)
             {
 #ifdef _DEBUG_
@@ -870,13 +870,13 @@ ASAAC_NiiReturnStatus ASAAC_MOS_sendTransfer(const ASAAC_PublicId tc_id, const A
 
 ASAAC_NiiReturnStatus ASAAC_MOS_receiveTransfer(const ASAAC_PublicId tc_id, ASAAC_CharAddress* receive_data, const ASAAC_Length data_length_available, ASAAC_Length* data_length, const ASAAC_Time* time_out)
 {
-    if(data_length_available > NII_RECEIVE_BUFFER_SIZE)
+    if(data_length_available > NII_MAX_SIZE_OF_RECEIVEBUFFER)
     {
         cerr << "ASAAC_MOS_receiveTransfer() " << data_length_available << " >  NII_RECEIVE_BUFFER_SIZE"  << endl;
         return ASAAC_MOS_NII_CALL_FAILED;
     }
     
-     currentBuffer = (currentBuffer + 1) % NO_RECEIVE_BUFFER;
+     currentBuffer = (currentBuffer + 1) % NII_MAX_NUMBER_OF_RECEIVEBUFFERS;
      
      *receive_data = receiveBuffer[currentBuffer];
      
@@ -901,13 +901,13 @@ ASAAC_NiiReturnStatus ASAAC_MOS_getNetworkPortStatus(const ASAAC_NetworkDescript
 
 ASAAC_NiiReturnStatus ASAAC_MOS_receiveNetwork(const ASAAC_NetworkDescriptor* network, ASAAC_CharAddress* receive_data, const ASAAC_Length data_length_available, ASAAC_Length* data_length, ASAAC_PublicId* tc_id, const ASAAC_Time* time_out)
 {
-    if(data_length_available > NII_RECEIVE_BUFFER_SIZE)
+    if(data_length_available > NII_MAX_SIZE_OF_RECEIVEBUFFER)
     {
         cerr << "ASAAC_MOS_receiveTransfer() " << data_length_available << " >  NII_RECEIVE_BUFFER_SIZE"  << endl;
         return ASAAC_MOS_NII_CALL_FAILED;
     }
     
-     currentBuffer = (currentBuffer + 1) % NO_RECEIVE_BUFFER;
+     currentBuffer = (currentBuffer + 1) % NII_MAX_NUMBER_OF_RECEIVEBUFFERS;
      
     *receive_data = receiveBuffer[currentBuffer];
     
