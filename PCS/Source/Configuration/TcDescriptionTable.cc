@@ -12,11 +12,13 @@ TcDescriptionTable::~TcDescriptionTable()
 
 ASAAC_ReturnStatus TcDescriptionTable::addTcDescription(const  ASAAC_TcDescription& Description )
 {
-	if ( m_NextFreeSlot == PCS_NUMBER_OF_TCS ) return ASAAC_ERROR;
+	if ( m_NextFreeSlot == PCS_MAX_NUMBER_OF_TCS ) 
+		return ASAAC_ERROR;
 
 	for ( unsigned long Index = 0; Index < m_NextFreeSlot; Index ++ )
 	{
-		if ( m_DescriptionTable[ Index ].tc_id == Description.tc_id ) return ASAAC_ERROR;
+		if ( m_DescriptionTable[ Index ].tc_id == Description.tc_id ) 
+			return ASAAC_ERROR;
 	}
 	
 	m_DescriptionTable[ m_NextFreeSlot ] = Description;

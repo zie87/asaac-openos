@@ -183,7 +183,7 @@ ASAAC_TimedReturnStatus PmFilter::Queue::getMessage(ASAAC_PublicId& VcId, ASAAC_
 	Data = ThisMessage->Data;
 	Length = ThisMessage->Length;
 	
-	m_NextMessage = (m_NextMessage + 1) % PCS_MAXIMUM_QUEUED_PM_MESSAGES;
+	m_NextMessage = (m_NextMessage + 1) % PCS_MAX_SIZE_OF_PMMESSAGEQUEUE;
 
 #ifdef _DEBUG_       
 	cout << "PmFilter::Queue::getMessage(" << VcId<< ","<< Data<< "," << Length << ") returns with success" << endl; fflush(stdout);
@@ -224,7 +224,7 @@ ASAAC_ReturnStatus PmFilter::Queue::enqueueMessage(ASAAC_PublicId VcId, ASAAC_Ad
 	cout << "PmFilter::Queue::enqueueMessage(" << VcId<< ","<< Data<< "," << Length << ")" << endl; fflush(stdout);
 #endif	
 
-	if ( Length > PCS_MAXIMUM_MESSAGE_LENGTH )
+	if ( Length > PCS_MAX_SIZE_OF_NWMESSAGE )
 	{
 		cerr << "PmFilter::Queue::enqueueMessage() cannot queue message due to oversize" << endl;fflush(stdout);
 		return ASAAC_ERROR;
@@ -265,7 +265,7 @@ ASAAC_ReturnStatus PmFilter::Queue::enqueueMessage(ASAAC_PublicId VcId, ASAAC_Ad
 	cout << "PmFilter::Queue::enqueueMessage() copy  " <<  Length << " bytes of data to " << (void* ) ThisMessage->Data << endl; fflush(stdout);
 	#endif	
 	//cout << "PM Queue at " << m_NextFreeQueue << endl;
-	m_NextFreeQueue = (m_NextFreeQueue + 1) % PCS_MAXIMUM_QUEUED_PM_MESSAGES;
+	m_NextFreeQueue = (m_NextFreeQueue + 1) % PCS_MAX_SIZE_OF_PMMESSAGEQUEUE;
 	
 	ASAAC_APOS_setEvent(m_nqEvent);
 	

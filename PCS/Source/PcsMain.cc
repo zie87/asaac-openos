@@ -1,14 +1,11 @@
 #include "PcsClass.hh"
 
-#include "ProcessManagement/ProcessManager.hh"
-
 #include "Common/Aid.h"
 
 #include "OpenOS.hh"
+#include "OpenOSObject.hh"
 
 #include "LogicalInterfaces/asaac_pcs.hh"
-
-#include "Interfaces/OpenOS-Application.hh"
 
 ASAAC_APPLICATION
 

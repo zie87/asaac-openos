@@ -18,7 +18,7 @@ ASAAC_ReturnStatus	NetworkTable::addNetworkDescriptor( const ASAAC_NetworkDescri
 			return ASAAC_ERROR;
 	}
 		
-	if(m_NextFreeNetwork >= PCS_NUMBER_OF_NETWORKS)
+	if(m_NextFreeNetwork >= PCS_MAX_NUMBER_OF_NETWORKS)
 		return ASAAC_ERROR;
 		
 	m_NetworkTable[m_NextFreeNetwork] = network;

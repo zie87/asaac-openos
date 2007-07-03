@@ -28,7 +28,7 @@ public:
 	 
 private:
 	
-	ASAAC_NetworkDescriptor	m_NetworkTable[ PCS_NUMBER_OF_NETWORKS ]; 
+	ASAAC_NetworkDescriptor	m_NetworkTable[ PCS_MAX_NUMBER_OF_NETWORKS ]; 
 	//!< Table of Networks
 	
 	unsigned long	m_NextFreeNetwork; 

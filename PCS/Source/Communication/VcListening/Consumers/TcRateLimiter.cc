@@ -32,14 +32,14 @@ void TcRateLimiter::init()
 {
 	ASAAC_Time zeroTime = {0,0};
 	
-	for ( unsigned long IDX = 0; IDX < PCS_NUMBER_OF_TCS;  ++IDX )
+	for ( unsigned long IDX = 0; IDX < PCS_MAX_NUMBER_OF_TCS;  ++IDX )
 	{
 		m_NextFreeQueue[IDX] = 0;
 		m_NextMessage[IDX] = 0;
 		m_TcQueueMap[IDX] = 0; //no queue is assigned to a TC at startup
 		m_NextMessageTime[IDX] = zeroTime;
 		
-		for ( unsigned long MSG = 0; MSG < PCS_MAXIMUM_QUEUED_MESSAGES;  ++MSG )
+		for ( unsigned long MSG = 0; MSG < PCS_MAX_SIZE_OF_MESSAGEQUEUE;  ++MSG )
 		{
 			m_QueuedMessages[IDX][ MSG ].Length = 0;
 		}
@@ -121,7 +121,7 @@ ASAAC_ReturnStatus TcRateLimiter::setNextMessageTime(unsigned long queue, ASAAC_
 ASAAC_ReturnStatus TcRateLimiter::setRateLimit( ASAAC_PublicId TcId, const ASAAC_TimeInterval& MessageRate )
 {
 
-	for ( unsigned long q = 0; q < PCS_NUMBER_OF_TCS;  ++q )
+	for ( unsigned long q = 0; q < PCS_MAX_NUMBER_OF_TCS;  ++q )
 	{
 		if(m_TcQueueMap[q] == 0)
 		{
@@ -136,7 +136,7 @@ ASAAC_ReturnStatus TcRateLimiter::setRateLimit( ASAAC_PublicId TcId, const ASAAC
 
 ASAAC_ReturnStatus TcRateLimiter::getQueue(ASAAC_PublicId TcId, unsigned long& index)
 {
-	for ( index = 0; index < PCS_NUMBER_OF_TCS; ++index)
+	for ( index = 0; index < PCS_MAX_NUMBER_OF_TCS; ++index)
 	{
 		if ( m_TcQueueMap[ index ] == TcId ) return ASAAC_SUCCESS;
 	}
@@ -179,7 +179,7 @@ ASAAC_ReturnStatus TcRateLimiter::enqueueMessage( ASAAC_PublicId TcId, ASAAC_Add
 	cout << "TcRateLimiter::enqueueMessage(" << TcId<< "," << Data<< "," << Length << ")" << endl; fflush(stdout);
 #endif	
 
-	if ( Length > PCS_MAXIMUM_MESSAGE_LENGTH )
+	if ( Length > PCS_MAX_SIZE_OF_NWMESSAGE )
 	{
 		cerr << "TcRateLimiter::enqueueMessage() cannot queue message due to oversize" << endl;fflush(stdout);
 		return ASAAC_ERROR;
@@ -204,7 +204,7 @@ ASAAC_ReturnStatus TcRateLimiter::enqueueMessage( ASAAC_PublicId TcId, ASAAC_Add
 	
 	memcpy( ThisMessage->Data, Data, Length );
 	
-	m_NextFreeQueue[q] = (m_NextFreeQueue[q] + 1) % PCS_MAXIMUM_QUEUED_MESSAGES;
+	m_NextFreeQueue[q] = (m_NextFreeQueue[q] + 1) % PCS_MAX_SIZE_OF_MESSAGEQUEUE;
 	
 	return ASAAC_SUCCESS;
 }
@@ -221,7 +221,7 @@ ASAAC_ReturnStatus TcRateLimiter::processNextMessage()
 	ASAAC_ReturnStatus Result;
 	ASAAC_ReturnStatus ret = ASAAC_ERROR;
 	
-	for ( unsigned long q = 0; q < PCS_NUMBER_OF_TCS; ++q)
+	for ( unsigned long q = 0; q < PCS_MAX_NUMBER_OF_TCS; ++q)
 	{
 		if ( m_TcQueueMap[ q ] != 0 )
 		{
@@ -234,7 +234,7 @@ ASAAC_ReturnStatus TcRateLimiter::processNextMessage()
 				if(Result == ASAAC_SUCCESS)
 				{
 					setNextMessageTime(q,Now);
-					m_NextMessage[q] = (m_NextMessage[q] + 1) % PCS_MAXIMUM_QUEUED_MESSAGES;
+					m_NextMessage[q] = (m_NextMessage[q] + 1) % PCS_MAX_SIZE_OF_MESSAGEQUEUE;
 					#ifdef _DEBUG_       
 					cout << "TcRateLimiter::processNextMessage() processed enqueued message" << endl;fflush(stdout);
 					#endif	

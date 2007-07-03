@@ -12,7 +12,8 @@ VcDescriptionTable::~VcDescriptionTable()
 
 ASAAC_ReturnStatus VcDescriptionTable::addVcDescription( const ASAAC_VcDescription& Description )
 {
-	if ( m_NextFreeSlot == PCS_NUMBER_OF_VCS ) return ASAAC_ERROR;
+	if ( m_NextFreeSlot == PCS_MAX_NUMBER_OF_VCS ) 
+		return ASAAC_ERROR;
 
 	for ( unsigned long Index = 0; Index < m_NextFreeSlot; Index ++ )
 	{

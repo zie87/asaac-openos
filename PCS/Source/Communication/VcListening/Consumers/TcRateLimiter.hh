@@ -43,19 +43,19 @@ private:
 	
 	ASAAC_ReturnStatus enqueueMessage( ASAAC_PublicId TcId, ASAAC_Address Data, unsigned long Length );
 	
-	ASAAC_PublicId		m_TcQueueMap[ PCS_NUMBER_OF_TCS ];
+	ASAAC_PublicId		m_TcQueueMap[ PCS_MAX_NUMBER_OF_TCS ];
 	
-	ASAAC_TimeInterval m_MessageRate[ PCS_NUMBER_OF_TCS ];
+	ASAAC_TimeInterval m_MessageRate[ PCS_MAX_NUMBER_OF_TCS ];
 
 	struct Message {
 		unsigned long  Length;
-		char	 		Data[ PCS_MAXIMUM_MESSAGE_LENGTH]; 
+		char	 		Data[ PCS_MAX_SIZE_OF_NWMESSAGE]; 
 	};
 	
-	Message				m_QueuedMessages[PCS_NUMBER_OF_TCS][ PCS_MAXIMUM_QUEUED_MESSAGES ];
-	ASAAC_Time			m_NextMessageTime[PCS_NUMBER_OF_TCS];
-	unsigned long		m_NextFreeQueue[PCS_NUMBER_OF_TCS];
-	unsigned long		m_NextMessage[PCS_NUMBER_OF_TCS];
+	Message				m_QueuedMessages[PCS_MAX_NUMBER_OF_TCS][ PCS_MAX_SIZE_OF_MESSAGEQUEUE ];
+	ASAAC_Time			m_NextMessageTime[PCS_MAX_NUMBER_OF_TCS];
+	unsigned long		m_NextFreeQueue[PCS_MAX_NUMBER_OF_TCS];
+	unsigned long		m_NextMessage[PCS_MAX_NUMBER_OF_TCS];
 	
 	TcMessageConsumer*	m_Consumer;
 	PCSConfiguration*	m_Configuration;

@@ -8,9 +8,10 @@
 <tool superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1962558748" name="GCC C++ Compiler">
 <option superClass="gnu.cpp.compiler.option.include.paths" id="gnu.cpp.compiler.option.include.paths.1099664287" valueType="includePath">
 <listOptionValue value="&quot;${workspace_loc:/PCS}/Source&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Source}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/NII}/Source&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
-<listOptionValue value="&quot;${workspace_loc:/OpenOSLib}/Source&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.346070771" valueType="definedSymbols">
 <listOptionValue value="dont_DEBUG_" builtIn="false"/>

@@ -1,4 +1,5 @@
 #include "PcsClass.hh"
+#include "NII.hh"
 
 PCS::PCS()
 {
@@ -266,14 +267,14 @@ ASAAC_ReturnStatus PCS::returnPMData(ASAAC_PublicId vc_id, ASAAC_PublicId rec_vc
 #ifdef _DEBUG_       
 	cout << "PCS::returnPMData(" << vc_id << ", " << rec_vc << ", " << sm_return_status << ")  " << endl;
 #endif
-	static char msg_buffer[TC_MAX_MESSAGE_SIZE];
+	static char msg_buffer[PCS_MAX_SIZE_OF_TCMESSAGE];
 	unsigned long actual_size = 0;
 
 
 #ifdef _DEBUG_       
 		cout << "PCS::returnPMData()  receiveMessage(" << rec_vc << ", " << TC_MAX_MESSAGE_SIZE << ", " << (void*) msg_buffer << ")" << endl;
 #endif
-	ASAAC_TimedReturnStatus receiveStatus = ASAAC_APOS_receiveMessage(rec_vc, &TimeIntervalInstant, TC_MAX_MESSAGE_SIZE, msg_buffer, &actual_size);
+	ASAAC_TimedReturnStatus receiveStatus = ASAAC_APOS_receiveMessage(rec_vc, &TimeIntervalInstant, PCS_MAX_SIZE_OF_TCMESSAGE, msg_buffer, &actual_size);
 	
 	if(receiveStatus == ASAAC_TM_SUCCESS)
 	{

@@ -5,6 +5,8 @@
 
 #include "Exceptions/Exception.hh"
 
+#include "PcsIncludes.hh"
+
 class VcSender : public VcMessageConsumer
 {
 public:

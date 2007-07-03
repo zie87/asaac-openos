@@ -7,6 +7,8 @@
 
 #include "Exceptions/Exception.hh"
 
+#include "PcsIncludes.hh"
+
 //! causes the message to be redirected via the GSM/SM to perform authentication/encryption if required
 
 /*! The PmFilter checks requirement of authentication and/or encryption of incoming messages
@@ -25,7 +27,7 @@ public:
 	struct Message {
 		ASAAC_PublicId   VcId;
 		unsigned long  Length;
-		char	 		 Data[ PCS_MAXIMUM_MESSAGE_LENGTH ];
+		char	 		 Data[ PCS_MAX_SIZE_OF_NWMESSAGE ];
 	};
 	
 	struct Mapping {
@@ -52,8 +54,8 @@ public:
 		ASAAC_ReturnStatus removeMapping(ASAAC_PublicId VcId);
 		PmFilter* getMapping(ASAAC_PublicId VcId);
 		
-		Message				m_QueuedMessages[ PCS_MAXIMUM_QUEUED_PM_MESSAGES ];
-		Mapping				m_PmFilterMapping [ PCS_NUMBER_OF_TCS ];
+		Message				m_QueuedMessages[ PCS_MAX_SIZE_OF_PMMESSAGEQUEUE ];
+		Mapping				m_PmFilterMapping [ PCS_MAX_NUMBER_OF_TCS ];
 		unsigned long		m_NextFreeMapping;
 		unsigned long		m_NextFreeQueue;
 		unsigned long		m_NextMessage;

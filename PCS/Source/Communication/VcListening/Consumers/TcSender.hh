@@ -8,7 +8,7 @@
 
 #include "Exceptions/Exception.hh"
 
-#include "nii.hh"
+#include "NII.hh"
 
 class TcSender : public TcMessageConsumer
 {

@@ -57,10 +57,10 @@ public:
 	ASAAC_ReturnStatus getTcIndex( ASAAC_PublicId TcId, unsigned long & TcIndex );
 	
 private:
-	ASAAC_TcDescription	m_DescriptionTable[ PCS_NUMBER_OF_TCS ];
+	ASAAC_TcDescription	m_DescriptionTable[ PCS_MAX_NUMBER_OF_TCS ];
 	//!< Table of TcDescriptions for TransferChannels
 	
-	ASAAC_TimeInterval m_RateLimits[ PCS_NUMBER_OF_TCS ];
+	ASAAC_TimeInterval m_RateLimits[ PCS_MAX_NUMBER_OF_TCS ];
 	
 	unsigned long	m_NextFreeSlot;
 	//!< Number of TcDescriptions stored in m_DescriptionTable

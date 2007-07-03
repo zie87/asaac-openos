@@ -1,10 +1,7 @@
 #ifndef MAPPINGTABLE_HH_
 #define MAPPINGTABLE_HH_
 
-#include "OpenOS.hh"
-
-#include "PcsConstants.hh"
-
+#include "PcsIncludes.hh"
 
 //! Configuration object to hold the Vc <-> Tc mapping information
 
@@ -77,7 +74,7 @@ private:
 	ASAAC_PublicId					m_AccessSemaphore; 
 	//!< Synchronization object to prevent concurrent access to mapping table
 	
-	ASAAC_VcToTcMappingDescription	m_MappingTable[ PCS_NUMBER_OF_MAPPINGS ]; 
+	ASAAC_VcToTcMappingDescription	m_MappingTable[ PCS_MAX_NUMBER_OF_MAPPINGS ]; 
 	//!< Table of GlobalVc<->TransferConnection mappings
 	
 	unsigned long				m_NextFreeMapping; 

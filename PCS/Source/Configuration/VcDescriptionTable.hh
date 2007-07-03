@@ -49,7 +49,7 @@ public:
 	
 	
 private:
-	ASAAC_VcDescription	m_DescriptionTable[ PCS_NUMBER_OF_VCS ];
+	ASAAC_VcDescription	m_DescriptionTable[ PCS_MAX_NUMBER_OF_VCS ];
 	//!< Table of stored VcDescriptions
 	
 	unsigned long	m_NextFreeSlot;

@@ -81,11 +81,11 @@ ASAAC_ReturnStatus TcPacker::processMessage( ASAAC_PublicId TcId, ASAAC_PublicId
 		return ASAAC_ERROR;
 	}
 
-	char PackedBuffer[ PCS_MAXIMUM_MESSAGE_LENGTH ]; //two headers may be added (VC,TC)
+	char PackedBuffer[ PCS_MAX_SIZE_OF_NWMESSAGE ]; //two headers may be added (VC,TC)
 	
 	struct PackedDataType {
 		ASAAC_PublicId	header[2]; //space for IDs ahead of the message
-		char		Message[TC_MAX_MESSAGE_SIZE];
+		char		Message[PCS_MAX_SIZE_OF_TCMESSAGE];
 	};
 
 	PackedDataType* PackedData = reinterpret_cast<PackedDataType*>(PackedBuffer);

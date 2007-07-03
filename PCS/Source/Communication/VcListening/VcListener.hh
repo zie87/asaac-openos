@@ -1,7 +1,7 @@
 #ifndef VCLISTENER_HH_
 #define VCLISTENER_HH_
 
-#include "OpenOS.hh"
+#include "PcsIncludes.hh"
 #include "Interfaces/VcMessageConsumer.hh"
 
 

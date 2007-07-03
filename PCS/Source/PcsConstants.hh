@@ -1,25 +1,21 @@
 #ifndef PCSCONSTANTS_HH_
 #define PCSCONSTANTS_HH_
 
-#include "OpenOS.hh"
-
-const unsigned long PCS_NUMBER_OF_VCS = 8;
-
-//COMMENT.SBS> CAREFULLY SET: NUMBER_OF_TCS X MAXIMUM_MESSAGE_LENGTH X PCS_MAXIMUM_QUEUED_MESSAGES
-/// This will be the queueing buffer size in the TcRateLimiter component of PCS
-
-const unsigned long PCS_NUMBER_OF_TCS = 4;
-const unsigned long PCS_MAXIMUM_MESSAGE_LENGTH = TC_MAX_MESSAGE_SIZE  + 8; //including header information
-const unsigned long PCS_MAXIMUM_QUEUED_MESSAGES = 16;
-
-const unsigned long PCS_MAXIMUM_QUEUED_PM_MESSAGES = 128;
+#include "NIIConstants.h"
 
 
-const unsigned long PCS_NUMBER_OF_NETWORKS = 4;
+#define PCS_MAX_NUMBER_OF_VCS                                   8
+#define PCS_MAX_NUMBER_OF_TCS                                   4
 
-const unsigned long PCS_NUMBER_OF_MAPPINGS = 16;
+#define PCS_MAX_SIZE_OF_TCMESSAGE 							    NII_MAX_SIZE_OF_TCMESSAGE 
+#define PCS_MAX_SIZE_OF_NWMESSAGE 							   (PCS_MAX_SIZE_OF_TCMESSAGE + 8) 
+//including header information
 
+#define PCS_MAX_SIZE_OF_MESSAGEQUEUE                            16
+#define PCS_MAX_SIZE_OF_PMMESSAGEQUEUE                          128
 
+#define PCS_MAX_NUMBER_OF_NETWORKS                              NII_MAX_NUMBER_OF_NETWORKS
+#define PCS_MAX_NUMBER_OF_MAPPINGS                              16
 
 
 #endif /*PCSCONSTANTS_HH_*/
