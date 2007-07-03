@@ -3,6 +3,7 @@
 #include "Exceptions/Exceptions.hh"
 #include "ProcessManagement/ProcessManager.hh"
 #include "Managers/AllocatorManager.hh"
+#include "Managers/PrivateIdManager.hh"
 #include "IPC/BlockingScope.hh"
 
 #include "OpenOSObject.hh"
@@ -952,16 +953,7 @@ void FileManager::reopenFiles()
 
 ASAAC_PrivateId FileManager::generateAsaacHandle()
 {
-    CharacterSequence Counter = getenv(OS_ENV_ASAACHANDLE_COUNTER);
-    
-    if ( Counter.empty() )
-        Counter = (ASAAC_PublicId)0;
-    
-    Counter = (ASAAC_PublicId)(Counter.asaac_id() + 1);
-
-    setenv(OS_ENV_ASAACHANDLE_COUNTER, Counter.c_str(), 1);
-    
-    return Counter.asaac_id();
+	return PrivateIdManager::getInstance()->getNextId();
 }
 
 

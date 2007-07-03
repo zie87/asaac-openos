@@ -14,9 +14,6 @@ public:
 	
 protected:
 	PrivateIdManager();
-	
-	ASAAC_PrivateId m_NextPrivateId;
-
 };
 
 #endif /*PRIVATEIDMANAGER_HH_*/
