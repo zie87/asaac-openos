@@ -36,7 +36,7 @@ int applicationMain( void )
 }
 
 
-bool registerThread(char * name, EntryPointAddr address)
+char registerThread(char * name, EntryPointAddr address)
 {
 	try
 	{

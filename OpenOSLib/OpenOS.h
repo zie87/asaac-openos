@@ -1,8 +1,6 @@
 #ifndef OPENOS_H_
 #define OPENOS_H_
 
-#include "ASAAC.h"
-
 
 #define ASAAC_ENTITY 		
 #define ASAAC_APPLICATION 	int main( int argc, char** argv ){	return applicationMain(); } 
@@ -25,9 +23,9 @@
 
 typedef void*(*EntryPointAddr)( void* );
 
-extern int applicationMain();
-extern void registerThreads();
-extern char registerThread(char * name, EntryPointAddr address);
+extern "C" int applicationMain();
+extern "C" void registerThreads();
+extern "C" char registerThread(char * name, EntryPointAddr address);
 
 
 #endif /*OPENOS_H_*/

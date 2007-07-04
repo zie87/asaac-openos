@@ -317,6 +317,7 @@ void* Thread::ThreadStartWrapper( void* RealAddress )
 	
 	// if the preemption level is > 0, this thread needs to wait for the release signal,
 	// just like all threads that have been locked.
+	
 	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
 	
 	// Thread Id 0 ( Error Handler ) shall not be subject to suspension

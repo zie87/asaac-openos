@@ -13,6 +13,7 @@
 #include "Managers/SignalManager.hh"
 #include "Managers/TimeManager.hh"
 
+#include "Managers/AllocatorManager.hh"
 #include "Managers/FileManager.hh"
 #include "Managers/FileNameGenerator.hh"
 #include "Managers/TimeManager.hh"
@@ -714,7 +715,6 @@ ASAAC_ReturnStatus Process::run()
 	{
 		if (m_IsServer == false )
 			throw FatalException("Current process is not declared as server for communication", LOCATION);
-
 		Thread* MainThread = getThread(1);
 		
 		if ( MainThread == NULL ) 
