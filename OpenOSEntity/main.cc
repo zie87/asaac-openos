@@ -68,13 +68,12 @@ int main( char argc, char** argv )
 	}
     catch ( ASAAC_Exception& e )
     {
-    	e.addPath("syntax error in parameter list", LOCATION);
-    	e.raiseError();
+    	e.printMessage();
     	return 1;
     }
     catch (...)
     {
-    	OSException("critical error in parameter list", LOCATION).raiseError();
+    	FatalException("Caught fatal exception reading parameter list", LOCATION).printMessage();
     	return 2;
     }
 	
@@ -101,15 +100,20 @@ int main( char argc, char** argv )
     }
     catch ( ASAAC_Exception &e )
     {
-        cerr << "Caught exception in main loop of OpenOS Entity: " << e.getMessage() << endl;
+    	e.addPath( "Caught exception in main loop of OpenOS Entity", LOCATION );
+    	e.printMessage();
+    	
+    	return 3;
     }
     catch (...)
     {
-    	cerr << "Caught critical exception in main loop of OpenOS Entity." << endl;
+    	FatalException("Caught critical exception in main loop of OpenOS Entity.", LOCATION).printMessage();
+    	
+    	return 4;
     }
     
     // 3rd step: shut down
-    cout << "OpenOS Common/Entity shuts down now..." << endl;
+    cout << "OpenOS Entity shuts down now..." << endl;
 
     return 0;
 }
@@ -192,7 +196,7 @@ void printHeader(EntityConfiguration conf)
         "          ######    ######                                           \n"
         "          ####        ####            OpenOS ASAAC Layer:            \n"
 		"  #       ###   #  #   ###       #    -------------------            \n"
-		"  ##      #   ###  ###   #      ##    Version: 2.0                   \n"
+		"  ##      #   ###  ###   #      ##    Version: Beta 1                \n"
 		"  ####       ####  ####       ####    Date:    %s\n"
 		"  ######   ######  ######   ######                                   \n"
 		"  ##############    ##############                                   \n"
