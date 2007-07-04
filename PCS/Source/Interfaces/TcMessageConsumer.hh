@@ -1,7 +1,7 @@
 #ifndef TCMESSAGECONSUMER_HH_
 #define TCMESSAGECONSUMER_HH_
 
-#include "OpenOS.hh"
+#include "PcsIncludes.hh"
 
 //! Abstract Class (Interface) for objects handling Tc messages 
 

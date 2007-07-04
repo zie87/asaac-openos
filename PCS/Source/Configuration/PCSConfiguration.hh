@@ -1,7 +1,7 @@
 #ifndef PCSCONFIGURATION_HH_
 #define PCSCONFIGURATION_HH_
 
-#include "OpenOS.hh"
+#include "PcsIncludes.hh"
 
 #include "Configuration/MappingTable.hh"
 #include "Configuration/VcDescriptionTable.hh"

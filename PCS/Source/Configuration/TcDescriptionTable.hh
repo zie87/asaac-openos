@@ -1,9 +1,7 @@
 #ifndef TCDESCRIPTIONTABLE_HH_
 #define TCDESCRIPTIONTABLE_HH_
 
-#include "OpenOS.hh"
-
-#include "PcsConstants.hh"
+#include "PcsIncludes.hh"
 
 //! Storage for TcDescription structures for TransferConnections served in the PCS
 

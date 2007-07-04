@@ -1,7 +1,7 @@
 #ifndef VCMESSAGECONSUMER_HH_
 #define VCMESSAGECONSUMER_HH_
 
-#include "OpenOS.hh"
+#include "PcsIncludes.hh"
 
 
 //! Abstract Class (Interface) for objects handling Vc messages 

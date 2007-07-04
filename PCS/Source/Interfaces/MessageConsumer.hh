@@ -1,7 +1,7 @@
 #ifndef MESSAGECONSUMER_HH_
 #define MESSAGECONSUMER_HH_
 
-#include "OpenOS.hh"
+#include "PcsIncludes.hh"
 
 //! Abstract Class (Interface) for objects handling messages 
 

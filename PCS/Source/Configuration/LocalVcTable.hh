@@ -1,7 +1,7 @@
 #ifndef LocalVcTable_HH_
 #define LocalVcTable_HH_
 
-#include "OpenOS.hh"
+#include "PcsIncludes.hh"
 
 #include "PcsConstants.hh"
 

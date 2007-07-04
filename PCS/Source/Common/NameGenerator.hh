@@ -1,7 +1,7 @@
 #ifndef NAMEGENERATOR_HH_
 #define NAMEGENERATOR_HH_
 
-#include "OpenOS.hh"
+#include "PcsIncludes.hh"
 
 #include <string>
 

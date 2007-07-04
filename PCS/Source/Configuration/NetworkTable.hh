@@ -1,8 +1,7 @@
 #ifndef NETWORKTABLE_HH_
 #define NETWORKTABLE_HH_
-#include "OpenOS.hh"
 
-#include "PcsConstants.hh"
+#include "PcsIncludes.hh"
 
 
 //! Configuration object to hold the available networks

@@ -1,9 +1,7 @@
 #ifndef VCDESCRIPTIONTABLE_HH_
 #define VCDESCRIPTIONTABLE_HH_
 
-#include "OpenOS.hh"
-
-#include "PcsConstants.hh"
+#include "PcsIncludes.hh"
 
 //! Storage for VcDescription structures for GlobalVcs served in the PCS
 
