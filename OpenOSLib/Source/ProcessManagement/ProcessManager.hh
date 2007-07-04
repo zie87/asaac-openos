@@ -29,7 +29,7 @@ public:
 	ASAAC_ReturnStatus		addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address );
 
 	//! set up structures for current process as a master process
-	ASAAC_ReturnStatus initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId );
+	void initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId );
 	/*! This function sets up all structures of the process manager
 	 *  for the current thread in a local, self-contained way. The
 	 *  master process does not need any controlling instance, it
@@ -93,7 +93,7 @@ public:
 	Process* createProcess( bool IsMasterProcess, const ASAAC_ProcessDescription& Description, long &Index );
 	
 	//! set up structures for current process as a client/slave process
-	ASAAC_ReturnStatus initializeClientProcess(  Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location );
+	void initializeClientProcess(  Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location );
 	/*!< This function sets up all structures of the process manager
 	 *  for the current thread in a way that allows the process to
 	 *  be controlled and configured by the respective master by

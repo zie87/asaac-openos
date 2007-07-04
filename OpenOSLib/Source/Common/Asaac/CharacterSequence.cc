@@ -42,16 +42,10 @@ CharacterSequence::CharacterSequence(unsigned long len, char ch)
 	this->assign(len, ch);
 }
 
-CharacterSequence::CharacterSequence(long number)
+CharacterSequence::CharacterSequence(ASAAC_PublicId number, bool is_signed )
 {
 	erase();
-	this->assign(number);
-}
-
-CharacterSequence::CharacterSequence(ASAAC_PublicId number)
-{
-	erase();
-	this->assign(number);
+	this->assign(number, is_signed);
 }
 
 CharacterSequence::CharacterSequence(ASAAC_Time time)
@@ -103,14 +97,9 @@ CharacterSequence & CharacterSequence::append( unsigned long len, char ch )
 	return this->append( CharacterSequence(len, ch) );
 }
 
-CharacterSequence & CharacterSequence::append( long number )
+CharacterSequence & CharacterSequence::append( ASAAC_PublicId number, bool is_signed )
 {
-	return this->append(CharacterSequence(number));
-}
-
-CharacterSequence & CharacterSequence::append( ASAAC_PublicId number )
-{
-	return this->append(CharacterSequence(number));
+	return this->append(CharacterSequence(number, is_signed));
 }
 
 CharacterSequence & CharacterSequence::append( ASAAC_Time &time)
@@ -194,21 +183,11 @@ CharacterSequence & CharacterSequence::assign( unsigned long len, char ch )
 	return this->assign( Seq );
 }
 
-CharacterSequence & CharacterSequence::assign( long number )
+CharacterSequence & CharacterSequence::assign( ASAAC_PublicId number, bool is_signed )
 {
-    snprintf( m_Data, sizeof(m_Data), "%li", number );
-
-    m_Size = strlen( m_Data );
-	m_Data[m_Size] = 0;
-
-	checkIntegrity();
-    
-	return *this;
-}
-
-CharacterSequence & CharacterSequence::assign( ASAAC_PublicId number )
-{
-    snprintf( m_Data, sizeof(m_Data), "%lu", number );
+	if ( is_signed == true )
+    	snprintf( m_Data, sizeof(m_Data), "%li", number );
+    else snprintf( m_Data, sizeof(m_Data), "%lu", number );
 
     m_Size = strlen( m_Data );
 	m_Data[m_Size] = 0;
@@ -259,12 +238,7 @@ CharacterSequence & CharacterSequence::insert( unsigned long pos, unsigned long 
 	return this->insert(pos, CharacterSequence(len, ch) );
 }
 
-CharacterSequence & CharacterSequence::insert( unsigned long pos, long number )
-{
-	return this->insert( pos, CharacterSequence(number) );
-}
-
-CharacterSequence & CharacterSequence::insert( unsigned long pos, ASAAC_PublicId number )
+CharacterSequence & CharacterSequence::insert( unsigned long pos, ASAAC_PublicId number, bool is_signed )
 {
 	return this->insert( pos, CharacterSequence(number) );
 }
@@ -454,7 +428,7 @@ void CharacterSequence::convertTo( char *data, unsigned long begin_pos, unsigned
 
 void CharacterSequence::convertTo( string &data, unsigned long begin_pos, unsigned long len ) const
 {
-	data = m_Data[0];
+	data = m_Data;
 }
 	
 void CharacterSequence::convertTo( long &number, unsigned long begin_pos, unsigned long len ) const
@@ -506,9 +480,16 @@ CharacterSequence & CharacterSequence::erase(unsigned long start, unsigned long 
 	return *this;
 }	
 
+static char Buffer[ASAAC_OS_MAX_STRING_SIZE + 1];
+
 const char *CharacterSequence::c_str( unsigned long begin_pos, unsigned long len ) const
 {
-	return m_Data;
+	if ((begin_pos == 0) && (len >= m_Size))
+		return m_Data;
+		
+	convertTo( Buffer, begin_pos, len );
+	
+	return Buffer;
 }
 
 const ASAAC_CharacterSequence CharacterSequence::asaac_str( unsigned long begin_pos, unsigned long len ) const
@@ -527,7 +508,7 @@ const string CharacterSequence::cpp_str( unsigned long begin_pos, unsigned long 
 	return Result;
 }
 
-long CharacterSequence::c_int( unsigned long begin_pos, unsigned long len ) const
+int CharacterSequence::c_int( unsigned long begin_pos, unsigned long len ) const
 {
 	CharacterSequence Data;
 	this->convertTo(Data, begin_pos, len);
@@ -536,7 +517,7 @@ long CharacterSequence::c_int( unsigned long begin_pos, unsigned long len ) cons
 	return strtol(Data.c_str(), &e, 10);
 }
 
-unsigned long CharacterSequence::c_uint( unsigned long begin_pos, unsigned long len ) const
+unsigned int CharacterSequence::c_uint( unsigned long begin_pos, unsigned long len ) const
 {
 	CharacterSequence Data;
 	this->convertTo(Data, begin_pos, len);

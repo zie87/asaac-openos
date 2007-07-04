@@ -83,7 +83,7 @@ void OpenOS::initialize( bool IsMaster, LocalActivityState State, ASAAC_PublicId
 
 	m_IsMaster = IsMaster;
 	m_ActivityState = State;
-	
+
 	initializeThisObject();	
 	
 	if ( IsMaster == true )
@@ -225,10 +225,7 @@ void OpenOS::initializeGlobalObjects( ASAAC_PublicId CpuId, ASAAC_PublicId Proce
 	//Initialize CommunicatinManager
 	CommunicationManager::getInstance()->initialize( m_IsMaster, &m_Allocator );
 		
-	// Initialize Fault Manager and Logging Manager
-    // These two must be initialized before the ProcessStarter is
-    // called for the first time, in order to allow it to connect
-    // to the error and log queues
+	//Initialize Fault Manager and Logging Manager
     FaultManager::getInstance()->initialize( m_IsMaster );
     LoggingManager::getInstance()->initialize( m_IsMaster );
     
@@ -498,7 +495,9 @@ void OpenOS::flushSession()
 		}
 			
 		if (d.Return == ASAAC_ERROR)
+		{
 			m_CpuId[Index] = OS_UNUSED_ID;
+		}
 		else EntityFound = true;
 	}
 	

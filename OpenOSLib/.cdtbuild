@@ -12,7 +12,9 @@
 <listOptionValue value="&quot;${workspace_loc:/OpenOSLib}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
 </option>
-<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.1606245775"/>
+<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.1606245775" valueType="definedSymbols">
+<listOptionValue value="DEBUG" builtIn="false"/>
+</option>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.c.compiler.so.debug" id="cdt.managedbuild.tool.gnu.c.compiler.so.debug.1475074070" name="GCC C Compiler"/>
 <tool superClass="cdt.managedbuild.tool.gnu.c.linker.so.debug" id="cdt.managedbuild.tool.gnu.c.linker.so.debug.1659905067" name="GCC C Linker"/>

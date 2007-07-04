@@ -17,8 +17,7 @@ public:
 	CharacterSequence(const char * data);
 	CharacterSequence(const string &data);
 	CharacterSequence(unsigned long len, char ch);
-	CharacterSequence(long number);
-	CharacterSequence(ASAAC_PublicId number);
+	CharacterSequence(ASAAC_PublicId number, bool is_signed = false );
 	CharacterSequence(ASAAC_Time time);
 	CharacterSequence(ASAAC_TimeInterval interval);
 	virtual ~CharacterSequence();
@@ -28,8 +27,7 @@ public:
 	CharacterSequence & append( const char *data );
 	CharacterSequence & append( const string &data );
 	CharacterSequence & append( unsigned long len, char ch );
-	CharacterSequence & append( long number );
-	CharacterSequence & append( ASAAC_PublicId number );
+	CharacterSequence & append( ASAAC_PublicId number, bool is_signed = false );
 	CharacterSequence & append( ASAAC_Time &time);
 	CharacterSequence & append( ASAAC_TimeInterval &interval);
 	CharacterSequence & appendLineBreak();
@@ -39,8 +37,7 @@ public:
 	CharacterSequence & assign( const char *data, unsigned long begin_pos = 0, unsigned long len = Unlimited );
 	CharacterSequence & assign( const string &data, unsigned long begin_pos = 0, unsigned long len = Unlimited );
 	CharacterSequence & assign( unsigned long len, char ch );
-	CharacterSequence & assign( long number );
-	CharacterSequence & assign( ASAAC_PublicId number );
+	CharacterSequence & assign( ASAAC_PublicId number, bool is_signed );
 	CharacterSequence & assign( ASAAC_Time time);
 	CharacterSequence & assign( ASAAC_TimeInterval interval);
 	
@@ -49,8 +46,7 @@ public:
 	CharacterSequence & insert( unsigned long pos, char *data );
 	CharacterSequence & insert( unsigned long pos, string data );
 	CharacterSequence & insert( unsigned long pos, unsigned long len, char ch );
-	CharacterSequence & insert( unsigned long pos, long number );
-	CharacterSequence & insert( unsigned long pos, ASAAC_PublicId number );
+	CharacterSequence & insert( unsigned long pos, ASAAC_PublicId number, bool is_signed );
 	CharacterSequence & insert( unsigned long dest_pos, ASAAC_CharacterSequence data, unsigned long source_pos, unsigned long len);
 	CharacterSequence & insert( unsigned long dest_pos, CharacterSequence data, unsigned long source_pos, unsigned long len);
 	CharacterSequence & insert( unsigned long dest_pos, char *data, unsigned long source_pos, unsigned long len);
@@ -87,8 +83,8 @@ public:
 	const char *					c_str(unsigned long begin_pos = 0, unsigned long len = Unlimited) const;
 	const ASAAC_CharacterSequence 	asaac_str(unsigned long begin_pos = 0, unsigned long len = Unlimited) const;
 	const string 					cpp_str(unsigned long begin_pos = 0, unsigned long len = Unlimited) const;
-	long 							c_int(unsigned long begin_pos = 0, unsigned long len = Unlimited) const;
-	unsigned long 					c_uint(unsigned long begin_pos = 0, unsigned long len = Unlimited) const;
+	int 							c_int(unsigned long begin_pos = 0, unsigned long len = Unlimited) const;
+	unsigned int 					c_uint(unsigned long begin_pos = 0, unsigned long len = Unlimited) const;
 	unsigned long 					c_ulong(unsigned long begin_pos = 0, unsigned long len = Unlimited) const;
 	ASAAC_PublicId 					asaac_id(unsigned long begin_pos = 0, unsigned long len = Unlimited) const;
 	

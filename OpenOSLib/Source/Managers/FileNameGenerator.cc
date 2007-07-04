@@ -22,9 +22,12 @@ ASAAC_CharacterSequence FileNameGenerator::getGlobalVcName( ASAAC_PublicId Globa
 {
 	long Index = CommunicationManager::getInstance()->getGlobalVirtualChannelIndex(GlobalVcId);
 	
+	if (Index == -1)
+		throw OSException("GlobalVcId not found", LOCATION);
+	
 	CharacterSequence cs;
 	
-	cs << subdir << "GlobalVc_" << Index;
+	cs << subdir << "GlobalVc_" << CharSeq(Index, true);
 	
 	return cs.asaac_str();	
 }
@@ -44,9 +47,12 @@ ASAAC_CharacterSequence FileNameGenerator::getProcessName( ASAAC_PublicId Proces
 {
 	long Index = ProcessManager::getInstance()->getProcessIndex(ProcessId);
 
+	if (Index == -1)
+		throw OSException("ProcessId not found", LOCATION);
+
 	CharacterSequence cs;
 	
-	cs << subdir << "Process_" << Index;
+	cs << subdir << "Process_" << CharSeq(Index, true);
 
 	return cs.asaac_str();	
 }
@@ -56,9 +62,12 @@ ASAAC_CharacterSequence FileNameGenerator::getProcessManagerName( ASAAC_PublicId
 {
 	long Index = OpenOS::getInstance()->getCpuIndex(CpuId);
 
+	if (Index == -1)
+		throw OSException("CpuId not found", LOCATION);
+
 	CharacterSequence cs;
 	
-	cs << subdir << "ProcessManager_" << Index;
+	cs << subdir << "ProcessManager_" << CharSeq(Index, true);
 	
 	return cs.asaac_str();	
 }

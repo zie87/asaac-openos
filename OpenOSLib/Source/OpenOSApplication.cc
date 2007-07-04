@@ -21,11 +21,15 @@ int applicationMain( void )
 	catch ( ASAAC_Exception& e )
 	{
 		e.addPath("Caught exception in main loop of application.", LOCATION);
-		e.raiseError();
+		e.printMessage();
+		
+		return 1;
 	}
 	catch (...)
 	{
-		FatalException( "Caught exception in main loop of application.", LOCATION).raiseError();
+		FatalException( "Caught exception in main loop of application.", LOCATION).printMessage();
+		
+		return 2;
 	}
 
 	return 0;	

@@ -150,7 +150,9 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 	// If an exception is caught, make sure everything is cleaned
 	// up before exiting.
 	{
-        e.addPath("Error initializing SharedMemory object", LOCATION);
+		CharSeq ErrorString;
+		e.addPath( (ErrorString << "Error initializing SharedMemory object: " << m_Name << " [" << m_BaseMemorySize << "]").c_str(), LOCATION);
+
         deinitialize();
 		
 		throw;
@@ -196,7 +198,7 @@ void SharedMemory::deinitialize()
 	catch (ASAAC_Exception &e)
 	{
 		CharSeq ErrorString;
-		e.addPath( (ErrorString << "Error deinitializing SharedMemory: " << m_Name << " [" << m_BaseMemorySize << "]").c_str(), LOCATION);
+		e.addPath( (ErrorString << "Error deinitializing SharedMemory object: " << m_Name << " [" << m_BaseMemorySize << "]").c_str(), LOCATION);
 		e.raiseError();
 	}
 	

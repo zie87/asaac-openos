@@ -214,17 +214,25 @@ void Process::launch()
             catch ( ASAAC_Exception &e )
             {
                 e.addPath("Exception in ProcessStarter", LOCATION); 
+                e.printMessage();
                 e.raiseError();
-                
-                OpenOS::getInstance()->deinitialize();
+
+				//TODO: To be able to deinitialize all objects switchState shall
+				//set Master/Server Flags of all objects to false
+
+                AllocatorManager::getInstance()->deallocateAllObjects();
+                //OpenOS::getInstance()->deinitialize();
                 
                 exit(-1);
             }
             catch (...)
             {
-                OSException("Unknown Exception in ProcessStarter", LOCATION).raiseError();
+                OSException e("Unknown Exception in ProcessStarter", LOCATION);
+                e.printMessage();
+                e.raiseError();
                 
-                OpenOS::getInstance()->deinitialize();
+                AllocatorManager::getInstance()->deallocateAllObjects();
+                //OpenOS::getInstance()->deinitialize();
 
                 exit(-2);
             }

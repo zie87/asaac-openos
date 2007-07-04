@@ -40,7 +40,7 @@ public:
     ASAAC_CharacterSequence parsePath(unsigned long &Index);
     ASAAC_CharacterSequence parseName(unsigned long &Index);
     
-private:
+protected:
     CharacterSequence   m_Sequence;    
 };
 

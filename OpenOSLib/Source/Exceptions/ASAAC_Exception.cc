@@ -169,7 +169,7 @@ const char * ASAAC_Exception::getMessageItem(unsigned short index) const
 		
 	if ( Path.message.size > 0 )
 	{
-		Message << CharSeq( " '") << Path.message << CharSeq( "'");
+		Message << CharSeq( " \"") << Path.message << CharSeq( "\"");
 	}
 
 #ifdef DEBUG		

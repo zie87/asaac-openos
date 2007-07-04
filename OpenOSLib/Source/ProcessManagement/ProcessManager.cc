@@ -38,7 +38,7 @@ static ProcessSigChildCallback SigChildCallback;
 
 ProcessManager::ProcessManager()
 {
-	m_CpuId = 0;
+	m_CpuId = OS_UNUSED_ID;
 	m_CurrentProcessIndex = -1;
 	m_IsMaster = false;
 	m_IsInitialized = false;
@@ -137,36 +137,31 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 
 void ProcessManager::deinitialize()
 {
-	if (m_IsInitialized == true)
-	{
-		try
-		{		
-			if ( m_IsMaster )
-			{
-				OpenOS::getInstance()->unregisterCpu(m_CpuId);
-			}
-
-			releaseAllProcesses();					
-
-			m_Semaphore.deinitialize();
-			m_CommandInterface.deinitialize();
-			
-			m_LocalMemoryAllocator.deinitialize();
-			m_SharedMemoryAllocator.deinitialize();
-		}
-		catch (ASAAC_Exception &e)
-		{		
-			e.addPath("Deinitializing of ProcessManager failed");
-			e.raiseError();
-		}
-		catch (...)
+	if ( m_IsInitialized == false )
+		return;
+		
+	try
+	{		
+		if ( m_IsServer )
 		{
-			FatalException("Deinitializing of ProcessManager failed", LOCATION).raiseError();
+			OpenOS::getInstance()->unregisterCpu(m_CpuId);
 		}
+
+		releaseAllProcesses();					
+
+		m_Semaphore.deinitialize();
+		m_CommandInterface.deinitialize();
 		
-		m_IsInitialized = false;
-		
+		m_LocalMemoryAllocator.deinitialize();
+		m_SharedMemoryAllocator.deinitialize();
 	}
+	catch (ASAAC_Exception &e)
+	{		
+		e.addPath("Error deinitializing ProcessManager");
+		e.raiseError();
+	}
+	
+	m_IsInitialized = false;
 }
 
 
@@ -301,7 +296,7 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, long &Index )
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 	
-	Process* Object = 0;
+	Process* Object = NULL;
 	
 	try
 	{
@@ -341,7 +336,7 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, long &Index )
 		e.raiseError();
 		
 		Index = -1;
-		return 0;
+		return NULL;
 	}
 	
 	return Object;
@@ -355,7 +350,7 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId )
 }
 
 
-ASAAC_ReturnStatus ProcessManager::initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId)
+void ProcessManager::initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId)
 {
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException( LOCATION );
@@ -369,7 +364,7 @@ ASAAC_ReturnStatus ProcessManager::initializeEntityProcess(  bool IsMaster, Allo
 
 		Process* NewProcess = createProcess(true, Description, m_CurrentProcessIndex);
 		
-		if (NewProcess == 0)
+		if (NewProcess == NULL)
 			throw OSException("Unable to create master process", LOCATION);			 
 
 		m_IsInitialized = true;
@@ -379,15 +374,13 @@ ASAAC_ReturnStatus ProcessManager::initializeEntityProcess(  bool IsMaster, Allo
 	catch ( ASAAC_Exception& e )
 	{
 		e.addPath("Error initializing master process", LOCATION);
-		e.raiseError();
-		return ASAAC_ERROR;
+
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus ProcessManager::initializeClientProcess( Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location )
+void ProcessManager::initializeClientProcess( Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location )
 {
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException( LOCATION );
@@ -403,12 +396,9 @@ ASAAC_ReturnStatus ProcessManager::initializeClientProcess( Allocator *ParentAll
 	catch ( ASAAC_Exception& e )
 	{
 		e.addPath("Error initializing client process", LOCATION);
-		e.raiseError();
 		
-		return ASAAC_ERROR;
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
@@ -426,7 +416,7 @@ ASAAC_TimedReturnStatus ProcessManager::createClientProcess( const ASAAC_Process
 				long Index;
 				Process* NewProcess = createProcess(false, Description, Index);
 			
-				if ( NewProcess == 0 ) 
+				if ( NewProcess == NULL ) 
 					throw OSException("Process object has not been created", LOCATION);
 		
 				NewProcess->launch();
@@ -502,7 +492,7 @@ ASAAC_TimedReturnStatus ProcessManager::createClientProcess( const ASAAC_Process
 
 		Process* CreatedProcess = getProcess( Description.global_pid );
 		
-		if (CreatedProcess == 0)
+		if (CreatedProcess == NULL)
 			return ASAAC_TM_ERROR;
 			
 		if ( CreatedProcess->refreshPosixPid() == ASAAC_ERROR ) 
@@ -530,7 +520,7 @@ ASAAC_ReturnStatus ProcessManager::destroyClientProcess( const ASAAC_PublicId& P
 		{
 			Process* P = getProcess( ProcessId );
 			
-			if ( P == 0 ) 
+			if ( P == NULL ) 
 				throw OSException("Process not found", LOCATION);
 			
 			if (P->getProcessDescription().cpu_id == this->getCpuId())
@@ -585,7 +575,7 @@ ASAAC_ReturnStatus ProcessManager::runProcess(const ASAAC_PublicId process_id)
 {
 	Process* TargetProcess = ProcessManager::getInstance()->getProcess( process_id );
 
-	if ( TargetProcess == 0 ) 
+	if ( TargetProcess == NULL ) 
 		return ASAAC_ERROR;
 
 	return  TargetProcess->run();
@@ -596,7 +586,7 @@ ASAAC_ReturnStatus ProcessManager::stopProcess(const ASAAC_PublicId process_id)
 {
 	Process* TargetProcess = ProcessManager::getInstance()->getProcess( process_id );
 
-	if ( TargetProcess == 0 ) 
+	if ( TargetProcess == NULL ) 
 		return ASAAC_ERROR;
 
 	return TargetProcess->stop();
@@ -650,10 +640,10 @@ void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 Process* ProcessManager::getCurrentProcess()
 {
 	if (m_IsInitialized == false) 
-		return 0;
+		return NULL;
 	
 	if ( (m_CurrentProcessIndex < 0) || (m_CurrentProcessIndex >= OS_MAX_NUMBER_OF_PROCESSES) )	
-		return 0;
+		return NULL;
 		
 	return (&m_ProcessObject[m_CurrentProcessIndex]);
 }
@@ -662,17 +652,17 @@ Process* ProcessManager::getCurrentProcess()
 Thread* ProcessManager::getCurrentThread()
 {
 	if (m_IsInitialized == false) 
-		return 0;
+		return NULL;
 
 	Process *P = getCurrentProcess();
 	
-	if (P != 0)
+	if (P != NULL)
 	{
 		if (P->isInitialized())
 			return getCurrentProcess()->getCurrentThread();
-		else return 0;
+		else return NULL;
 	}
-	else return 0;
+	else return NULL;
 }
 
 
@@ -738,29 +728,38 @@ ASAAC_PublicId ProcessManager::getCpuId()
 
 ASAAC_PublicId ProcessManager::getProcessId( ProcessAlias Alias )
 {
-	ASAAC_PublicId Result = OS_UNUSED_ID;
-	
 	switch (Alias)
 	{
 		case PROC_APOS: for (unsigned long id = OS_PROCESSID_APOS; id <= OS_PROCESSID_APOS_MAX; id++) 
 						{
-							if (getProcessIndex(id) == -1) 
-								Result = id;
+							if (getProcessIndex(id) == -1)
+								return id;
 						} 
 						break;
+						
 		case PROC_SMOS: for (unsigned long id = OS_PROCESSID_SMOS; id <= OS_PROCESSID_SMOS_MAX; id++) 
 						{
-							if (getProcessIndex(id) == -1) 
-								Result = id;
+							if (getProcessIndex(id) == -1)
+								return id;
 						} 
 						break;
-		case PROC_GSM:  Result = OS_PROCESSID_GSM; break;
-		case PROC_PCS:  Result = OS_PROCESSID_PCS; break;
-		case PROC_OLI:  Result = OS_PROCESSID_OLI; break;
-		case PROC_SM:   Result = OS_PROCESSID_SM; break;
-		default: Result = OS_UNUSED_ID;
+						
+		case PROC_GSM:  return OS_PROCESSID_GSM; 
+						break;
+						
+		case PROC_PCS:  return OS_PROCESSID_PCS; 
+						break;
+						
+		case PROC_OLI:  return OS_PROCESSID_OLI; 
+						break;
+						
+		case PROC_SM:   return OS_PROCESSID_SM; 
+						break;
+						
+		default: return OS_UNUSED_ID;
 	}
-	return Result;
+
+	return OS_UNUSED_ID;
 }
 
 

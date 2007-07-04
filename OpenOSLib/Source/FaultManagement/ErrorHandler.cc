@@ -32,14 +32,14 @@ void ErrorHandler::initialize()
 	if ( m_IsInitialized ) 
 		return;
 
-	Process* CurrentProcess = ProcessManager::getInstance()->getCurrentProcess();
-
-	if ( CurrentProcess == 0 ) 
-		throw OSException("Process Manager needs to be initialized before ErrorHandler.", LOCATION );
-	
 	try
 	{
 		m_IsInitialized = true;	
+
+		Process* CurrentProcess = ProcessManager::getInstance()->getCurrentProcess();
+
+		if ( CurrentProcess == NULL ) 
+			throw OSException("ProcessManager needs to be initialized before ErrorHandler.", LOCATION );
 		
 		m_HaveNewErrorInformation = false;
 		m_HaveErrorInformation = false;
@@ -52,8 +52,9 @@ void ErrorHandler::initialize()
 		m_LocalAllocator.initialize( Trigger::predictSize() );
 		m_ErrorHandlerTrigger.initialize( &m_LocalAllocator, true );
 	}
-	catch ( ASAAC_Exception& E )
+	catch ( ASAAC_Exception& e )
 	{
+		e.addPath("Error initializing ErrorHandler", LOCATION);
 		deinitialize();
 		
 		throw;
