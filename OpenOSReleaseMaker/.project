@@ -3,6 +3,11 @@
 	<name>OpenOSReleaseMaker</name>
 	<comment></comment>
 	<projects>
+		<project>ASAAC IF</project>
+		<project>NII</project>
+		<project>OpenOSEntity</project>
+		<project>OpenOSLib</project>
+		<project>PCS</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
