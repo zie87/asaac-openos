@@ -26,7 +26,7 @@ ASAAC_TimedReturnStatus TcListener::listen(const ASAAC_NetworkDescriptor& networ
 #endif    
     ASAAC_Time AbsTime = TimeStamp(Timeout).asaac_Time();
     
-    ASAAC_NiiReturnStatus ret = ASAAC_MOS_receiveNetwork(&network_id, &receive_data, NII_RECEIVE_BUFFER_SIZE, &data_length, &tc_id, &AbsTime);
+    ASAAC_NiiReturnStatus ret = ASAAC_MOS_receiveNetwork(&network_id, &receive_data, PCS_MAX_SIZE_OF_NWMESSAGE, &data_length, &tc_id, &AbsTime);
 #ifdef _DEBUG_
     cout << "TcListener::listen() ASAAC_MOS_receiveNetwork() returned " << cMosNii::spell(ret) << endl;
     if(ret == ASAAC_MOS_NII_CALL_COMPLETE)
