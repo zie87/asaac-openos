@@ -73,7 +73,6 @@ ASAAC_TimedReturnStatus		FaultManager::getError( ASAAC_ErrorInfo& error_info, co
 	try
 	{
 		unsigned long ActualSize;
-		ASAAC_TimedReturnStatus Result;
 		
 		ASAAC_Time timeOut = TimeStamp(time_out).asaac_Time();
 	

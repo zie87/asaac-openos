@@ -714,8 +714,6 @@ ASAAC_ReturnStatus 		CommunicationManager::returnPMData(const ASAAC_PublicId vc_
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	ASAAC_TimedReturnStatus status = ASAAC_TM_ERROR;
-	
 	try
 	{
 		//Check current process environment

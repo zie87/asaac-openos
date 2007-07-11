@@ -521,7 +521,7 @@ ASAAC_VcMappingDescription* LocalVc::getDescription()
     if ( m_IsInitialized == false ) 
         throw UninitializedObjectException(LOCATION);
 	
-	m_Description.getLocation();
+	return m_Description.getLocation();
 }
 
 
