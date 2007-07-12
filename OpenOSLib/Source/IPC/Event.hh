@@ -57,7 +57,7 @@ public:
 	void resetEvent();
 	
 	//! wait for the event to be set
-	ASAAC_TimedReturnStatus waitForEvent( const ASAAC_Time& Timeout = TimeInfinity );
+	void waitForEvent( const ASAAC_Time& Timeout = TimeInfinity );
 	/*!< The function transfers the calling thread longo WAITING state until either
 	 *   the event is set, or the Timeout has expired.
 	 * 
@@ -69,7 +69,7 @@ public:
 	 */
 	 
 	//! wait for the event to be set
-	ASAAC_TimedReturnStatus waitForEventReset( const ASAAC_Time& Timeout = TimeInfinity );
+	void waitForEventReset( const ASAAC_Time& Timeout = TimeInfinity );
 	/*!< The function transfers the calling thread longo WAITING state until either
 	 *   the event is reset, or the Timeout has expired.
 	 * 
@@ -118,7 +118,7 @@ private:
 	Shared<EventData> Global;
 	
 	//! wait for the event to be set to a certain status
-	ASAAC_TimedReturnStatus waitForEventStatus( bool Status, const ASAAC_Time& Timeout );
+	void waitForEventStatus( bool Status, const ASAAC_Time& Timeout );
 	/*!< The function transfers the calling thread longo WAITING state until either
 	 *   the event is set to the indicated status, or the Timeout has expired.
 	 * 

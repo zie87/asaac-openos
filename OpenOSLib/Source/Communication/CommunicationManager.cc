@@ -540,8 +540,7 @@ ASAAC_ReturnStatus CommunicationManager::attachTransferConnectionToVirtualChanne
 	   		throw OSException("PCS Process was not found.", LOCATION);
 	   	
 	   	//Stop PCS Process now
-	    if (PCSProcess->stop() == ASAAC_ERROR)
-	    	throw OSException("PCS Process couldn't be stopped", LOCATION);
+	    PCSProcess->stop();
 	    
 	    try //This inner exception block is needed to surely restart PCS Process
 	    {
@@ -551,15 +550,20 @@ ASAAC_ReturnStatus CommunicationManager::attachTransferConnectionToVirtualChanne
 	    catch (ASAAC_Exception &e)
 	    {
             //Restart PCS Process
-            if (PCSProcess->run() == ASAAC_ERROR)
+	    	try
+	    	{
+	    		PCSProcess->run();
+	    	}
+	    	catch (ASAAC_Exception &e2)
+	    	{
                 e.addPath("PCS Process couldn't be restarted.", LOCATION);
+	    	}
             
             throw;
 	    }
 
 		//Restart PCS Process
-	    if (PCSProcess->run() == ASAAC_ERROR)
-	    	throw OSException("PCS Process couldn't be restarted.", LOCATION);
+	    PCSProcess->run();
 		
         if (m_PCSClient.attachTransferConnectionToVirtualChannel( *vc_description, tc_id, is_data_representation) == ASAAC_ERROR)
             throw OSException("PCS returned an error", LOCATION);
@@ -596,8 +600,7 @@ ASAAC_ReturnStatus CommunicationManager::detachTransferConnectionFromVirtualChan
 	   		throw OSException("PCS Process was not found.", LOCATION);
 	   	
 	   	//Stop PCS Process now
-	    if (PCSProcess->stop() == ASAAC_ERROR)
-	    	throw OSException("PCS Process couldn't be stopped", LOCATION);
+	    PCSProcess->stop();
 
 	    try //This inner exception block is needed to surely restart PCS Process
 	    {
@@ -607,15 +610,13 @@ ASAAC_ReturnStatus CommunicationManager::detachTransferConnectionFromVirtualChan
 	    catch (ASAAC_Exception &e)
 	    {
             //Restart PCS Process
-            if (PCSProcess->run() == ASAAC_ERROR)
-                e.addPath("PCS Process couldn't be restarted.", LOCATION);
+            PCSProcess->run();
                 
 	    	throw;
 	    }
 
 		//Restart PCS Process
-	    if (PCSProcess->run() == ASAAC_ERROR)
-	    	throw OSException("PCS Process couldn't be restarted.", LOCATION);
+	    PCSProcess->run();
     }
 	catch (ASAAC_Exception &e)
 	{

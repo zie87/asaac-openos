@@ -8,8 +8,9 @@
 
 using namespace std;
 
+#define SIZE_OF_COMMAND_NAME_ARRAY 13
 
-string CommandNames[13] = 
+string CommandNames[SIZE_OF_COMMAND_NAME_ARRAY] = 
 { 
 	"CMD_NULL_COMMAND", 
 	"CMD_GET_PID", 
@@ -38,7 +39,9 @@ SimpleCommandInterface::~SimpleCommandInterface()
 
 void SimpleCommandInterface::initialize( Allocator* ThisAllocator, bool IsMaster )
 {
-	if ( m_IsInitialized ) throw DoubleInitializationException(LOCATION);
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException(LOCATION);
+	
 	m_IsInitialized = true;
 	
 	m_CommandSemaphore.initialize( ThisAllocator, IsMaster );
@@ -53,13 +56,13 @@ void SimpleCommandInterface::initialize( Allocator* ThisAllocator, bool IsMaster
 	
 	m_CommandData.initialize( ThisAllocator );
 
-	for ( unsigned long Index = 0; Index < OS_MAX_COMMAND_HANDLERS; Index ++ )
+	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_COMMAND_HANDLERS; Index ++ )
 	{
-		m_Handler[ Index ].Identifier = 0;
+		m_Handler[ Index ].Identifier = OS_UNUSED_ID;
+		m_Handler[ Index ].Handler = NULL;
 	}
 
 	m_IsMaster = IsMaster;
-	
 }
 
 
@@ -79,55 +82,44 @@ void SimpleCommandInterface::deinitialize()
 }
 	
 
-ASAAC_ReturnStatus SimpleCommandInterface::handleOneCommand( unsigned long& CommandIdentifier )
+void SimpleCommandInterface::handleOneCommand( ASAAC_PublicId& CommandIdentifier )
 {
-	ASAAC_ReturnStatus Status = ASAAC_SUCCESS;
-	
-	m_SendReceiveEvent.waitForEvent();
-	
-	if ( m_CommandData->Identifier != 0 )
+	try
 	{
-		ProtectedScope Access( "handle a command in SimpleCommandInterface", m_AdministrationSemaphore );
+		m_SendReceiveEvent.waitForEvent();
 		
-		CommandIdentifier = m_CommandData->Identifier;
-		
-		if ( m_CommandData->Identifier < 8 )
+		if ( m_CommandData->Identifier != OS_UNUSED_ID )
 		{
+			ProtectedScope Access( "handle a command in SimpleCommandInterface", m_AdministrationSemaphore );
+			
+			CommandIdentifier = m_CommandData->Identifier;
+			
 #ifdef DEBUG_SCI
-			cout << "Got Command: " << m_CommandData->Identifier << " (" << CommandNames[ m_CommandData->Identifier ] << ")" << endl;
+			cout << "Process " << ProcessManager::getInstance()->getCurrentProcess()->getId() << " got Command: " << m_CommandData->Identifier << " (" << CharSeq(getCommandString(m_CommandData->Identifier)) << ")" << endl;
 #endif
-		}
-		
-		CommandHandlerMapping *ThisCommand = getCommandHandler( m_CommandData->Identifier );
-		
-		if ( ThisCommand == 0 )
-		{
-			m_CommandData->Identifier = INVALID_HANDLER;
-			Status = ASAAC_ERROR;
-		}
-		else
-		{
-			try
-			{
-				ThisCommand->Handler( m_CommandData->Buffer );
-			}
-			catch (ASAAC_Exception &e)
-			{
-				e.raiseError();
-				Status = ASAAC_ERROR;
-			}
-			catch (...)
-			{
-				Status = ASAAC_ERROR;
-			}
-		}
+			
+			CommandHandlerMapping *ThisCommand = getCommandHandler( m_CommandData->Identifier );
+			
+			if ( ThisCommand == NULL )
+				m_CommandData->Identifier = INVALID_HANDLER;
+			else ThisCommand->Handler( m_CommandData->Buffer );
+			
 #ifdef DEBUG_SCI		
-		cout << "Returning : " << *(ASAAC_ReturnStatus*)m_CommandData->Buffer << endl;
+			cout << "Returning Data: " << *(ASAAC_ReturnStatus*)m_CommandData->Buffer << endl;
+			cout << "Returning Command: " << m_CommandData->Identifier << " (" << CharSeq(getCommandString(m_CommandData->Identifier)) << ")" << endl;
 #endif
-	}
+		}
 
-	m_SendReceiveEvent.resetEvent();
-	return Status;
+		m_SendReceiveEvent.resetEvent();
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error handling a command", LOCATION);
+
+		m_SendReceiveEvent.resetEvent();
+		
+		throw;
+	}
 }
 		
 
@@ -145,7 +137,8 @@ void* SimpleCommandInterface::HandlerThread(void* Param)
 		cout << "Handler Thread received command: " << Command << endl;
 #endif
 		
-		if ( Command == TERMINATE_HANDLER ) break;
+		if ( Command == TERMINATE_HANDLER ) 
+			break;
 	}				
 		
 	return 0;
@@ -190,73 +183,94 @@ void SimpleCommandInterface::stopHandlerThread()
 
 SimpleCommandInterface::CommandHandlerMapping* SimpleCommandInterface::getCommandHandler( unsigned long CommandIdentifier )
 {
-	for ( unsigned long Index = 0; Index < OS_MAX_COMMAND_HANDLERS; Index ++ )
+	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_COMMAND_HANDLERS; Index ++ )
 	{
-		if ( m_Handler[ Index ].Identifier == CommandIdentifier ) return &(m_Handler[ Index ]);
+		if ( m_Handler[ Index ].Identifier == CommandIdentifier ) 
+			return &(m_Handler[ Index ]);
 	}
 	
-	return 0;
+	return NULL;
 }
 
 
-ASAAC_ReturnStatus SimpleCommandInterface::addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler )
+void SimpleCommandInterface::addCommandHandler( ASAAC_PublicId CommandIdentifier, CommandHandler Handler )
 {
-	ProtectedScope Access( "Adding a command handler to SimpleCommandInterface", m_AdministrationSemaphore );
-	
-	if ( CommandIdentifier >= INVALID_HANDLER ) 
-		return ASAAC_ERROR; // Invalid Handler
-
-	if ( CommandIdentifier == 0 ) 
-		return ASAAC_ERROR; // Invalid Handler
-
-	if ( getCommandHandler( CommandIdentifier ) != 0 ) 
-		return ASAAC_ERROR; // Command already exists
-	
-	CommandHandlerMapping *FreeHandler = getCommandHandler( 0 );
-	
-	if ( FreeHandler == 0 ) 
-		return ASAAC_ERROR;  // No free Handler slots
-
-	FreeHandler->Identifier = CommandIdentifier;
-	FreeHandler->Handler	= Handler;	
-	
-	return ASAAC_SUCCESS;
-}
-
-
-ASAAC_ReturnStatus SimpleCommandInterface::removeCommandHandler( unsigned long CommandIdentifier )
-{
-	ProtectedScope Access( "Removing a command handler from SimpleCommandInterface", m_AdministrationSemaphore );
-	
-	CommandHandlerMapping *ThisHandler = getCommandHandler( CommandIdentifier );
-	
-	if ( ThisHandler == 0 ) 
-		return ASAAC_ERROR;
-	
-	ThisHandler->Identifier = 0;
-	ThisHandler->Handler	= 0;
-	
-	return ASAAC_SUCCESS;
-}
-
-
-ASAAC_ReturnStatus SimpleCommandInterface::removeAllCommandHandler()
-{
-	for ( unsigned long Index = 0; Index < OS_MAX_COMMAND_HANDLERS; Index ++ )
+	try
 	{
-		m_Handler[ Index ].Identifier = 0;
-	}
+		ProtectedScope Access( "Adding a command handler to SimpleCommandInterface", m_AdministrationSemaphore );
+		
+		if ( Handler == NULL ) 
+			throw OSException("Invalid Handler (NULL)", LOCATION);
 	
-	return ASAAC_SUCCESS;
+		if ( CommandIdentifier >= INVALID_HANDLER ) 
+			throw OSException("Invalid Handler", LOCATION);
+	
+		if ( CommandIdentifier == OS_UNUSED_ID ) 
+			throw OSException("Invalid Handler", LOCATION);
+	
+		if ( getCommandHandler( CommandIdentifier ) != 0 ) 
+			throw OSException("Command already exists", LOCATION);
+		
+		CommandHandlerMapping *FreeHandler = getCommandHandler( OS_UNUSED_ID );
+		
+		if ( FreeHandler == NULL ) 
+			throw OSException("No free Handler slots", LOCATION);
+	
+		FreeHandler->Identifier = CommandIdentifier;
+		FreeHandler->Handler	= Handler;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error adding command handler", LOCATION);
+		
+		throw;
+	}
 }
 
 
-void SimpleCommandInterface::sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer )
+void SimpleCommandInterface::removeCommandHandler( ASAAC_PublicId CommandIdentifier )
+{
+	cout << "##################" << endl;
+	
+	try
+	{
+		ProtectedScope Access( "Removing a command handler from SimpleCommandInterface", m_AdministrationSemaphore );
+		
+		CommandHandlerMapping *ThisHandler = getCommandHandler( CommandIdentifier );
+		
+		if ( ThisHandler == NULL ) 
+			throw OSException("CommandHandler with dedicated CommandIdentifier not found", LOCATION);
+		
+		ThisHandler->Identifier = OS_UNUSED_ID;
+		ThisHandler->Handler	= NULL;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error removing command handler", LOCATION);
+		
+		throw;
+	}
+}
+
+
+void SimpleCommandInterface::removeAllCommandHandler()
+{
+	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_COMMAND_HANDLERS; Index ++ )
+	{
+		m_Handler[ Index ].Identifier = OS_UNUSED_ID;
+		m_Handler[ Index ].Handler = NULL;
+	}
+}
+
+
+void SimpleCommandInterface::sendCommandNonblocking( ASAAC_PublicId CommandIdentifier, CommandBuffer Buffer )
 {
 	try
 	{
 		ProtectedScope Access( "Sending a command with SimpleCommandInterface", m_CommandSemaphore );
 		
+		m_SendReceiveEvent.waitForEventReset( TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );
+
 		m_CommandData->Identifier = CommandIdentifier;
 	
 		memcpy( m_CommandData->Buffer, Buffer, OS_SIZE_OF_SIMPLE_COMMANDBUFFER );
@@ -266,15 +280,14 @@ void SimpleCommandInterface::sendCommandNonblocking( unsigned long CommandIdenti
 	catch (ASAAC_Exception &e)
 	{
 		e.addPath("Error sending a command with SimpleCommandInterface", LOCATION);
-		e.raiseError();
+
+		throw;
 	}
 }
 
 
-ASAAC_TimedReturnStatus SimpleCommandInterface::sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
+void SimpleCommandInterface::sendCommand( ASAAC_PublicId CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
 {
-	ASAAC_TimedReturnStatus WaitResult;
-	
 	CharacterSequence ErrorString;
 	
 	try
@@ -284,36 +297,31 @@ ASAAC_TimedReturnStatus SimpleCommandInterface::sendCommand( unsigned long Comma
 		m_SendReceiveEvent.waitForEventReset( Timeout );
 		
 		m_CommandData->Identifier = CommandIdentifier;
-	
 		memcpy( m_CommandData->Buffer, Buffer, OS_SIZE_OF_SIMPLE_COMMANDBUFFER );
 	
 		m_SendReceiveEvent.setEvent();
 	
-		WaitResult = m_SendReceiveEvent.waitForEventReset( Timeout );
+		m_SendReceiveEvent.waitForEventReset( Timeout );
 	
-		if ( WaitResult == ASAAC_TM_TIMEOUT ) 
-			throw OSException( (ErrorString << "Timeout sending command: " << getCommandString(CommandIdentifier)).c_str(), LOCATION);
-	
-		if ( WaitResult == ASAAC_TM_ERROR ) 
-			throw OSException( (ErrorString << "Error sending a command: " << getCommandString(CommandIdentifier)).c_str(), LOCATION);
-	
+#ifdef DEBUG_SCI		
+		cout << "Returned Data: " << *(ASAAC_ReturnStatus*)m_CommandData->Buffer << endl;
+		cout << "Returned Command: " << m_CommandData->Identifier << " (" << CharSeq(getCommandString(m_CommandData->Identifier)) << ")" << endl;
+#endif
+		if ( m_CommandData->Identifier == INVALID_HANDLER )
+			throw OSException("Receiving process returned it couldn't handle the message", LOCATION);
+
 		if ( m_CommandData->Identifier != CommandIdentifier )
-		{ 
-			WaitResult = ASAAC_TM_ERROR;
 			throw OSException( (ErrorString << "Error receiving reply: false CommandIdentifier (sent: " 
 				<< getCommandString(CommandIdentifier) << ", received: " << getCommandString(m_CommandData->Identifier) << ")").c_str(), LOCATION);
-		}
 		
 		memcpy( Buffer, m_CommandData->Buffer, OS_SIZE_OF_SIMPLE_COMMANDBUFFER );
 	}
 	catch (ASAAC_Exception &e)
 	{
 		e.addPath("Error sending a command with SimpleCommandInterface", LOCATION);
-		e.raiseError();
-		return WaitResult;
+		
+		throw;
 	}
-	
-	return ASAAC_TM_SUCCESS;
 }
 
 
@@ -325,11 +333,11 @@ size_t SimpleCommandInterface::predictSize()
 }
 
 
-ASAAC_CharacterSequence SimpleCommandInterface::getCommandString( unsigned long CommandIdentifier )
+ASAAC_CharacterSequence SimpleCommandInterface::getCommandString( ASAAC_PublicId CommandIdentifier )
 {
 	static CharacterSequence Result;
 	
-	if ((CommandIdentifier > 0) && (CommandIdentifier < 13)) //TODO: replace this magic number
+	if ((CommandIdentifier > 0) && (CommandIdentifier < SIZE_OF_COMMAND_NAME_ARRAY)) 
 		Result = CommandNames[ CommandIdentifier ];
 	else Result = "<Unknown Command>";
 	

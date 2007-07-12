@@ -9,8 +9,8 @@
 #include "IPC/Event.hh"
 
 
-const unsigned long TERMINATE_HANDLER	= 0xffffffff;
-const unsigned long INVALID_HANDLER		= 0xfffffffe;
+const unsigned long TERMINATE_HANDLER	= OS_MAX_ID;
+const unsigned long INVALID_HANDLER		= OS_MAX_ID-1;
 
 
 typedef char CommandBuffer[ OS_SIZE_OF_SIMPLE_COMMANDBUFFER ];
@@ -58,8 +58,8 @@ public:
 	void deinitialize();
 
 	//! execute a command via the SCI	
-	ASAAC_TimedReturnStatus sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
-	void sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer );
+	void sendCommand( ASAAC_PublicId CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
+	void sendCommandNonblocking( ASAAC_PublicId CommandIdentifier, CommandBuffer Buffer );
 	/*!< this function tries to process a request via the SCI. To this end, it claims control over the
 	 *   SCI resources (or waits for them to become available, if necessary), and writes the data
 	 *   provided by the caller longo the communications buffer, then notifies the server of
@@ -86,7 +86,7 @@ public:
 	
 	
 	//! install a new command handler in the SCI server
-	ASAAC_ReturnStatus addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler );
+	void addCommandHandler( ASAAC_PublicId CommandIdentifier, CommandHandler Handler );
 	/*!< this function sets up a new handler function for the SCI server, to handle calls identified by the
 	 *   CommandIdentifier as supplied by the caller. If a handler for the respective identifier already exists,
 	 *   the function returns ASAAC_ERROR.
@@ -99,7 +99,7 @@ public:
 	 */
 	
 	//! remove a command handler from the SCI server
-	ASAAC_ReturnStatus removeCommandHandler( unsigned long CommandIdentifier );
+	void removeCommandHandler( ASAAC_PublicId CommandIdentifier );
 	/*!< remove the previously installed command handler from the list of registered handlers. If
 	 *   no handler exists for the indicated CommandIdentifier, the function will return ASAAC_ERROR
 	 * 
@@ -108,10 +108,10 @@ public:
 	 *            indicated command identifier.
 	 */
 
-	ASAAC_ReturnStatus removeAllCommandHandler();
+	void removeAllCommandHandler();
 
 	//! cause the server to handle a single SCI command
-	ASAAC_ReturnStatus handleOneCommand( unsigned long& CommandIdentifier );
+	void handleOneCommand( ASAAC_PublicId& CommandIdentifier );
 	/*!< wait for a single incoming command over the SCI. If a command handler is installed for the
 	 *   received request, execute it and return the return values to the caller. Finally, return
 	 *   the received CommandIdentifier.
@@ -153,13 +153,13 @@ private:
 	
 	struct CommandHandlerMapping {
 		
-		unsigned long Identifier;
+		ASAAC_PublicId Identifier;
 		CommandHandler  Handler;
 		
 	};
 	
 	struct CommandData {
-		unsigned long Identifier;
+		ASAAC_PublicId Identifier;
 		CommandBuffer	Buffer;
 	};
 
@@ -179,7 +179,7 @@ private:
 	
 	Shared<CommandData>		m_CommandData;
 	
-	CommandHandlerMapping	m_Handler[ OS_MAX_COMMAND_HANDLERS ];
+	CommandHandlerMapping	m_Handler[ OS_MAX_NUMBER_OF_COMMAND_HANDLERS ];
 	
 	oal_thread_t			m_HandlerThread;
 

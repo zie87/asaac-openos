@@ -38,7 +38,7 @@ static ProcessSigChildCallback SigChildCallback;
 
 ProcessManager::ProcessManager()
 {
-	m_CpuId = OS_UNUSED_ID;
+	m_CurrentCpuId = OS_UNUSED_ID;
 	m_CurrentProcessIndex = -1;
 	m_IsMaster = false;
 	m_IsInitialized = false;
@@ -87,7 +87,7 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 		OpenOS::getInstance()->registerCpu(CpuId);
 	}
 	
-	m_CpuId = CpuId;			
+	m_CurrentCpuId = CpuId;			
 	
 	m_IsServer = IsServer;
 	m_IsMaster = IsMaster;
@@ -97,7 +97,7 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 	if ( Location == SHARED ) //Applications with special rights (GSM, SM, ...)
 	{
 		m_SharedMemoryAllocator.initialize( 
-			FileNameGenerator::getProcessManagerName( m_CpuId ),
+			FileNameGenerator::getProcessManagerName( m_CurrentCpuId ),
 			IsServer,	// IsServer is correct here!
 			predictInternalSize() );
 									
@@ -144,7 +144,7 @@ void ProcessManager::deinitialize()
 	{		
 		if ( m_IsServer )
 		{
-			OpenOS::getInstance()->unregisterCpu(m_CpuId);
+			OpenOS::getInstance()->unregisterCpu(m_CurrentCpuId);
 		}
 
 		releaseAllProcesses();					
@@ -177,6 +177,53 @@ ProcessManager::~ProcessManager()
 }
 
 
+void ProcessManager::initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId)
+{
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException( LOCATION );
+
+	ASAAC_ProcessDescription Description;
+	Description.global_pid = OS_PROCESSID_MASTER;
+	
+	try 
+	{
+		initialize( true, IsMaster, ParentAllocator, CpuId, SHARED );		
+
+		createProcess(true, Description, m_CurrentProcessIndex);
+		
+		handleBufferMemory();
+	}
+	catch ( ASAAC_Exception& e )
+	{
+		e.addPath("Error initializing master process", LOCATION);
+
+		throw;
+	}
+}
+
+
+void ProcessManager::initializeClientProcess( Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location )
+{
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException( LOCATION );
+	
+	try 
+	{
+		initialize( false, false, ParentAllocator, CpuId, Location );
+		
+		setCurrentProcess( ProcessId );
+		
+		handleBufferMemory();
+	}
+	catch ( ASAAC_Exception& e )
+	{
+		e.addPath("Error initializing client process", LOCATION);
+		
+		throw;
+	}
+}
+
+
 void ProcessManager::handleBufferMemory()
 {
 	if (m_IsInitialized == false) 
@@ -193,22 +240,21 @@ void ProcessManager::handleBufferMemory()
 }		
 
 
-ASAAC_ReturnStatus ProcessManager::addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address )
+void ProcessManager::addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address )
 {
 	if (m_IsInitialized == false)
 	{
 		if (m_BufferedEntryPointCounter == OS_MAX_NUMBER_OF_ENTRYPOINTS)
-			return ASAAC_ERROR;
+			throw OSException("No more free slots", LOCATION);
 		
 		m_BufferedEntryPoints[m_BufferedEntryPointCounter].Name = Name;
 		m_BufferedEntryPoints[m_BufferedEntryPointCounter].Address = Address;
+		
 		m_BufferedEntryPointCounter++;
-
-		return ASAAC_SUCCESS;
 	}
 	else
 	{
-		return getCurrentProcess()->addEntryPoint(Name, Address);
+		getCurrentProcess()->addEntryPoint(Name, Address);
 	}
 }
 
@@ -286,6 +332,7 @@ Process* ProcessManager::createProcess( bool IsMasterProcess, const ASAAC_Proces
 	catch ( ASAAC_Exception& e )
 	{
 		e.addPath("Error while creating a process");
+		
 		throw;
 	}
 }
@@ -350,68 +397,16 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId )
 }
 
 
-void ProcessManager::initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId)
-{
-	if ( m_IsInitialized ) 
-		throw DoubleInitializationException( LOCATION );
-
-	ASAAC_ProcessDescription Description;
-	Description.global_pid = OS_PROCESSID_MASTER;
-	
-	try 
-	{
-		initialize( true, IsMaster, ParentAllocator, CpuId, SHARED );		
-
-		Process* NewProcess = createProcess(true, Description, m_CurrentProcessIndex);
-		
-		if (NewProcess == NULL)
-			throw OSException("Unable to create master process", LOCATION);			 
-
-		m_IsInitialized = true;
-		
-		handleBufferMemory();
-	}
-	catch ( ASAAC_Exception& e )
-	{
-		e.addPath("Error initializing master process", LOCATION);
-
-		throw;
-	}
-}
-
-
-void ProcessManager::initializeClientProcess( Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location )
-{
-	if ( m_IsInitialized ) 
-		throw DoubleInitializationException( LOCATION );
-	
-	try 
-	{
-		initialize( false, false, ParentAllocator, CpuId, Location );
-		
-		setCurrentProcess( ProcessId );
-		
-		handleBufferMemory();
-	}
-	catch ( ASAAC_Exception& e )
-	{
-		e.addPath("Error initializing client process", LOCATION);
-		
-		throw;
-	}
-}
-
-
-ASAAC_TimedReturnStatus ProcessManager::createClientProcess( const ASAAC_ProcessDescription& Description )
+void ProcessManager::createClientProcess( const ASAAC_ProcessDescription& Description )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	if (m_IsServer)
+	try
 	{
-		if (Description.cpu_id == this->getCpuId())
+		if (m_IsServer)
 		{
-			try 
+			if (Description.cpu_id == this->getCurrentCpuId())
 			{
 				long Index;
 				Process* NewProcess = createProcess(false, Description, Index);
@@ -420,25 +415,8 @@ ASAAC_TimedReturnStatus ProcessManager::createClientProcess( const ASAAC_Process
 					throw OSException("Process object has not been created", LOCATION);
 		
 				NewProcess->launch();
-				
-				if ( NewProcess->refreshPosixPid() == ASAAC_ERROR ) 
-					throw TimeoutException("Timeout requesting pid of client process", LOCATION);
 			}
-			catch ( ASAAC_Exception& e )
-			{
-				e.addPath("Error creating a process", LOCATION);
-				e.raiseError();
-				
-				if ( e.isTimeout() )		
-					return ASAAC_TM_TIMEOUT;
-				else return ASAAC_TM_ERROR;
-			}
-		}
-		else //different CPU from current one
-		{
-			ASAAC_TimedReturnStatus status = ASAAC_TM_ERROR;
-			
-			try
+			else //different CPU from current one
 			{
 				CommandData d;		
 				d.Data.Description = Description;
@@ -447,147 +425,109 @@ ASAAC_TimedReturnStatus ProcessManager::createClientProcess( const ASAAC_Process
 					d.Data.Timeout = TimeStamp(d.Data.Description.timeout).asaac_Time();
 				else d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
 				
-				status = OpenOS::getInstance()->sendCommand(
-					Description.cpu_id, 
-					CMD_CREATE_PROCESS, 
-					d.ReturnBuffer, 
-					d.Data.Timeout );
+				OpenOS::getInstance()->sendCommand( Description.cpu_id, CMD_CREATE_PROCESS, d.ReturnBuffer, d.Data.Timeout );
 			}
-			catch ( ASAAC_Exception &e )
-			{			
-				CharacterSequence cs;
-				
-				cs << "createClientProcess(): ProcessManager for Description.cpu_id = " << Description.cpu_id << " was not found."; 
-				e.addPath(cs.c_str());
-					
-				throw;
-			}
-			
-			return status;			
 		}
+		else //not server
+		{
+			CommandData d;
+	
+			d.Data.Description = Description;
 			
-		return ASAAC_TM_SUCCESS;
-	}
-	else //not server
-	{
-		CommandData d;
-
-		d.Data.Description = Description;
-		
-		if (d.Data.Description.access_type == ASAAC_OLI_ACCESS)
-			d.Data.Timeout = TimeStamp(d.Data.Description.timeout).asaac_Time();
-		else d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
-
-		ASAAC_TimedReturnStatus Result;
-		Result = sendCommand( 
-			CMD_CREATE_PROCESS, 
-			d.ReturnBuffer, 
-			d.Data.Timeout );
-		
-		if (Result != ASAAC_TM_SUCCESS)
-			return Result;	
-
-		if (d.Return != ASAAC_TM_SUCCESS)
-			return d.Return;
-
-		Process* CreatedProcess = getProcess( Description.global_pid );
-		
-		if (CreatedProcess == NULL)
-			return ASAAC_TM_ERROR;
+			if (d.Data.Description.access_type == ASAAC_OLI_ACCESS)
+				d.Data.Timeout = TimeStamp(d.Data.Description.timeout).asaac_Time();
+			else d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
+	
+			sendCommand( CMD_CREATE_PROCESS, d.ReturnBuffer, d.Data.Timeout );
 			
-		if ( CreatedProcess->refreshPosixPid() == ASAAC_ERROR ) 
-			return ASAAC_TM_TIMEOUT;
+			Process* CreatedProcess = getProcess( Description.global_pid );
+			
+			if (CreatedProcess == NULL)
+				throw OSException("Created process could not be located", LOCATION);
 				
-		return d.Return;
+			CreatedProcess->refreshPosixPid();
+					
+			if ( d.Return == ASAAC_ERROR )
+				throw OSException("process entity reported an error while creating a process", LOCATION);
+		}
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error creating a process", LOCATION);
+		
+		throw;
 	}
 }
 
 
-ASAAC_ReturnStatus ProcessManager::destroyClientProcess( const ASAAC_PublicId& ProcessId )
+void ProcessManager::destroyClientProcess( const ASAAC_PublicId& ProcessId )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
 
-	if ( ProcessId == OS_PROCESSID_MASTER )
-		return OpenOS::getInstance()->destroyAllEntities();
-
-	CharacterSequence ErrorString;
-	ASAAC_TimedReturnStatus Status = ASAAC_TM_ERROR;
-
-	if ( m_IsServer )
-	{		
-		try
-		{
+	try
+	{
+		if ( ProcessId == OS_PROCESSID_MASTER )
+			OpenOS::getInstance()->destroyAllEntities();
+	
+		CharacterSequence ErrorString;
+	
+		if ( m_IsServer )
+		{		
 			Process* P = getProcess( ProcessId );
 			
 			if ( P == NULL ) 
 				throw OSException("Process not found", LOCATION);
 			
-			if (P->getProcessDescription().cpu_id == this->getCpuId())
+			if (P->getProcessDescription().cpu_id == this->getCurrentCpuId())
 			{
 				P->destroy();
-				
-				Status = ASAAC_TM_SUCCESS;
 			}
 			else //different CPU from current one
 			{
-				
 				CommandData d;		
 				d.Data.Description.global_pid = ProcessId;
 				d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
 				
-				Status = OpenOS::getInstance()->sendCommand(
-					P->getProcessDescription().cpu_id, 
-					CMD_DESTROY_PROCESS, 
-					d.ReturnBuffer, 
-					d.Data.Timeout );
+				OpenOS::getInstance()->sendCommand( P->getProcessDescription().cpu_id, CMD_DESTROY_PROCESS, d.ReturnBuffer, d.Data.Timeout );
 			}
 		}
-		catch (ASAAC_Exception &e)
+		else //not server
 		{
-			e.addPath( (ErrorString << "Error destroying a process (pid = " << CharSeq(ProcessId) << ")").c_str(), LOCATION);
-			e.raiseError();
-			
-			Status = ASAAC_TM_ERROR;
+			CommandData d;
+	
+			d.Data.Description.global_pid = ProcessId;
+			d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
+	
+			sendCommand( CMD_DESTROY_PROCESS, d.ReturnBuffer, d.Data.Timeout );
 		}
 	}
-	else //not server
+	catch ( ASAAC_Exception &e )
 	{
-		CommandData d;
-
-		d.Data.Description.global_pid = ProcessId;
-		d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
-
-		Status = sendCommand( 
-			CMD_DESTROY_PROCESS, 
-			d.ReturnBuffer, 
-			d.Data.Timeout );
+		e.addPath("Error destroying client process", LOCATION);
+		
+		throw;
 	}
-	
-	if (Status != ASAAC_TM_SUCCESS)
-		return ASAAC_ERROR;	
-			
-	return ASAAC_SUCCESS;	
 }
 
 
-ASAAC_ReturnStatus ProcessManager::runProcess(const ASAAC_PublicId process_id)
+void ProcessManager::runProcess(const ASAAC_PublicId process_id)
 {
 	Process* TargetProcess = ProcessManager::getInstance()->getProcess( process_id );
 
 	if ( TargetProcess == NULL ) 
-		return ASAAC_ERROR;
+		throw OSException("Process object could not be found", LOCATION);
 
-	return  TargetProcess->run();
+	TargetProcess->run();
 }
 
 
-ASAAC_ReturnStatus ProcessManager::stopProcess(const ASAAC_PublicId process_id)
+void ProcessManager::stopProcess(const ASAAC_PublicId process_id)
 {
 	Process* TargetProcess = ProcessManager::getInstance()->getProcess( process_id );
 
 	if ( TargetProcess == NULL ) 
-		return ASAAC_ERROR;
+		throw OSException("Process object could not be found", LOCATION);
 
 	return TargetProcess->stop();
 }
@@ -666,39 +606,39 @@ Thread* ProcessManager::getCurrentThread()
 }
 
 
-ASAAC_ReturnStatus 	 ProcessManager::addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler )
+void 	 ProcessManager::addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	return m_CommandInterface.addCommandHandler( CommandIdentifier, Handler );
+	m_CommandInterface.addCommandHandler( CommandIdentifier, Handler );
 }
 
 
-ASAAC_ReturnStatus 	 ProcessManager::removeCommandHandler( unsigned long CommandIdentifier )
+void 	 ProcessManager::removeCommandHandler( unsigned long CommandIdentifier )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	return m_CommandInterface.removeCommandHandler( CommandIdentifier );
+	m_CommandInterface.removeCommandHandler( CommandIdentifier );
 }
 
 
-ASAAC_ReturnStatus 	 ProcessManager::removeAllCommandHandler()
+void 	 ProcessManager::removeAllCommandHandler()
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	return m_CommandInterface.removeAllCommandHandler();
+	m_CommandInterface.removeAllCommandHandler();
 }
 
 
-ASAAC_TimedReturnStatus ProcessManager::sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
+void ProcessManager::sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	return m_CommandInterface.sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
+	m_CommandInterface.sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
 }
 
 
@@ -711,55 +651,18 @@ void ProcessManager::sendCommandNonblocking( unsigned long CommandIdentifier, Co
 }
 
 
-ASAAC_ReturnStatus ProcessManager::handleOneCommand( unsigned long& CommandIdentifier )
+void ProcessManager::handleOneCommand( unsigned long& CommandIdentifier )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	return m_CommandInterface.handleOneCommand( CommandIdentifier );
+	m_CommandInterface.handleOneCommand( CommandIdentifier );
 }
 
 
-ASAAC_PublicId ProcessManager::getCpuId()
+ASAAC_PublicId ProcessManager::getCurrentCpuId()
 {
-	return m_CpuId;
-}
-
-
-ASAAC_PublicId ProcessManager::getProcessId( ProcessAlias Alias )
-{
-	switch (Alias)
-	{
-		case PROC_APOS: for (unsigned long id = OS_PROCESSID_APOS; id <= OS_PROCESSID_APOS_MAX; id++) 
-						{
-							if (getProcessIndex(id) == -1)
-								return id;
-						} 
-						break;
-						
-		case PROC_SMOS: for (unsigned long id = OS_PROCESSID_SMOS; id <= OS_PROCESSID_SMOS_MAX; id++) 
-						{
-							if (getProcessIndex(id) == -1)
-								return id;
-						} 
-						break;
-						
-		case PROC_GSM:  return OS_PROCESSID_GSM; 
-						break;
-						
-		case PROC_PCS:  return OS_PROCESSID_PCS; 
-						break;
-						
-		case PROC_OLI:  return OS_PROCESSID_OLI; 
-						break;
-						
-		case PROC_SM:   return OS_PROCESSID_SM; 
-						break;
-						
-		default: return OS_UNUSED_ID;
-	}
-
-	return OS_UNUSED_ID;
+	return m_CurrentCpuId;
 }
 
 
@@ -771,7 +674,7 @@ ProcessManager* ProcessManager::getInstance()
 }
 
 
-ASAAC_ReturnStatus ProcessManager::destroyAllClientProcesses()
+void ProcessManager::destroyAllClientProcesses()
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -782,7 +685,7 @@ ASAAC_ReturnStatus ProcessManager::destroyAllClientProcesses()
         {
             if (m_ProcessObject[ Index ].isInitialized())
             {
-                if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCpuId()) && 
+                if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCurrentCpuId()) && 
                      (m_ProcessObject[ Index ].getId() != getCurrentProcess()->getId()) &&
                      (m_ProcessObject[ Index ].getAlias() == PROC_APOS ) ) 
                 {   
@@ -796,7 +699,7 @@ ASAAC_ReturnStatus ProcessManager::destroyAllClientProcesses()
         {
             if (m_ProcessObject[ Index ].isInitialized())
             {
-                if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCpuId()) && 
+                if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCurrentCpuId()) && 
                      (m_ProcessObject[ Index ].getId() != getCurrentProcess()->getId()) ) 
                 {   
                     m_ProcessObject[ Index ].destroy();
@@ -804,15 +707,11 @@ ASAAC_ReturnStatus ProcessManager::destroyAllClientProcesses()
                 }
             }
         }
-		
-		return ASAAC_SUCCESS;
 	}
-	
-	return ASAAC_ERROR;	
 }
 
 
-ASAAC_ReturnStatus ProcessManager::destroyEntity()
+void ProcessManager::destroyEntity()
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -823,16 +722,12 @@ ASAAC_ReturnStatus ProcessManager::destroyEntity()
 		
 		if ( getCurrentProcess()->isOSScope() == false)
 			getCurrentProcess()->destroy();
-		
-		return ASAAC_SUCCESS;
 	}
 	else
 	{
 		CommandData d;
 		
 		sendCommandNonblocking( CMD_TERM_ENTITY, d.ReturnBuffer );
-		
-		return ASAAC_SUCCESS;
 	}
 }
 
@@ -846,12 +741,21 @@ void ProcessManager::CreateProcessHandler( CommandBuffer Buffer )
 {
 	CommandData *d = (CommandData*)Buffer;
 	
-	//recalculate timeout
-	d->Data.Description.timeout = TimeStamp(d->Data.Timeout).asaac_Interval();
-	
-	d->Return = ProcessManager::getInstance()->createClientProcess(d->Data.Description);
-	
-	return;
+	try
+	{
+		//recalculate timeout
+		d->Data.Description.timeout = TimeStamp(d->Data.Timeout).asaac_Interval();
+		
+		ProcessManager::getInstance()->createClientProcess(d->Data.Description);
+		
+		d->Return = ASAAC_TM_SUCCESS; 	
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.raiseError();
+		
+		d->Return = e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR; 		
+	}
 }
 
 
@@ -859,9 +763,18 @@ void ProcessManager::DestroyProcessHandler( CommandBuffer Buffer )
 {
 	CommandData *d = (CommandData*)Buffer;
 	
-	d->Return = (ProcessManager::getInstance()->destroyClientProcess(d->Data.Description.global_pid) == ASAAC_SUCCESS)?ASAAC_TM_SUCCESS:ASAAC_TM_ERROR;
-	
-	return;
+	try
+	{
+		ProcessManager::getInstance()->destroyClientProcess(d->Data.Description.global_pid);
+		
+		d->Return = ASAAC_TM_SUCCESS;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.raiseError();
+		
+		d->Return = ASAAC_TM_ERROR; 		
+	}
 }
 
 
@@ -869,7 +782,16 @@ void ProcessManager::DestroyEntityHandler( CommandBuffer Buffer )
 {
 	volatile CommandData *d = (CommandData*)Buffer;
 	
-	d->Return = (ProcessManager::getInstance()->destroyEntity() == ASAAC_SUCCESS)? ASAAC_TM_SUCCESS: ASAAC_TM_ERROR;
-	
-	return;
+	try
+	{
+		ProcessManager::getInstance()->destroyEntity();
+		
+		d->Return = ASAAC_TM_SUCCESS;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.raiseError();
+		
+		d->Return = ASAAC_TM_ERROR; 		
+	}
 }	

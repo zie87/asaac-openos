@@ -30,8 +30,8 @@ public:
 
 	void flushSession();	
 
-	ASAAC_ReturnStatus       destroyAllEntities();
-	ASAAC_TimedReturnStatus  sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
+	void destroyAllEntities();
+	void sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
 	
 	SessionId 			getSessionId();
 	LocalActivityState  getActivityState();

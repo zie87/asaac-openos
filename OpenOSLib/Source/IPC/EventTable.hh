@@ -33,10 +33,10 @@ public:
 	void resetEvent( unsigned long TableIndex );
 
 	
-	ASAAC_TimedReturnStatus waitForEvent( unsigned long TableIndex, const ASAAC_Time& Timeout = TimeInfinity );
-	ASAAC_TimedReturnStatus waitForEventReset( unsigned long TableIndex, const ASAAC_Time& Timeout = TimeInfinity );
+	void waitForEvent( unsigned long TableIndex, const ASAAC_Time& Timeout = TimeInfinity );
+	void waitForEventReset( unsigned long TableIndex, const ASAAC_Time& Timeout = TimeInfinity );
 	
-	ASAAC_TimedReturnStatus waitForMultipleEvents( unsigned long TableSize, unsigned long* Table, unsigned long MinEvents, const ASAAC_Time& Timeout = TimeInfinity );
+	void waitForMultipleEvents( unsigned long TableSize, unsigned long* Table, unsigned long MinEvents, const ASAAC_Time& Timeout = TimeInfinity );
 	
 	unsigned long getWaitCount(); // Return number of waiting clients
 	unsigned long getTableSize(); // return size of table
@@ -56,7 +56,7 @@ private:
 	Shared<EventData> m_Global;
 	Shared<bool> m_EventTable;
 
-	ASAAC_TimedReturnStatus waitForEventStatus( unsigned long TableIndex, bool Status, const ASAAC_Time& Timeout );
+	void waitForEventStatus( unsigned long TableIndex, bool Status, const ASAAC_Time& Timeout );
 	void setEventStatus( unsigned long TableIndex, bool Status );
 	
 };

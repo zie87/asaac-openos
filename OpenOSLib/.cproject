@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?fileVersion 4.0.0?>
+
+<cproject>
+<storageModule moduleId="org.eclipse.cdt.core.settings">
+<cconfiguration id="cdt.managedbuild.config.gnu.so.debug.766548980">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.so.debug.766548980" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<externalSettings>
+<externalSetting>
+<entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/OpenOSLib"/>
+<entry kind="libraryPath" flags="VALUE_WORKSPACE_PATH" name="/OpenOSLib/Debug"/>
+</externalSetting>
+</externalSettings>
+<extensions>
+<extension point="org.eclipse.cdt.core.BinaryParser" id="org.eclipse.cdt.core.ELF"/>
+<extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.GASErrorParser"/>
+<extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.GCCErrorParser"/>
+<extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.GLDErrorParser"/>
+<extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.MakeErrorParser"/>
+</extensions>
+</storageModule>
+<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+<configuration id="cdt.managedbuild.config.gnu.so.debug.766548980" name="Debug" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.debug" artifactName="OpenOS" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="so" cleanCommand="rm -rf">
+<folderInfo id="cdt.managedbuild.config.gnu.so.debug.766548980.488972845" name="/" resourcePath="">
+<toolChain superClass="cdt.managedbuild.toolchain.gnu.so.debug" id="cdt.managedbuild.toolchain.gnu.so.debug.1250815655" name="GCC Tool Chain">
+<targetPlatform superClass="cdt.managedbuild.target.gnu.platform.so.debug" id="cdt.managedbuild.target.gnu.platform.so.debug.1538506277" name="Debug Platform"/>
+<builder superClass="cdt.managedbuild.target.gnu.builder.so.debug" id="cdt.managedbuild.target.gnu.builder.so.debug.749279743" name="Gnu Make Builder" keepEnvironmentInBuildfile="false" buildPath="${workspace_loc:/OpenOSLib/Debug}"/>
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug" id="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug.1037551342" name="GCC C++ Compiler">
+<option superClass="gnu.cpp.compiler.option.include.paths" id="gnu.cpp.compiler.option.include.paths.521066039" name="Include paths (-I)" valueType="includePath">
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Source/ProcessManagement}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Source}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
+</option>
+<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.1606245775" name="Defined symbols (-D)" valueType="definedSymbols">
+<listOptionValue value="DEBUG" builtIn="false"/>
+<listOptionValue value="dont_DEBUG_SCI" builtIn="false"/>
+</option>
+<option superClass="gnu.cpp.compiler.so.debug.option.optimization.level" id="gnu.cpp.compiler.so.debug.option.optimization.level.1026702384" name="Optimization Level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+<option superClass="gnu.cpp.compiler.so.debug.option.debugging.level" id="gnu.cpp.compiler.so.debug.option.debugging.level.1375106757" name="Debug Level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+<inputType superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input" id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1953580047"/>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.c.compiler.so.debug" id="cdt.managedbuild.tool.gnu.c.compiler.so.debug.1475074070" name="GCC C Compiler">
+<option superClass="gnu.c.compiler.so.debug.option.optimization.level" id="gnu.c.compiler.so.debug.option.optimization.level.667059577" name="Optimization Level" defaultValue="gnu.c.optimization.level.none" valueType="enumerated"/>
+<option superClass="gnu.c.compiler.so.debug.option.debugging.level" id="gnu.c.compiler.so.debug.option.debugging.level.596342130" name="Debug Level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+<inputType superClass="cdt.managedbuild.tool.gnu.c.compiler.input" id="cdt.managedbuild.tool.gnu.c.compiler.input.1232560460"/>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.c.linker.so.debug" id="cdt.managedbuild.tool.gnu.c.linker.so.debug.1659905067" name="GCC C Linker">
+<option superClass="gnu.c.link.so.debug.option.shared" id="gnu.c.link.so.debug.option.shared.998682918" name="Shared (-shared)" defaultValue="true" valueType="boolean"/>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.debug" id="cdt.managedbuild.tool.gnu.cpp.linker.so.debug.909619692" name="GCC C++ Linker">
+<option superClass="gnu.cpp.link.option.libs" id="gnu.cpp.link.option.libs.258006395" name="Libraries (-l)"/>
+<option superClass="gnu.cpp.link.so.debug.option.shared" id="gnu.cpp.link.so.debug.option.shared.541757706" name="Shared (-shared)" defaultValue="true" valueType="boolean"/>
+<inputType superClass="cdt.managedbuild.tool.gnu.cpp.linker.input" id="cdt.managedbuild.tool.gnu.cpp.linker.input.65254803">
+<additionalInput paths="$(USER_OBJS)" kind="additionalinputdependency"/>
+<additionalInput paths="$(LIBS)" kind="additionalinput"/>
+</inputType>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.assembler.so.debug" id="cdt.managedbuild.tool.gnu.assembler.so.debug.107137715" name="GCC Assembler">
+<inputType superClass="cdt.managedbuild.tool.gnu.assembler.input" id="cdt.managedbuild.tool.gnu.assembler.input.1258160647"/>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.archiver.base" id="cdt.managedbuild.tool.gnu.archiver.base.557339215" name="GCC Archiver"/>
+</toolChain>
+</folderInfo>
+</configuration>
+</storageModule>
+<storageModule moduleId="scannerConfiguration"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+</cconfiguration>
+<cconfiguration id="cdt.managedbuild.config.gnu.so.release.1388842336">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.so.release.1388842336" name="Release" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<externalSettings>
+<externalSetting>
+<entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/OpenOSLib"/>
+<entry kind="libraryPath" flags="VALUE_WORKSPACE_PATH" name="/OpenOSLib/Release"/>
+</externalSetting>
+</externalSettings>
+<extensions>
+<extension point="org.eclipse.cdt.core.BinaryParser" id="org.eclipse.cdt.core.ELF"/>
+<extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.GASErrorParser"/>
+<extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.GCCErrorParser"/>
+<extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.GLDErrorParser"/>
+<extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.MakeErrorParser"/>
+</extensions>
+</storageModule>
+<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+<configuration id="cdt.managedbuild.config.gnu.so.release.1388842336" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.release" artifactName="OpenOSLibShared" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="so" cleanCommand="rm -rf">
+<folderInfo id="cdt.managedbuild.config.gnu.so.release.1388842336.35685207" name="/" resourcePath="">
+<toolChain superClass="cdt.managedbuild.toolchain.gnu.so.release" id="cdt.managedbuild.toolchain.gnu.so.release.557540358" name="GCC Tool Chain">
+<targetPlatform superClass="cdt.managedbuild.target.gnu.platform.so.release" id="cdt.managedbuild.target.gnu.platform.so.release.2032716705" name="Debug Platform"/>
+<builder superClass="cdt.managedbuild.target.gnu.builder.so.release" id="cdt.managedbuild.target.gnu.builder.so.release.1318070172" name="Gnu Make Builder.Release" buildPath="${workspace_loc:/OpenOSLib/Release}"/>
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.release" id="cdt.managedbuild.tool.gnu.cpp.compiler.so.release.544376468" name="GCC C++ Compiler">
+<option superClass="gnu.cpp.compiler.so.release.option.optimization.level" id="gnu.cpp.compiler.so.release.option.optimization.level.1535292567" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+<option superClass="gnu.cpp.compiler.so.release.option.debugging.level" id="gnu.cpp.compiler.so.release.option.debugging.level.238891989" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+<inputType superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input" id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2094136013"/>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.c.compiler.so.release" id="cdt.managedbuild.tool.gnu.c.compiler.so.release.1707552417" name="GCC C Compiler">
+<option superClass="gnu.c.compiler.so.release.option.optimization.level" id="gnu.c.compiler.so.release.option.optimization.level.1583924233" defaultValue="gnu.c.optimization.level.most" valueType="enumerated"/>
+<option superClass="gnu.c.compiler.so.release.option.debugging.level" id="gnu.c.compiler.so.release.option.debugging.level.1994887011" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+<inputType superClass="cdt.managedbuild.tool.gnu.c.compiler.input" id="cdt.managedbuild.tool.gnu.c.compiler.input.1916505389"/>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.c.linker.so.release" id="cdt.managedbuild.tool.gnu.c.linker.so.release.444212515" name="GCC C Linker">
+<option superClass="gnu.c.link.so.release.option.shared" id="gnu.c.link.so.release.option.shared.526744392" defaultValue="true" valueType="boolean"/>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.release" id="cdt.managedbuild.tool.gnu.cpp.linker.so.release.39155928" name="GCC C++ Linker">
+<option superClass="gnu.cpp.link.so.release.option.shared" id="gnu.cpp.link.so.release.option.shared.760019900" defaultValue="true" valueType="boolean"/>
+<inputType superClass="cdt.managedbuild.tool.gnu.cpp.linker.input" id="cdt.managedbuild.tool.gnu.cpp.linker.input.1857473505">
+<additionalInput paths="$(USER_OBJS)" kind="additionalinputdependency"/>
+<additionalInput paths="$(LIBS)" kind="additionalinput"/>
+</inputType>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.assembler.so.release" id="cdt.managedbuild.tool.gnu.assembler.so.release.1649585801" name="GCC Assembler">
+<inputType superClass="cdt.managedbuild.tool.gnu.assembler.input" id="cdt.managedbuild.tool.gnu.assembler.input.1893538473"/>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.archiver.base" id="cdt.managedbuild.tool.gnu.archiver.base.53447298" name="GCC Archiver"/>
+</toolChain>
+</folderInfo>
+</configuration>
+</storageModule>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="scannerConfiguration"/>
+</cconfiguration>
+</storageModule>
+<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+<project id="OpenOSLibShared.cdt.managedbuild.target.gnu.so.2125354134" name="Shared Library (Gnu)" projectType="cdt.managedbuild.target.gnu.so"/>
+</storageModule>
+</cproject>

@@ -1,13 +1,9 @@
-
-#include "ProcessManagement/ProcessManager.hh"
-
 #include "Common/Templates/ObjectPool.hh"
 
 #include "IPC/Event.hh"
+#include "IPC/BlockingScope.hh"
 
 #include "Exceptions/Exceptions.hh"
-
-#include "Managers/TimeManager.hh"
 
 
 
@@ -43,24 +39,28 @@ void Event::initialize( Allocator* ThisAllocator, bool IsMaster )
 			oal_thread_condattr_t& ConditionAttribute = Global->ConditionAttribute;
 			oal_thread_mutexattr_t MutexAttribute;
 		
-			if ( oal_thread_condattr_init( &ConditionAttribute ) ) throw OSException( LOCATION );
-			if ( oal_thread_mutexattr_init( &MutexAttribute ) )    throw OSException( LOCATION );
+			if ( oal_thread_condattr_init( &ConditionAttribute ) ) 
+				throw OSException( strerror(errno), LOCATION );
+
+			if ( oal_thread_mutexattr_init( &MutexAttribute ) )    
+				throw OSException( strerror(errno), LOCATION );
 
 			// Condition shall be shared between processes
 			if ( oal_thread_condattr_setpshared( &ConditionAttribute, PTHREAD_PROCESS_SHARED ) )
-				throw OSException( LOCATION );
+				throw OSException( strerror(errno), LOCATION );
 
 			if ( oal_thread_mutexattr_setpshared( &MutexAttribute, PTHREAD_PROCESS_SHARED ) )
-				throw OSException( LOCATION );
+				throw OSException( strerror(errno), LOCATION );
 
 
 			// Initialize Mutex and Condition
-			if ( oal_thread_mutex_init(&(Global->Mutex), &MutexAttribute ) ) throw OSException( LOCATION );
+			if ( oal_thread_mutex_init(&(Global->Mutex), &MutexAttribute ) ) 
+				throw OSException( strerror(errno), LOCATION );
 		
 			if ( oal_thread_cond_init(&(Global->Condition), &ConditionAttribute ) )
 			{
 				oal_thread_mutex_destroy(&(Global->Mutex));
-				throw OSException( LOCATION );
+				throw OSException( strerror(errno), LOCATION );
 			}
 		
 			// Events shall be reset originally
@@ -126,22 +126,22 @@ void Event::resetEvent()
 }
 
 
-ASAAC_TimedReturnStatus Event::waitForEvent( const ASAAC_Time& Timeout )
+void Event::waitForEvent( const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
 
-	return waitForEventStatus( true, Timeout );
+	waitForEventStatus( true, Timeout );
 }
 
 
 
-ASAAC_TimedReturnStatus Event::waitForEventReset( const ASAAC_Time& Timeout )
+void Event::waitForEventReset( const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
 
-	return waitForEventStatus( false, Timeout );
+	waitForEventStatus( false, Timeout );
 }
 
 
@@ -153,11 +153,13 @@ bool Event::isEventSet()
 
 	bool bValue;
 	
-	if ( oal_thread_mutex_lock(&(Global->Mutex)) ) throw OSException( LOCATION );
+	if ( oal_thread_mutex_lock(&(Global->Mutex)) ) 
+		throw OSException( strerror(errno), LOCATION );
 	
 	bValue = Global->EventSet;
 	
-	if ( oal_thread_mutex_unlock(&(Global->Mutex)) ) throw OSException( LOCATION );
+	if ( oal_thread_mutex_unlock(&(Global->Mutex)) ) 
+		throw OSException( strerror(errno), LOCATION );
 	
 	return bValue;
 }
@@ -187,35 +189,38 @@ void Event::setEventStatus( bool Status )
 		throw UninitializedObjectException( LOCATION );
 
 	// Get exclusive access
-	if ( oal_thread_mutex_lock(&(Global->Mutex)) ) throw OSException( LOCATION );
+	if ( oal_thread_mutex_lock(&(Global->Mutex)) != 0 ) 
+		throw OSException( strerror(errno), LOCATION );
 	
 	// Set Event flag
 	Global->EventSet = Status;
 	
 	// Release exclusive access
-	if ( oal_thread_mutex_unlock(&(Global->Mutex)) ) throw OSException( LOCATION );
+	if ( oal_thread_mutex_unlock(&(Global->Mutex)) != 0 ) 
+		throw OSException( strerror(errno), LOCATION );
 
 	// Broadcast change of Event flag to all waiting threads and processes
-	if ( oal_thread_cond_broadcast(&(Global->Condition)) ) throw OSException( LOCATION );
+	if ( oal_thread_cond_broadcast(&(Global->Condition)) != 0 ) 
+		throw OSException( strerror(errno), LOCATION );
 }
 
 
-ASAAC_TimedReturnStatus Event::waitForEventStatus( bool Status, const ASAAC_Time& Timeout )
+void Event::waitForEventStatus( bool Status, const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
 	
+	BlockingScope TimeoutScope();
+	
 	timespec TimeSpecTimeout = TimeStamp(Timeout).timespec_Time();
 
-	if ( oal_thread_mutex_lock(&(Global->Mutex)) ) throw OSException( LOCATION );
+	if ( oal_thread_mutex_lock(&(Global->Mutex)) != 0 ) 
+		throw OSException( strerror(errno), LOCATION );
 	
 	Global->WaitingThreads++;
 	
 	long iErrorCode = 0;
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
 	
-	if ( ThisThread != 0 ) ThisThread->setState( ASAAC_WAITING );
-		
 	while (( Global->EventSet != Status ) && ( iErrorCode != ETIMEDOUT ))
 	{
 		if (( Timeout.sec == TimeInfinity.sec ) && ( Timeout.nsec == TimeInfinity.nsec ))
@@ -223,18 +228,13 @@ ASAAC_TimedReturnStatus Event::waitForEventStatus( bool Status, const ASAAC_Time
 		else iErrorCode = oal_thread_cond_timedwait(&(Global->Condition), &(Global->Mutex), &TimeSpecTimeout );
 	}
 	
-    ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	if ( ThisThread != 0 ) ThisThread->setState( ASAAC_RUNNING );	
-	
 	Global->WaitingThreads--;
-	if ( oal_thread_mutex_unlock(&(Global->Mutex)) ) throw OSException( LOCATION );
+	
+	if ( oal_thread_mutex_unlock(&(Global->Mutex)) != 0 ) 
+		throw OSException( strerror(errno), LOCATION );
 	
 	if ( iErrorCode == ETIMEDOUT ) 
-	{
-		return ASAAC_TM_TIMEOUT;
-	}
-	
-	return ASAAC_TM_SUCCESS;
+		throw TimeoutException(LOCATION);
 }
 
 

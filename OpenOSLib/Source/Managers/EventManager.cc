@@ -30,7 +30,8 @@ EventManager* EventManager::getInstance()
 
 void EventManager::initialize()
 {
-	if ( m_IsInitialized ) throw DoubleInitializationException();
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException();
 	
 	m_NumberOfEvents = OS_MAX_NUMBER_OF_EVENTS;
 	
@@ -42,7 +43,7 @@ void EventManager::initialize()
 	{
 		m_Events[ Index ].EventAllocator.initialize( &m_GlobalAllocator, Event::predictSize() );
 																		
-		m_Events[ Index ].EventId = 0;
+		m_Events[ Index ].EventId = OS_UNUSED_ID;
 	}
 
 	m_IsInitialized = true;
@@ -53,7 +54,8 @@ void EventManager::deinitialize()
 {
 	for ( unsigned long Index = 0; Index < m_NumberOfEvents; Index ++ )
 	{
-		if ( m_Events[ Index ].EventObject != 0 ) delete m_Events[ Index ].EventObject;
+		if ( m_Events[ Index ].EventObject != 0 ) 
+			delete m_Events[ Index ].EventObject;
 		
 		m_Events[Index].EventAllocator.deinitialize();
 	}
@@ -70,14 +72,17 @@ long EventManager::findEventByName( const ASAAC_CharacterSequence& EventName )
 	
 	for ( Index = 0; Index < m_NumberOfEvents; Index ++ )
 	{
-		if ( EventName.size != m_Events[ Index ].EventName.size ) continue;
+		if ( EventName.size != m_Events[ Index ].EventName.size ) 
+			continue;
 		
-		if ( strncmp( EventName.data, m_Events[ Index ].EventName.data, EventName.size ) ) continue;
+		if ( strncmp( EventName.data, m_Events[ Index ].EventName.data, EventName.size ) ) 
+			continue;
 		
 		break;
 	}
 	
-	if ( Index == m_NumberOfEvents ) return -1;
+	if ( Index == m_NumberOfEvents ) 
+		return -1;
 	
 	return Index;
 }
@@ -89,193 +94,183 @@ long EventManager::findEventByPrivateId( const ASAAC_PrivateId EventId )
 	
 	for ( Index = 0; Index < m_NumberOfEvents; Index ++ )
 	{
-		if ( m_Events[ Index ].EventId == EventId ) break;
+		if ( m_Events[ Index ].EventId == EventId ) 
+			break;
 	}
 	
-	if ( Index == m_NumberOfEvents ) return -1;
+	if ( Index == m_NumberOfEvents ) 
+		return -1;
 	
 	return Index;
 }
 
 
-ASAAC_ResourceReturnStatus EventManager::createEvent( const ASAAC_CharacterSequence& Name,
-										  			    ASAAC_PrivateId& EventId )
+void EventManager::createEvent( const ASAAC_CharacterSequence& Name, ASAAC_PrivateId& EventId )
 {
-	if ( Name.size > OS_MAX_STRING_SIZE ) return ASAAC_RS_ERROR;
-	
-	assert( Name.size < OS_MAX_STRING_SIZE );
-
-	ProtectedScope Access( "Creating an event", m_AccessSemaphore );
-
-	long Index = findEventByName( Name );
-	
-	if ( Index < 0 )
+	try
 	{
-		// New Event has to be created
+		ProtectedScope Access( "Creating an event", m_AccessSemaphore );
+	
+		long Index = findEventByName( Name );
 		
-		// Find first free spot
-		Index = findEventByPrivateId( 0 );
-		
-		if ( Index < 0 ) // no more free Event Slots?
+		if ( Index >= 0 )
 		{
-			m_AccessSemaphore.post();
-			return ASAAC_RS_ERROR;
+			EventId = m_Events[ Index ].EventId;
+			throw ResourceException("Event already created", LOCATION);
 		}
 		
-		m_Events[ Index ].EventId = PrivateIdManager::getInstance()->getNextId();
-
-		m_Events[ Index ].EventName.size = Name.size;
-		strncpy( m_Events[ Index ].EventName.data, Name.data, Name.size );
+		Index = findEventByPrivateId( OS_UNUSED_ID );
 		
+		if ( Index < 0 ) // no more free Event Slots?
+			throw OSException("No more free Event Slots", LOCATION);
+		
+		m_Events[ Index ].EventId = PrivateIdManager::getInstance()->getNextId();
+		m_Events[ Index ].EventName = Name;
 		m_Events[ Index ].EventObject = new Event( & (m_Events[Index ].EventAllocator) );
 		
 		EventId = m_Events[ Index ].EventId;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error creating an event", LOCATION);
 		
-		m_AccessSemaphore.post();
-
-		return ASAAC_RS_SUCCESS;
+		throw;
 	}
-	
-
-	EventId = m_Events[ Index ].EventId;
-	m_AccessSemaphore.post();
-	
-	return ASAAC_RS_RESOURCE;
 }
 
 
-ASAAC_ReturnStatus EventManager::deleteEvent( ASAAC_PrivateId EventId )
+void EventManager::deleteEvent( ASAAC_PrivateId EventId )
 {
-	m_AccessSemaphore.wait();
-	
-	long Index = findEventByPrivateId( EventId );
-	
-	if ( Index < 0 )
+	try
 	{
-		m_AccessSemaphore.post();
-		return ASAAC_ERROR;
-	}
+		ProtectedScope Access( "Deleting an event", m_AccessSemaphore );
 	
-	if ( m_Events[ Index ].EventObject->getWaitingThreads() > 0 ) 
+		long Index = findEventByPrivateId( EventId );
+		
+		if ( Index < 0 )
+			throw OSException("Event with decicated EventId not found", LOCATION);
+		
+		if ( m_Events[ Index ].EventObject->getWaitingThreads() > 0 ) 
+			throw OSException("Some threads are still waiting for this event", LOCATION);
+		
+		delete m_Events[ Index ].EventObject;
+		
+		m_Events[ Index ].EventObject = NULL;
+		m_Events[ Index ].EventId = OS_UNUSED_ID;
+		m_Events[ Index ].EventName = CharSeq("").asaac_str();
+	}
+	catch ( ASAAC_Exception &e )
 	{
-		m_AccessSemaphore.post();
-		return ASAAC_ERROR;
+		e.addPath("Error deleting an event", LOCATION);
+		
+		throw;
 	}
-	
-	delete m_Events[ Index ].EventObject;
-	m_Events[ Index ].EventObject = 0;
-	
-	m_Events[ Index ].EventId = 0;
-	m_Events[ Index ].EventName.size = 0;
-	
-	m_AccessSemaphore.post();
-	
-	return ASAAC_ERROR;
 }
 
 	
 
-ASAAC_TimedReturnStatus EventManager::waitForEvent( ASAAC_PrivateId EventId,
-												      const ASAAC_Time& Timeout )
+void EventManager::waitForEvent( ASAAC_PrivateId EventId, const ASAAC_Time& Timeout )
 {
-	m_AccessSemaphore.wait();
-
-	long Index = findEventByPrivateId( EventId );
-	
-	m_AccessSemaphore.post();
-
-	if ( Index < 0 )
+	try
 	{
-		return ASAAC_TM_ERROR;
-	}
+		long Index = findEventByPrivateId( EventId );
+
+		if ( Index < 0 )
+			throw OSException("Event with decicated EventId not found", LOCATION);
 	
-	return m_Events[ Index ].EventObject->waitForEvent( Timeout );
+		m_Events[ Index ].EventObject->waitForEvent( Timeout );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error waiting for an event", LOCATION);
+		
+		throw;
+	}
 }
 
 
 
-ASAAC_ReturnStatus EventManager::setEvent( ASAAC_PrivateId EventId )
+void EventManager::setEvent( ASAAC_PrivateId EventId )
 {
-	m_AccessSemaphore.wait();
-
-	long Index = findEventByPrivateId( EventId );
-	
-	m_AccessSemaphore.post();
-
-	if ( Index < 0 )
+	try
 	{
-		return ASAAC_ERROR;
+		long Index = findEventByPrivateId( EventId );
+	
+		if ( Index < 0 )
+			throw OSException("Event with decicated EventId not found", LOCATION);
+		
+		m_Events[ Index ].EventObject->setEvent();
 	}
-	
-	m_Events[ Index ].EventObject->setEvent();
-	
-	return ASAAC_SUCCESS;
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deleting an event", LOCATION);
+		
+		throw;
+	}
 }
 	
 	
 
-ASAAC_ReturnStatus EventManager::resetEvent( ASAAC_PrivateId EventId )
+void EventManager::resetEvent( ASAAC_PrivateId EventId )
 {
-	m_AccessSemaphore.wait();
-
-	long Index = findEventByPrivateId( EventId );
-	
-	m_AccessSemaphore.post();
-
-	if ( Index < 0 )
+	try
 	{
-		return ASAAC_ERROR;
+		long Index = findEventByPrivateId( EventId );
+
+		if ( Index < 0 )
+			throw OSException("Event with decicated EventId not found", LOCATION);
+	
+		m_Events[ Index ].EventObject->resetEvent();
 	}
-	
-	m_Events[ Index ].EventObject->resetEvent();
-	
-	return ASAAC_SUCCESS;
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deleting an event", LOCATION);
+		
+		throw;
+	}
 }
 	
 
 	
 
-ASAAC_ReturnStatus EventManager::getEventStatus( ASAAC_PrivateId EventId,
-									 ASAAC_EventStatus& CurrentValue,
-									 unsigned long& WaitingCallers )
+void EventManager::getEventStatus( ASAAC_PrivateId EventId, ASAAC_EventStatus& CurrentValue, unsigned long& WaitingCallers )
 {
-	m_AccessSemaphore.wait();
-
-	long Index = findEventByPrivateId( EventId );
-	
-
-	if ( Index < 0 )
+	try
 	{
-		m_AccessSemaphore.post();
-		return ASAAC_ERROR;
+		long Index = findEventByPrivateId( EventId );
+		
+		if ( Index < 0 )
+			throw OSException("Event with decicated EventId not found", LOCATION);
+		
+		CurrentValue   = m_Events[ Index ].EventObject->isEventSet() ? ASAAC_EVENT_STATUS_SET : ASAAC_EVENT_STATUS_RESET;
+		WaitingCallers = m_Events[ Index ].EventObject->getWaitingThreads();
 	}
-	
-	CurrentValue   = m_Events[ Index ].EventObject->isEventSet() ? ASAAC_EVENT_STATUS_SET : ASAAC_EVENT_STATUS_RESET;
-	WaitingCallers = m_Events[ Index ].EventObject->getWaitingThreads();
-	
-	m_AccessSemaphore.post();
-	
-	return ASAAC_SUCCESS;
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error retrieving an event status", LOCATION);
+		
+		throw;
+	}
 } 		
 	
 									 
-ASAAC_ReturnStatus EventManager::getEventId( const ASAAC_CharacterSequence& Name, ASAAC_PrivateId& EventId )
+void EventManager::getEventId( const ASAAC_CharacterSequence& Name, ASAAC_PrivateId& EventId )
 {
-	m_AccessSemaphore.wait();
-
-	long Index = findEventByName( Name );
-	
-	if ( Index < 0 )
+	try
 	{
-		m_AccessSemaphore.post();
-		return ASAAC_ERROR;
+		long Index = findEventByName( Name );
+		
+		if ( Index < 0 )
+			throw OSException("Event with decicated name not found", LOCATION);
+		
+		EventId = m_Events[ Index ].EventId;
 	}
-	
-	EventId = m_Events[ Index ].EventId;
-	
-	m_AccessSemaphore.post();
-	
-	return ASAAC_SUCCESS;
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error identifying event by name", LOCATION);
+		
+		throw;
+	}
 }
 	
 

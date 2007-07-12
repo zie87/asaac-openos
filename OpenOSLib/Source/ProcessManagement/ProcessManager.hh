@@ -24,12 +24,19 @@ public:
 	 */
 
 	//! destructor
-	virtual ~ProcessManager();
+	virtual  ~ProcessManager();
 
-	ASAAC_ReturnStatus		addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address );
+	// TODO: move this function out of this class
+	void	 addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address );
+
+	// Basic initialize/deinitialize tasks
+	void     initialize(  bool IsServer, bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId, MemoryLocation Location = SHARED );
+	void     deinitialize();
+	
+	bool     isInitialized();
 
 	//! set up structures for current process as a master process
-	void initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId );
+	void     initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId );
 	/*! This function sets up all structures of the process manager
 	 *  for the current thread in a local, self-contained way. The
 	 *  master process does not need any controlling instance, it
@@ -42,9 +49,22 @@ public:
 	 *           already being initialized.
 	 */
 	
+	//! set up structures for current process as a client/slave process
+	void     initializeClientProcess(  Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location );
+	/*!< This function sets up all structures of the process manager
+	 *  for the current thread in a way that allows the process to
+	 *  be controlled and configured by the respective master by
+	 *  access to common data structures and the SimpleCommandInterface
+	 *  supplied for master/client communication.
+	 * 
+	 *  \param[in] ProcessId ASAAC_PublicId of the current process.
+	 *  \returns ASAAC_SUCCESS on successful operation. ASAAC_ERROR in case of an
+	 *           error encountered, such as the current process
+	 *           already being initialized.
+	 */
 	
 	//! start a new process under control of the current one
-	ASAAC_TimedReturnStatus createClientProcess( const ASAAC_ProcessDescription& Description );
+	void     createClientProcess( const ASAAC_ProcessDescription& Description );
 	/*!< This function contains the functionality required by the SMOS
 	 *   call createProcess(). It sets up the data structures required by the
 	 *   process and for the communication between this process as a master and
@@ -65,19 +85,13 @@ public:
 	 *                       ProcessStarter.
 	 */
 	 
-	ASAAC_ReturnStatus destroyClientProcess( const ASAAC_PublicId& ProcessId );
+	void     destroyClientProcess( const ASAAC_PublicId& ProcessId );
 
-	ASAAC_ReturnStatus runProcess(const ASAAC_PublicId process_id);
-	
-	ASAAC_ReturnStatus stopProcess(const ASAAC_PublicId process_id);
+	void     runProcess(const ASAAC_PublicId process_id);
+	 
+	void     stopProcess(const ASAAC_PublicId process_id);
 
-	// Basic initialize/deinitialize tasks
-	void initialize(  bool IsServer, bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId, MemoryLocation Location = SHARED );
-	void deinitialize();
-	
-	bool isInitialized();
-
-	long getProcessIndex( ASAAC_PublicId ProcessId );
+	long     getProcessIndex( ASAAC_PublicId ProcessId );
 	Process* getProcess( ASAAC_PublicId ProcessId, long &Index );
 	//! get process instance
 	Process* getProcess( ASAAC_PublicId ProcessId );
@@ -91,27 +105,13 @@ public:
 	 */
 	
 	Process* createProcess( bool IsMasterProcess, const ASAAC_ProcessDescription& Description, long &Index );
-	
-	//! set up structures for current process as a client/slave process
-	void initializeClientProcess(  Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location );
-	/*!< This function sets up all structures of the process manager
-	 *  for the current thread in a way that allows the process to
-	 *  be controlled and configured by the respective master by
-	 *  access to common data structures and the SimpleCommandInterface
-	 *  supplied for master/client communication.
-	 * 
-	 *  \param[in] ProcessId ASAAC_PublicId of the current process.
-	 *  \returns ASAAC_SUCCESS on successful operation. ASAAC_ERROR in case of an
-	 *           error encountered, such as the current process
-	 *           already being initialized.
-	 */
-		
-    void releaseProcess( ASAAC_PublicId ProcessId );    
-    void releaseAllProcesses();    
-    void releaseAllClientProcesses();
+			
+    void     releaseProcess( ASAAC_PublicId ProcessId );    
+    void     releaseAllProcesses();    
+    void     releaseAllClientProcesses();
         
     //! set the id of the 'current process' controlling Process instance
-    void setCurrentProcess( ASAAC_PublicId ProcessId );
+    void     setCurrentProcess( ASAAC_PublicId ProcessId );
 	
 	//! get reference to current process' controlling Process instance
 	Process* getCurrentProcess();
@@ -120,29 +120,27 @@ public:
 	Thread*  getCurrentThread();
 	
 	//! forward for SimpleCommandInterface::addCommandHandler()
-	ASAAC_ReturnStatus 	 addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler );
+	void 	 addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler );
 	
 	//! forward for SimpleCommandInterface::removeCommandHandler()
-	ASAAC_ReturnStatus 	 removeCommandHandler( unsigned long CommandIdentifier );
+	void 	 removeCommandHandler( unsigned long CommandIdentifier );
 
 	//! forward for SimpleCommandInterface::removeCommandHandler()
-	ASAAC_ReturnStatus 	 removeAllCommandHandler();
+	void 	 removeAllCommandHandler();
 
 	//! forward for SimpleCommandInterface::sendCommand()
-	ASAAC_TimedReturnStatus sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
+	void	 sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
 
 	//! forward for SimpleCommandInterface::sendCommand()
-	void sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer );
+	void 	 sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer );
 	
 	//! forward for SimpleCommandInterface::handleOneCommand()
-	ASAAC_ReturnStatus 	 handleOneCommand( unsigned long& CommandIdentifier );
+	void 	 handleOneCommand( unsigned long& CommandIdentifier );
 	
-	ASAAC_ReturnStatus destroyAllClientProcesses();
-	ASAAC_ReturnStatus destroyEntity();
+	void     destroyAllClientProcesses();
+	void     destroyEntity();
 	
-	ASAAC_PublicId getCpuId();
-	
-	ASAAC_PublicId getProcessId( ProcessAlias Alias );
+	ASAAC_PublicId getCurrentCpuId();
 	
 	//! predict the amount of memory for control and data structures to be allocated via an external allocator
 	static size_t	predictSize();
@@ -153,6 +151,8 @@ public:
 
 private:
 	ProcessManager();
+	
+	// TODO: move this function out of this class
 	void handleBufferMemory();
 
 	typedef struct {
@@ -182,7 +182,7 @@ private:
 	
 	SimpleCommandInterface	m_CommandInterface;
 	
-	ASAAC_PublicId 			m_CpuId;
+	ASAAC_PublicId 			m_CurrentCpuId;
 	
 	bool					m_IsMaster;
 	bool					m_IsServer;

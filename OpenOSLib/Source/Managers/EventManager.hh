@@ -36,25 +36,25 @@ public:
 	void deinitialize();
 	
 
-	ASAAC_ResourceReturnStatus createEvent( const ASAAC_CharacterSequence& Name,
+	void createEvent( const ASAAC_CharacterSequence& Name,
 										  ASAAC_PrivateId& EventId );
 										  
-	ASAAC_ReturnStatus deleteEvent( ASAAC_PrivateId EventId );
+	void deleteEvent( ASAAC_PrivateId EventId );
 	
-   	ASAAC_ReturnStatus setEvent( ASAAC_PrivateId EventId );
+   	void setEvent( ASAAC_PrivateId EventId );
 
-   	ASAAC_ReturnStatus resetEvent( ASAAC_PrivateId EventId );
+   	void resetEvent( ASAAC_PrivateId EventId );
 
 
-	ASAAC_TimedReturnStatus waitForEvent( ASAAC_PrivateId EventId,
+	void waitForEvent( ASAAC_PrivateId EventId,
 									    const ASAAC_Time& Timeout );
 
 	
-	ASAAC_ReturnStatus getEventStatus( ASAAC_PrivateId EventId,
+	void getEventStatus( ASAAC_PrivateId EventId,
 								 ASAAC_EventStatus& EventStatus,
 								 unsigned long& WaitingCallers );
 									 
-	ASAAC_ReturnStatus getEventId( const ASAAC_CharacterSequence& Name, ASAAC_PrivateId& EventId );
+	void getEventId( const ASAAC_CharacterSequence& Name, ASAAC_PrivateId& EventId );
 
 	virtual ~EventManager();
 	

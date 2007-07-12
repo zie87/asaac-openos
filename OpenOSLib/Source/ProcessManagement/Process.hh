@@ -86,10 +86,11 @@ public:
 	//! get Process' Global ASAAC_PublicId
 	ASAAC_PublicId			getId();
 	
+	static ASAAC_PublicId	getId( ProcessAlias Alias );
 	ProcessAlias			getAlias();
 	
 	//! get Process' POSIX PID (process id) and store it inside the object
-	ASAAC_ReturnStatus		refreshPosixPid();
+	void					refreshPosixPid();
 		
 	//! set up a thread inside the process
 	ASAAC_ReturnStatus		createThread( const ASAAC_ThreadDescription& Description );
@@ -210,28 +211,28 @@ public:
 	 */
 	
 	//! forward for SimpleCommandInterface::addCommandHandler()
-	ASAAC_ReturnStatus 	 	addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler );
+	void 	 	addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler );
 	
 	//! forward for SimpleCommandInterface::removeCommandHandler()
-	ASAAC_ReturnStatus 	 	removeCommandHandler( unsigned long CommandIdentifier );
+	void 	 	removeCommandHandler( unsigned long CommandIdentifier );
 
 	//! forward for SimpleCommandInterface::removeAllCommandHandler()
-	ASAAC_ReturnStatus 	 	removeAllCommandHandler();
+	void 	 	removeAllCommandHandler();
 
 	//! forward for SimpleCommandInterface::sendCommand()
-	ASAAC_TimedReturnStatus sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
+	void	    sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
 	
 	//! forward for SimpleCommandInterface::sendCommandNonblocking()
-	void sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer );
+	void 		sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer );
 	
 	//! forward for SimpleCommandInterface::handleOneCommand()
-	ASAAC_ReturnStatus 	 	handleOneCommand( unsigned long& CommandIdentifier );
+	void 	 	handleOneCommand( unsigned long& CommandIdentifier );
 		
 	//! start the process, or resume its runinng state
-	ASAAC_ReturnStatus		run();
+	void					run();
 
 	//! suspend execution of the process
-	ASAAC_ReturnStatus		stop();
+	void					stop();
 		
 	//! predict the amount of memory for control and data structures to be allocated via an allocator
 	static size_t			predictSize();

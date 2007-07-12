@@ -1,11 +1,9 @@
-
 #include "IPC/EventTable.hh"
+#include "IPC/BlockingScope.hh"
 
 #include "Exceptions/Exceptions.hh"
 
 #include "Common/Templates/ObjectPool.hh"
-
-#include "ProcessManagement/ProcessManager.hh"
 
 
 
@@ -110,83 +108,71 @@ void EventTable::resetEvent( unsigned long TableIndex )
 }
 
 
-ASAAC_TimedReturnStatus EventTable::waitForEvent( unsigned long TableIndex, const ASAAC_Time& Timeout )
+void EventTable::waitForEvent( unsigned long TableIndex, const ASAAC_Time& Timeout )
 {
-	return waitForEventStatus( TableIndex, true, Timeout );
+	waitForEventStatus( TableIndex, true, Timeout );
 }
 
 
-ASAAC_TimedReturnStatus EventTable::waitForEventReset( unsigned long TableIndex, const ASAAC_Time& Timeout )
+void EventTable::waitForEventReset( unsigned long TableIndex, const ASAAC_Time& Timeout )
 {
-	return waitForEventStatus( TableIndex, false, Timeout );
+	waitForEventStatus( TableIndex, false, Timeout );
 }
 
 
-ASAAC_TimedReturnStatus EventTable::waitForEventStatus( unsigned long TableIndex, bool Status, const ASAAC_Time& Timeout )
+void EventTable::waitForEventStatus( unsigned long TableIndex, bool Status, const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
 
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
-
+	BlockingScope TimeoutScope();
+	
 	timespec TimeSpecTimeout;
 
 	TimeSpecTimeout = TimeStamp(Timeout).timespec_Time();
 		
-	if ( oal_thread_mutex_lock(&(m_Global->Mutex)) ) 
-		throw OSException( LOCATION );
+	if ( oal_thread_mutex_lock(&(m_Global->Mutex)) != 0 ) 
+		throw OSException( strerror(errno), LOCATION );
 
 	m_Global->WaitingThreads++;
 	
 	long iErrorCode = 0;
 
-	if ( ThisThread != 0 ) 
-		ThisThread->setState( ASAAC_WAITING );
-	
 	while (( m_EventTable[ TableIndex ] == Status ) && ( iErrorCode != ETIMEDOUT ))
 	{
 		if (( Timeout.sec == TimeInfinity.sec ) && ( Timeout.nsec == TimeInfinity.nsec ))
 			iErrorCode = oal_thread_cond_wait(&(m_Global->Condition), &(m_Global->Mutex));
 		else iErrorCode = oal_thread_cond_timedwait(&(m_Global->Condition), &(m_Global->Mutex), &TimeSpecTimeout );
-		
 	}
 	
 	m_Global->WaitingThreads--;
 
-    ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	if ( ThisThread != 0 ) 
-		ThisThread->setState( ASAAC_RUNNING );
-	
-	if ( oal_thread_mutex_unlock(&(m_Global->Mutex)) ) 
-		throw OSException( LOCATION );
+	if ( oal_thread_mutex_unlock(&(m_Global->Mutex)) != 0 ) 
+		throw OSException( strerror(errno), LOCATION );
 	
 	if ( iErrorCode == ETIMEDOUT ) 
-		return ASAAC_TM_TIMEOUT;
-	
-	return ASAAC_TM_SUCCESS;
+		throw TimeoutException(LOCATION);
 }
 
 
-ASAAC_TimedReturnStatus EventTable::waitForMultipleEvents( unsigned long TableSize, unsigned long* Table, unsigned long MinEvents, const ASAAC_Time& Timeout )
+void EventTable::waitForMultipleEvents( unsigned long TableSize, unsigned long* Table, unsigned long MinEvents, const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
 
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
+	BlockingScope TimeoutScope();
 
 	timespec TimeSpecTimeout;
 
 	TimeSpecTimeout.tv_sec  = Timeout.sec;
 	TimeSpecTimeout.tv_nsec = Timeout.nsec;
 
-		
-	if ( oal_thread_mutex_lock(&(m_Global->Mutex)) ) throw OSException( LOCATION );
+	if ( oal_thread_mutex_lock(&(m_Global->Mutex)) ) 
+		throw OSException( strerror(errno), LOCATION );
 
 	m_Global->WaitingThreads++;
 	
 	long iErrorCode = 0;
-	
-	if ( ThisThread != 0 ) ThisThread->setState( ASAAC_WAITING );
 	
 	unsigned long iEventsFound = 0;
 	
@@ -209,14 +195,11 @@ ASAAC_TimedReturnStatus EventTable::waitForMultipleEvents( unsigned long TableSi
 	
 	m_Global->WaitingThreads--;
 
-    ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	if ( ThisThread != 0 ) ThisThread->setState( ASAAC_RUNNING );
+	if ( oal_thread_mutex_unlock(&(m_Global->Mutex)) ) 
+		throw OSException( strerror(errno), LOCATION );
 	
-	if ( oal_thread_mutex_unlock(&(m_Global->Mutex)) ) throw OSException( LOCATION );
-	
-	if ( iErrorCode == ETIMEDOUT ) return ASAAC_TM_TIMEOUT;
-	
-	return ASAAC_TM_SUCCESS;
+	if ( iErrorCode == ETIMEDOUT )
+		throw TimeoutException(LOCATION);
 }
 
 

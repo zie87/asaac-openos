@@ -6,7 +6,19 @@
 
 ASAAC_TimedReturnStatus ASAAC_SMOS_createProcess(const ASAAC_ProcessDescription* process_desc)
 {
-	return ProcessManager::getInstance()->createClientProcess( *process_desc );
+	try
+	{
+		ProcessManager::getInstance()->createClientProcess( *process_desc );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+	    e.addPath("SMOS::create", LOCATION);
+	    e.raiseError();
+	    
+	    return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+	}
+	
+	return ASAAC_TM_SUCCESS;
 }
 
 
@@ -18,19 +30,55 @@ ASAAC_ReturnStatus ASAAC_SMOS_createThread(const ASAAC_ThreadDescription* thread
 
 ASAAC_ReturnStatus ASAAC_SMOS_runProcess(const ASAAC_PublicId process_id)
 {
-	return ProcessManager::getInstance()->runProcess( process_id );
+	try
+	{
+		ProcessManager::getInstance()->runProcess( process_id );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+	    e.addPath("SMOS::runProcess", LOCATION);
+	    e.raiseError();
+	    
+	    return ASAAC_ERROR;
+	}
+	
+	return ASAAC_SUCCESS;
 }
 	
 
 ASAAC_ReturnStatus ASAAC_SMOS_stopProcess(const ASAAC_PublicId process_id)
 {
-	return ProcessManager::getInstance()->stopProcess( process_id );
+	try
+	{
+		ProcessManager::getInstance()->stopProcess( process_id );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+	    e.addPath("SMOS::stopProcess", LOCATION);
+	    e.raiseError();
+	    
+	    return ASAAC_ERROR;
+	}
+	
+	return ASAAC_SUCCESS;
 }
 	
 
 ASAAC_ReturnStatus ASAAC_SMOS_destroyProcess(const ASAAC_PublicId process_id)
 {
-	return ProcessManager::getInstance()->destroyClientProcess( process_id );
+	try
+	{
+		ProcessManager::getInstance()->destroyClientProcess( process_id );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+	    e.addPath("SMOS::destroyProcess", LOCATION);
+	    e.raiseError();
+	    
+	    return ASAAC_ERROR;
+	}
+	
+	return ASAAC_SUCCESS;
 }
 
 

@@ -277,10 +277,8 @@ bool OpenOS::isInitialized()
 }
 
 
-ASAAC_ReturnStatus OpenOS::destroyAllEntities()
+void OpenOS::destroyAllEntities()
 {
-	ASAAC_ReturnStatus Status = ASAAC_SUCCESS;
-	
 	try
 	{
 		for (long Index = 0; Index < OS_MAX_NUMBER_OF_CPU; Index++)
@@ -288,37 +286,30 @@ ASAAC_ReturnStatus OpenOS::destroyAllEntities()
 			if (m_CpuId[Index] == OS_UNUSED_ID)
 				continue;
 	
-			if (m_CpuId[Index] == ProcessManager::getInstance()->getCpuId())
+			if (m_CpuId[Index] == ProcessManager::getInstance()->getCurrentCpuId())
 				continue;
 			
 			CommandData d;
 			
-			if ( sendCommand( m_CpuId[Index], CMD_TERM_ENTITY, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false ) == ASAAC_TM_ERROR )		
-				Status = ASAAC_ERROR;
+			sendCommand( m_CpuId[Index], CMD_TERM_ENTITY, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false );		
 				
 			if (d.Return == ASAAC_ERROR)
-				Status = ASAAC_ERROR;
+				throw OSException("Error returned by entity", LOCATION);
 		}	
 
-		if (ProcessManager::getInstance()->destroyEntity() == ASAAC_ERROR)
-			Status = ASAAC_ERROR;
+		ProcessManager::getInstance()->destroyEntity();
 	}
 	catch (ASAAC_Exception &e)
 	{
 		e.addPath("Error destroying complete OpenOS", LOCATION);
-		e.raiseError();
-		
-		Status = ASAAC_ERROR;
+
+		throw;
 	}
-	
-	return Status;
 }
 
 
-ASAAC_TimedReturnStatus OpenOS::sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
+void OpenOS::sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
 {
-	ASAAC_TimedReturnStatus Result = ASAAC_TM_ERROR;
-	
 	//To use an allocator here as a member variable is a bug fix
 	//in conjunction with AllocatorManager::reallocateAllObject
 	if ( m_CpuAllocator.isInitialized() )
@@ -340,29 +331,18 @@ ASAAC_TimedReturnStatus OpenOS::sendCommand( ASAAC_PublicId CpuId, unsigned long
 				
 		CommandInterface.initialize( &m_CpuAllocator, false );
 		
-		Result = CommandInterface.sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
+		CommandInterface.sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
 	}
 	catch (ASAAC_Exception &e)
 	{
 		CommandInterface.deinitialize();
 		
 		e.addPath(ErrorMessage.c_str());
-		e.raiseError();
 		
-		return ASAAC_TM_ERROR;
-	}
-	catch (...)
-	{
-		CommandInterface.deinitialize();
-
-		FatalException( ErrorMessage.c_str(), LOCATION ).raiseError();
-		
-		return ASAAC_TM_ERROR;
+		throw;
 	}
 
 	CommandInterface.deinitialize();
-
-	return Result;
 }
 
 
@@ -473,23 +453,26 @@ void OpenOS::flushSession()
 			continue;
 		
 		CommandData d;		
-		ASAAC_TimedReturnStatus Status;
 		
 		//First we just send a simple command to determine the processes liveliness
-		Status = sendCommand(m_CpuId[Index], CMD_GET_PID, d.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time(), false);
-
-		if ( (Status == ASAAC_TM_TIMEOUT) || (Status == ASAAC_TM_ERROR) )
-		{ 
+		try
+		{
+			sendCommand(m_CpuId[Index], CMD_GET_PID, d.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time(), false);
+		}
+		catch ( ASAAC_Exception &e )
+		{
 			m_CpuId[Index] = OS_UNUSED_ID;
 			continue;
 		}
 
 		//If succeeded, we send our real approach
-		d.NewSessionId = NewSessionId;
-		Status = sendCommand(m_CpuId[Index], CMD_FLUSH_SESSION, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false);
-		
-		if ( (Status == ASAAC_TM_TIMEOUT) || (Status == ASAAC_TM_ERROR) )
-		{ 
+		try
+		{
+			d.NewSessionId = NewSessionId;
+			sendCommand(m_CpuId[Index], CMD_FLUSH_SESSION, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false);
+		}
+		catch ( ASAAC_Exception &e )
+		{
 			m_CpuId[Index] = OS_UNUSED_ID;
 			continue;
 		}
