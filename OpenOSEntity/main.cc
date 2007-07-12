@@ -29,7 +29,7 @@ ASAAC_THREAD(MainThread)
 	for (unsigned long p = 0; p < entityConfiguration.ProcessConfiguration.Count; p++)
 	{
 		entityConfiguration.ProcessConfiguration.List[p].Description.global_pid = 
-			ProcessManager::getInstance()->getProcessId( entityConfiguration.ProcessConfiguration.List[p].Alias ); 
+			Process::getId( entityConfiguration.ProcessConfiguration.List[p].Alias ); 
 		
 		ASAAC_SMOS_createProcess( &(entityConfiguration.ProcessConfiguration.List[p].Description) );
 		
