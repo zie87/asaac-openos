@@ -213,11 +213,11 @@ void OpenOS::initializeGlobalObjects( ASAAC_PublicId CpuId, ASAAC_PublicId Proce
 	switch ( m_ActivityState )
 	{
 		case LAS_UNDEFINED:			break;
-		case LAS_ENTITY:			PM->initializeEntityProcess( m_IsMaster, &m_Allocator, CpuId);
+		case LAS_ENTITY:			PM->initialize( true, m_IsMaster, &m_Allocator, CpuId, OS_PROCESSID_MASTER, SHARED);
 								    PM->addCommandHandler(CMD_FLUSH_SESSION, OpenOS::FlushSessionHandler);
 									break;
 		case LAS_PROCESS_INIT:
-		case LAS_PROCESS_RUNNING:	PM->initializeClientProcess( &m_Allocator, CpuId, ProcessId, SHARED );
+		case LAS_PROCESS_RUNNING:	PM->initialize( false, false, &m_Allocator, CpuId, ProcessId, SHARED );
 									break;
 		case LAS_REMOTE:			break;
 	}

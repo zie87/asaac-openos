@@ -5,11 +5,9 @@
 
 typedef void*(*EntryPointAddr)( void* );
 
-struct EntryPoint {
-
+typedef struct {
 	ASAAC_CharacterSequence		Name;
-	EntryPointAddr				Address;
-	
-};
+	EntryPointAddr				Address;	
+} EntryPoint;
 
 #endif /*ENTRYPOINT_HH_*/

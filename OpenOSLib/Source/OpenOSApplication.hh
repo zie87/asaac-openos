@@ -5,6 +5,8 @@ typedef void*(*EntryPointAddr)( void* );
 
 extern "C" int applicationMain( void );
 extern "C" void registerThreads();
-extern "C" char registerThread(char * name, EntryPointAddr address);
+extern "C" void registerThread(char * name, EntryPointAddr address);
+extern "C" char bufferThread(char * name, EntryPointAddr address);
+extern "C" void registerBufferedThreads();
 
 #endif /*OPENOSAPPLICATION_HH_*/

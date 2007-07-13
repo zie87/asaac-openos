@@ -2,9 +2,9 @@
 #define OPENOS_HH_
 
 
-#define ASAAC_ENTITY 		void registerThreads() {}
-#define ASAAC_APPLICATION 	int main( int argc, char** argv ){	return applicationMain(); } void registerThreads() {}
-#define ASAAC_THREAD(x) 	void *x( void *Data ); bool registered##x = registerThread(#x, x); void * x (void* Data)
+#define ASAAC_ENTITY 		void registerThreads() { registerBufferedThreads(); }
+#define ASAAC_APPLICATION 	int main( int argc, char** argv ){	return applicationMain(); } void registerThreads() { registerBufferedThreads(); }
+#define ASAAC_THREAD(x) 	void *x( void *Data ); bool registered##x = bufferThread(#x, x); void * x (void* Data)
 
 
 // The Makro 'ASAAC_THREAD(x)' easily installs ASAAC-Thread EntryPoints
@@ -34,7 +34,8 @@ typedef void*(*EntryPointAddr)( void* );
 
 extern "C" int applicationMain();
 extern "C" void registerThreads();
-extern "C" char registerThread(char * name, EntryPointAddr address);
+extern "C" char bufferThread(char * name, EntryPointAddr address);
+extern "C" void registerBufferedThreads();
 
 
 #endif /*OPENOS_HH_*/

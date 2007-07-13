@@ -42,13 +42,10 @@ ProcessManager::ProcessManager()
 	m_CurrentProcessIndex = -1;
 	m_IsMaster = false;
 	m_IsInitialized = false;
-	
-	m_BufferedEntryPointCounter = 0;
 		
 	// register handler to catch SIGCHLD and fetch exit result of child processes
 	// to avoid zombies
 	SignalManager::getInstance()->registerSignalHandler( SIGCHLD, SigChildCallback );
-	
 }
 
 
@@ -77,61 +74,73 @@ size_t	ProcessManager::predictInternalSize()
 }
 
 
-void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId, MemoryLocation Location )
+void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CurrentCpuId, ASAAC_PublicId CurrentProcessId, MemoryLocation Location )
 {
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException( LOCATION );
 
-	if ( IsServer )
+	try
 	{
-		OpenOS::getInstance()->registerCpu(CpuId);
-	}
-	
-	m_CurrentCpuId = CpuId;			
-	
-	m_IsServer = IsServer;
-	m_IsMaster = IsMaster;
-	
-	Allocator* UsedAllocator;
+		m_IsInitialized = true;	
 
-	if ( Location == SHARED ) //Applications with special rights (GSM, SM, ...)
-	{
-		m_SharedMemoryAllocator.initialize( 
-			FileNameGenerator::getProcessManagerName( m_CurrentCpuId ),
-			IsServer,	// IsServer is correct here!
-			predictInternalSize() );
-									
-		UsedAllocator = &m_SharedMemoryAllocator;
+		if ( IsServer )
+		{
+			OpenOS::getInstance()->registerCpu(CurrentCpuId);
+		}
+		
+		m_CurrentCpuId = CurrentCpuId;			
+		
+		m_IsServer = IsServer;
+		m_IsMaster = IsMaster;
+		
+		Allocator* UsedAllocator;
+	
+		if ( Location == SHARED ) //Applications with special rights (GSM, SM, ...)
+		{
+			m_SharedMemoryAllocator.initialize( 
+				FileNameGenerator::getProcessManagerName( m_CurrentCpuId ),
+				IsServer,	// IsServer is correct here!
+				predictInternalSize() );
+										
+			UsedAllocator = &m_SharedMemoryAllocator;
+		}
+		else //Normal Applications
+		{
+			m_LocalMemoryAllocator.initialize( predictSize() );
+	
+			UsedAllocator = &m_LocalMemoryAllocator;
+		}
+		
+		//CommandInterface has to be the first object initialized here,
+		//because memory is used in OpenOS object too
+		m_CommandInterface.initialize( UsedAllocator, IsServer );
+		
+		//Semaphore is an global OpenOS object, therefore it has to allocate memory from parent allocator
+		m_Semaphore.initialize( ParentAllocator, IsMaster );
+		m_ProcessId.initialize( ParentAllocator, OS_MAX_NUMBER_OF_PROCESSES );
+		
+		if ( IsMaster )
+		{
+			for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
+				m_ProcessId[ Index ] = OS_UNUSED_ID;
+		}	
+	
+		if ( IsServer )
+		{
+			m_CommandInterface.addCommandHandler( CMD_CREATE_PROCESS,  ProcessManager::CreateProcessHandler );
+			m_CommandInterface.addCommandHandler( CMD_DESTROY_PROCESS, ProcessManager::DestroyProcessHandler );
+			m_CommandInterface.addCommandHandler( CMD_TERM_ENTITY, 	   ProcessManager::DestroyEntityHandler );		
+		}		
+			
+		setCurrentProcess( CurrentProcessId );
 	}
-	else //Normal Applications
+	catch ( ASAAC_Exception &e )
 	{
-		m_LocalMemoryAllocator.initialize( predictSize() );
-
-		UsedAllocator = &m_LocalMemoryAllocator;
+		e.addPath("Error initializing ProcessManager", LOCATION);
+		
+		throw;
 	}
-	
-	//CommandInterface has to be the first object initialized here,
-	//because memory is used in OpenOS object too
-	m_CommandInterface.initialize( UsedAllocator, IsServer );
-	
-	//Semaphore is an global OpenOS object, therefore it has to allocate memory from parent allocator
-	m_Semaphore.initialize( ParentAllocator, IsMaster );
-	m_ProcessId.initialize( ParentAllocator, OS_MAX_NUMBER_OF_PROCESSES );
-	
-	if ( IsMaster )
-	{
-		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
-			m_ProcessId[ Index ] = OS_UNUSED_ID;
-	}	
 
-	if ( IsServer )
-	{
-		m_CommandInterface.addCommandHandler( CMD_CREATE_PROCESS,  ProcessManager::CreateProcessHandler );
-		m_CommandInterface.addCommandHandler( CMD_DESTROY_PROCESS, ProcessManager::DestroyProcessHandler );
-		m_CommandInterface.addCommandHandler( CMD_TERM_ENTITY, 	   ProcessManager::DestroyEntityHandler );		
-	}		
-	
-	m_IsInitialized = true;	
 }
 
 
@@ -177,88 +186,6 @@ ProcessManager::~ProcessManager()
 }
 
 
-void ProcessManager::initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId)
-{
-	if ( m_IsInitialized ) 
-		throw DoubleInitializationException( LOCATION );
-
-	ASAAC_ProcessDescription Description;
-	Description.global_pid = OS_PROCESSID_MASTER;
-	
-	try 
-	{
-		initialize( true, IsMaster, ParentAllocator, CpuId, SHARED );		
-
-		createProcess(true, Description, m_CurrentProcessIndex);
-		
-		handleBufferMemory();
-	}
-	catch ( ASAAC_Exception& e )
-	{
-		e.addPath("Error initializing master process", LOCATION);
-
-		throw;
-	}
-}
-
-
-void ProcessManager::initializeClientProcess( Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location )
-{
-	if ( m_IsInitialized ) 
-		throw DoubleInitializationException( LOCATION );
-	
-	try 
-	{
-		initialize( false, false, ParentAllocator, CpuId, Location );
-		
-		setCurrentProcess( ProcessId );
-		
-		handleBufferMemory();
-	}
-	catch ( ASAAC_Exception& e )
-	{
-		e.addPath("Error initializing client process", LOCATION);
-		
-		throw;
-	}
-}
-
-
-void ProcessManager::handleBufferMemory()
-{
-	if (m_IsInitialized == false) 
-		throw UninitializedObjectException(LOCATION);
-
-	for (unsigned long Index = 0; Index < m_BufferedEntryPointCounter; Index++)
-	{
-		getCurrentProcess()->addEntryPoint(
-			m_BufferedEntryPoints[Index].Name,
-			m_BufferedEntryPoints[Index].Address);
-	}
-			
-	m_BufferedEntryPointCounter = 0;
-}		
-
-
-void ProcessManager::addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address )
-{
-	if (m_IsInitialized == false)
-	{
-		if (m_BufferedEntryPointCounter == OS_MAX_NUMBER_OF_ENTRYPOINTS)
-			throw OSException("No more free slots", LOCATION);
-		
-		m_BufferedEntryPoints[m_BufferedEntryPointCounter].Name = Name;
-		m_BufferedEntryPoints[m_BufferedEntryPointCounter].Address = Address;
-		
-		m_BufferedEntryPointCounter++;
-	}
-	else
-	{
-		getCurrentProcess()->addEntryPoint(Name, Address);
-	}
-}
-
-
 long ProcessManager::getProcessIndex( ASAAC_PublicId ProcessId )
 {
 	if (m_IsInitialized == false) 
@@ -274,7 +201,7 @@ long ProcessManager::getProcessIndex( ASAAC_PublicId ProcessId )
 }
 
 
-Process* ProcessManager::createProcess( bool IsMasterProcess, const ASAAC_ProcessDescription& Description, long &Index )
+Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription& Description, long &Index )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -291,7 +218,7 @@ Process* ProcessManager::createProcess( bool IsMasterProcess, const ASAAC_Proces
 		bool UseInternalCommandInterface;
 		MemoryLocation Location;
 		
-		if (IsMasterProcess)
+		if ( Description.global_pid == OS_PROCESSID_MASTER )
 		{
 			IsServer = true;
 			UseInternalCommandInterface = false;
@@ -397,7 +324,7 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId )
 }
 
 
-void ProcessManager::createClientProcess( const ASAAC_ProcessDescription& Description )
+void ProcessManager::createProcess( const ASAAC_ProcessDescription& Description )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -409,7 +336,7 @@ void ProcessManager::createClientProcess( const ASAAC_ProcessDescription& Descri
 			if (Description.cpu_id == this->getCurrentCpuId())
 			{
 				long Index;
-				Process* NewProcess = createProcess(false, Description, Index);
+				Process* NewProcess = allocateProcess(Description, Index);
 			
 				if ( NewProcess == NULL ) 
 					throw OSException("Process object has not been created", LOCATION);
@@ -460,7 +387,7 @@ void ProcessManager::createClientProcess( const ASAAC_ProcessDescription& Descri
 }
 
 
-void ProcessManager::destroyClientProcess( const ASAAC_PublicId& ProcessId )
+void ProcessManager::destroyProcess( const ASAAC_PublicId& ProcessId )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
@@ -571,9 +498,31 @@ void ProcessManager::releaseAllClientProcesses()
 
 void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 {
-	Process *P = getProcess( ProcessId, m_CurrentProcessIndex);
-
-	P->setServer( true );
+	try
+	{
+		Process *P = getCurrentProcess();
+		
+		if (P != NULL)
+			P->setServer( false );
+		
+		m_CurrentProcessIndex = getProcessIndex( ProcessId );
+		
+		if ( m_CurrentProcessIndex == -1 )
+		{
+			ASAAC_ProcessDescription Description;
+			Description.global_pid = ProcessId;
+			P = allocateProcess(Description, m_CurrentProcessIndex);
+		}
+		else P = getProcess( ProcessId, m_CurrentProcessIndex );
+	
+		P->setServer( true );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error setting the current process", LOCATION);
+		
+		throw;
+	}
 }
 
 
@@ -746,7 +695,7 @@ void ProcessManager::CreateProcessHandler( CommandBuffer Buffer )
 		//recalculate timeout
 		d->Data.Description.timeout = TimeStamp(d->Data.Timeout).asaac_Interval();
 		
-		ProcessManager::getInstance()->createClientProcess(d->Data.Description);
+		ProcessManager::getInstance()->createProcess(d->Data.Description);
 		
 		d->Return = ASAAC_TM_SUCCESS; 	
 	}
@@ -765,7 +714,7 @@ void ProcessManager::DestroyProcessHandler( CommandBuffer Buffer )
 	
 	try
 	{
-		ProcessManager::getInstance()->destroyClientProcess(d->Data.Description.global_pid);
+		ProcessManager::getInstance()->destroyProcess(d->Data.Description.global_pid);
 		
 		d->Return = ASAAC_TM_SUCCESS;
 	}

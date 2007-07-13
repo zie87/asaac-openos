@@ -168,6 +168,9 @@ bool Process::isInitialized()
 
 void Process::setServer( bool IsServer )
 {
+	if (m_IsServer == IsServer)
+		return;
+	
 	if ( IsServer == true )
 	{
 		addCommandHandler( CMD_RUN_PROCESS,  Process::RunHandler  );

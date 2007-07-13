@@ -8,7 +8,7 @@ ASAAC_TimedReturnStatus ASAAC_SMOS_createProcess(const ASAAC_ProcessDescription*
 {
 	try
 	{
-		ProcessManager::getInstance()->createClientProcess( *process_desc );
+		ProcessManager::getInstance()->createProcess( *process_desc );
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -68,7 +68,7 @@ ASAAC_ReturnStatus ASAAC_SMOS_destroyProcess(const ASAAC_PublicId process_id)
 {
 	try
 	{
-		ProcessManager::getInstance()->destroyClientProcess( process_id );
+		ProcessManager::getInstance()->destroyProcess( process_id );
 	}
 	catch ( ASAAC_Exception &e )
 	{

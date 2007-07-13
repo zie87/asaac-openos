@@ -30,62 +30,23 @@ public:
 	void	 addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address );
 
 	// Basic initialize/deinitialize tasks
-	void     initialize(  bool IsServer, bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId, MemoryLocation Location = SHARED );
+	void     initialize( bool IsServer, bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CurrentCpuId, ASAAC_PublicId CurrentProcessId, MemoryLocation Location = SHARED );
 	void     deinitialize();
 	
 	bool     isInitialized();
 
-	//! set up structures for current process as a master process
-	void     initializeEntityProcess(  bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CpuId );
-	/*! This function sets up all structures of the process manager
-	 *  for the current thread in a local, self-contained way. The
-	 *  master process does not need any controlling instance, it
-	 *  does not need to be configured by an external source, so
-	 *  it stores all its required data in local memory rather than
-	 *  shared memory.
-	 * 
-	 *  \returns ASAAC_SUCCESS on successful operation. ASAAC_ERROR in case of an
-	 *           error encountered, such as the current process
-	 *           already being initialized.
-	 */
-	
-	//! set up structures for current process as a client/slave process
-	void     initializeClientProcess(  Allocator *ParentAllocator, ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId, MemoryLocation Location );
-	/*!< This function sets up all structures of the process manager
-	 *  for the current thread in a way that allows the process to
-	 *  be controlled and configured by the respective master by
-	 *  access to common data structures and the SimpleCommandInterface
-	 *  supplied for master/client communication.
-	 * 
-	 *  \param[in] ProcessId ASAAC_PublicId of the current process.
-	 *  \returns ASAAC_SUCCESS on successful operation. ASAAC_ERROR in case of an
-	 *           error encountered, such as the current process
-	 *           already being initialized.
-	 */
-	
 	//! start a new process under control of the current one
-	void     createClientProcess( const ASAAC_ProcessDescription& Description );
+	void     createProcess( const ASAAC_ProcessDescription& Description );
 	/*!< This function contains the functionality required by the SMOS
 	 *   call createProcess(). It sets up the data structures required by the
 	 *   process and for the communication between this process as a master and
 	 *   the newly created process as a slave.
 	 * 
-	 *   Actually, instead of the process itself, in the current implementation scheme,
-	 *   createClientProcess() launches the ProcessStarter which holds control and
-	 *   prepares OS resources for the actual application until the latter is finally
-	 *   started when it is set longo RUNNING state, via Process::run().
-	 * 
 	 *   \param[in] Description Process description as supplied to the SMOS call
 	 *                          createProcess()
-	 * 
-	 *   \returns ASAAC_TM_SUCCESS if the process starter could properly be launched.
-	 *            ASAAC_TM_TIMEOUT if the process starter did not respond within the
-	 *                       time frame set up as timeout for the process creation.
-	 *            ASAAC_TM_ERROR   if an error occurred during the launching of the
-	 *                       ProcessStarter.
 	 */
 	 
-	void     destroyClientProcess( const ASAAC_PublicId& ProcessId );
+	void     destroyProcess( const ASAAC_PublicId& ProcessId );
 
 	void     runProcess(const ASAAC_PublicId process_id);
 	 
@@ -104,7 +65,7 @@ public:
 	 *              ProcessId could be found.
 	 */
 	
-	Process* createProcess( bool IsMasterProcess, const ASAAC_ProcessDescription& Description, long &Index );
+	Process* allocateProcess( const ASAAC_ProcessDescription& Description, long &Index );
 			
     void     releaseProcess( ASAAC_PublicId ProcessId );    
     void     releaseAllProcesses();    
@@ -155,20 +116,19 @@ private:
 	// TODO: move this function out of this class
 	void handleBufferMemory();
 
-	typedef struct {
+	typedef struct 
+	{
 		ASAAC_ProcessDescription Description;
-		ASAAC_Time Timeout;
+		ASAAC_Time 				 Timeout;
 	} ProcessCommandData;
 	
 
-	union CommandData {		
-		CommandBuffer ReturnBuffer;
-		ProcessCommandData Data;
+	union CommandData 
+	{		
+		CommandBuffer 			 ReturnBuffer;
+		ProcessCommandData 		 Data;
 		ASAAC_TimedReturnStatus  Return;
 	};
-
-	EntryPoint				m_BufferedEntryPoints[OS_MAX_NUMBER_OF_ENTRYPOINTS];
-	unsigned long			m_BufferedEntryPointCounter;
 
 	LocalMemory	 			m_LocalMemoryAllocator;
 	SharedMemory 			m_SharedMemoryAllocator;

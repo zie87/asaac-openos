@@ -25,7 +25,7 @@ typedef void*(*EntryPointAddr)( void* );
 
 extern "C" int applicationMain();
 extern "C" void registerThreads();
-extern "C" char registerThread(char * name, EntryPointAddr address);
+extern "C" void registerThread(char * name, EntryPointAddr address);
 
 
 #endif /*OPENOS_H_*/
