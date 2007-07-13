@@ -52,7 +52,7 @@ enum SMOS_Actions {
 
 typedef char OSScopeCommandBuffer[ OS_SIZE_OF_OSSCOPE_COMMANDBUFFER ];
 
-typedef ASAAC_ReturnStatus(*OSScopeFunction)(OSScopeCommandBuffer);
+typedef void(*OSScopeFunction)(OSScopeCommandBuffer);
 
 typedef struct 
 {

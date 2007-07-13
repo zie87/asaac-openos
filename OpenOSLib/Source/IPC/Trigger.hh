@@ -81,7 +81,7 @@ public:
 	 */
 	
 	//! wait for trigger counter to be incremented over the supplied trigger state
-	ASAAC_TimedReturnStatus waitForTrigger( unsigned long& TriggerState, const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
+	void waitForTrigger( unsigned long& TriggerState, const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
     /*!< transfer the calling thread longo WAITING state until the counter of the trigger exceeds the value
      *   indicated as a parameter, or
      *   until the Timeout has elapsed. 
@@ -96,7 +96,7 @@ public:
      */
 	
 	//! wait for trigger counter to be incremented
-	ASAAC_TimedReturnStatus waitForTrigger( const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
+	void waitForTrigger( const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
     /*!< transfer the calling thread longo WAITING state until the counter of the trigger is increased over
      *   its value at function call time,
      *   or until the Timeout has elapsed. 

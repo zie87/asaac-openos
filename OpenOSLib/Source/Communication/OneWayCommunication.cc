@@ -36,7 +36,7 @@ OneWayCommunication::~OneWayCommunication()
 
 
 
-ASAAC_ReturnStatus OneWayCommunication::assureCommunication() const
+void OneWayCommunication::assureCommunication() const
 {
 	try
 	{            
@@ -47,15 +47,14 @@ ASAAC_ReturnStatus OneWayCommunication::assureCommunication() const
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error occured while establishing a communication path", LOCATION);
+
 		throw;
 	}
-		
-	return ASAAC_SUCCESS;
 }
 
 
 
-ASAAC_ReturnStatus OneWayCommunication::assureGlobalVc() const
+void OneWayCommunication::assureGlobalVc() const
 {
     try
     {
@@ -88,8 +87,7 @@ ASAAC_ReturnStatus OneWayCommunication::assureGlobalVc() const
                     OSScopeData param_LVc;
                     param_LVc.mapping = *LVc->getDescription();
                         
-                    if (invokeOSScope( param_LVc.mapping.global_pid, detachLocalVc, param_LVc ) == ASAAC_ERROR)
-                        throw OSException("An error occured while detaching local vcs from inadequate global vc", LOCATION);
+                    invokeOSScope( param_LVc.mapping.global_pid, detachLocalVc, param_LVc );
                 }
                 CM->destroyGlobalVirtualChannel( GVc_desc_old.global_vc_id );
                 
@@ -103,15 +101,14 @@ ASAAC_ReturnStatus OneWayCommunication::assureGlobalVc() const
     catch ( ASAAC_Exception &e )
     {
         e.addPath("Error occured while assuring global vc", LOCATION);
+
         throw;
     }
-        
-    return ASAAC_SUCCESS;    
 }
 
 
 
-ASAAC_ReturnStatus OneWayCommunication::assureSenderConnection() const
+void OneWayCommunication::assureSenderConnection() const
 {
     try
     {
@@ -147,13 +144,11 @@ ASAAC_ReturnStatus OneWayCommunication::assureSenderConnection() const
                     OSScopeData param_false_sender;
                     param_false_sender.mapping = *desc;
                     
-                    if (invokeOSScope( param_false_sender.mapping.global_pid, detachLocalVc, param_false_sender ) == ASAAC_ERROR)
-                        throw OSException("An error occured while detaching inadequat sending local vc from sending process", LOCATION);
+                    invokeOSScope( param_false_sender.mapping.global_pid, detachLocalVc, param_false_sender );
                 }
             }
             
-            if (invokeOSScope( param_sender.mapping.global_pid, attachLocalVc, param_sender ) == ASAAC_ERROR)
-                throw OSException("An error occured while attaching local vc to sender process", LOCATION);
+            invokeOSScope( param_sender.mapping.global_pid, attachLocalVc, param_sender );
         }
         else
         {
@@ -162,26 +157,22 @@ ASAAC_ReturnStatus OneWayCommunication::assureSenderConnection() const
             
             if ( !isLocalVcAdequate( LVc_desc_sender, param_sender.mapping ) )
             {
-                if (invokeOSScope( param_sender.mapping.global_pid, detachLocalVc, param_sender ) == ASAAC_ERROR)
-                    throw OSException("An error occured while detaching inadequat local vc from sending process", LOCATION);
-                
-                if (invokeOSScope( param_sender.mapping.global_pid, attachLocalVc, param_sender ) == ASAAC_ERROR)
-                    throw OSException("An error occured while attaching adequat local vc to sending process", LOCATION);
+                invokeOSScope( param_sender.mapping.global_pid, detachLocalVc, param_sender );
+                invokeOSScope( param_sender.mapping.global_pid, attachLocalVc, param_sender );
             }       
         }
     }   
     catch ( ASAAC_Exception &e )
     {
         e.addPath("Error occured while assuring sender connection", LOCATION);
+
         throw;
     }
-        
-    return ASAAC_SUCCESS;
 }
 
 
 
-ASAAC_ReturnStatus OneWayCommunication::assureReceiverConnection() const
+void OneWayCommunication::assureReceiverConnection() const
 {
     try
     {
@@ -202,8 +193,7 @@ ASAAC_ReturnStatus OneWayCommunication::assureReceiverConnection() const
         
         if (LVc_receiver == NULL)
         {
-          if (invokeOSScope( param_receiver.mapping.global_pid, attachLocalVc, param_receiver ) == ASAAC_ERROR)
-                throw OSException("An error occured while attaching local vc to receiving process", LOCATION);
+          invokeOSScope( param_receiver.mapping.global_pid, attachLocalVc, param_receiver );
         }
         else
         {
@@ -212,26 +202,22 @@ ASAAC_ReturnStatus OneWayCommunication::assureReceiverConnection() const
             
             if ( isLocalVcAdequate( LVc_desc_receiver, param_receiver.mapping ) == false )
             {
-                if (invokeOSScope( param_receiver.mapping.global_pid, detachLocalVc, param_receiver ) == ASAAC_ERROR)
-                    throw OSException("An error occured while detaching inadequat local vc from receiving process", LOCATION);
-                
-                if (invokeOSScope( param_receiver.mapping.global_pid, attachLocalVc, param_receiver ) == ASAAC_ERROR)
-                    throw OSException("An error occured while attaching adequat local vc to receiving process", LOCATION);
+                invokeOSScope( param_receiver.mapping.global_pid, detachLocalVc, param_receiver );
+                invokeOSScope( param_receiver.mapping.global_pid, attachLocalVc, param_receiver );
             }       
         }
     }   
     catch ( ASAAC_Exception &e )
     {
         e.addPath("Error occured while assuring receiver connection", LOCATION);
+
         throw;
     }
-        
-    return ASAAC_SUCCESS;
 }
 
 
 
-ASAAC_ReturnStatus OneWayCommunication::detach() const
+void OneWayCommunication::detach() const
 {
     try
     {
@@ -253,15 +239,14 @@ ASAAC_ReturnStatus OneWayCommunication::detach() const
     catch ( ASAAC_Exception &e )
     {
         e.addPath("Error occured while detaching connection path", LOCATION);
+        
         throw;
     }
-        
-    return ASAAC_SUCCESS;
 }
 
 
 
-ASAAC_ReturnStatus OneWayCommunication::detachSender() const
+void OneWayCommunication::detachSender() const
 {
     try
     {
@@ -274,22 +259,20 @@ ASAAC_ReturnStatus OneWayCommunication::detachSender() const
 		    
 		    param_sender.mapping = getReferenceSenderVcDescription();
 		    
-		    if (invokeOSScope( param_sender.mapping.global_pid, detachLocalVc, param_sender ) == ASAAC_ERROR)
-		        throw OSException("An error occured while detaching local vc from sender process", LOCATION);
+		    invokeOSScope( param_sender.mapping.global_pid, detachLocalVc, param_sender );
         }	
     }   
     catch ( ASAAC_Exception &e )
     {
         e.addPath("Error occured while detaching sender process", LOCATION);
+
         throw;
     }
-        
-    return ASAAC_SUCCESS;
 }
 
 
 
-ASAAC_ReturnStatus OneWayCommunication::detachReceiver() const
+void OneWayCommunication::detachReceiver() const
 {
     try
     {
@@ -302,17 +285,15 @@ ASAAC_ReturnStatus OneWayCommunication::detachReceiver() const
 		    
 		    param_receiver.mapping = getReferenceReceiverVcDescription();
 		    
-		    if (invokeOSScope( param_receiver.mapping.global_pid, detachLocalVc, param_receiver ) == ASAAC_ERROR)
-		        throw OSException("An error occured while detaching local vc from receiver process", LOCATION);
+		    invokeOSScope( param_receiver.mapping.global_pid, detachLocalVc, param_receiver );
         }	        
     }   
     catch ( ASAAC_Exception &e )
     {
         e.addPath("Error occured while detaching receiver process", LOCATION);
+
         throw;
     }
-        
-    return ASAAC_SUCCESS;
 }
 
 
@@ -592,7 +573,7 @@ bool OneWayCommunication::isLocalVcAdequate(ASAAC_VcMappingDescription currentDe
 
 
 
-ASAAC_ReturnStatus OneWayCommunication::invokeOSScope( const ASAAC_PublicId process_id, const OSScopeFunction foo, OSScopeData param) const
+void OneWayCommunication::invokeOSScope( const ASAAC_PublicId process_id, const OSScopeFunction foo, OSScopeData param) const
 {
 	ProcessManager *PM = ProcessManager::getInstance();
 	
@@ -617,7 +598,7 @@ ASAAC_ReturnStatus OneWayCommunication::invokeOSScope( const ASAAC_PublicId proc
 
 
 //OSScope Functions:
-ASAAC_ReturnStatus OneWayCommunication::attachLocalVc(OSScopeCommandBuffer param)
+void OneWayCommunication::attachLocalVc(OSScopeCommandBuffer param)
 {
 	try
 	{
@@ -655,16 +636,13 @@ ASAAC_ReturnStatus OneWayCommunication::attachLocalVc(OSScopeCommandBuffer param
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.raiseError();
-		return ASAAC_ERROR;	
+		throw;
 	}
-		
-	return ASAAC_SUCCESS;
 }
 
 
 
-ASAAC_ReturnStatus OneWayCommunication::detachLocalVc(OSScopeCommandBuffer param)
+void OneWayCommunication::detachLocalVc(OSScopeCommandBuffer param)
 {
 	try
 	{
@@ -699,9 +677,6 @@ ASAAC_ReturnStatus OneWayCommunication::detachLocalVc(OSScopeCommandBuffer param
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.raiseError();
-		return ASAAC_ERROR;	
+		throw;
 	}
-		
-	return ASAAC_SUCCESS;
 }

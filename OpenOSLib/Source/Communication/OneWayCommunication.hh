@@ -33,14 +33,14 @@ public:
 	OneWayCommunication();
 	virtual ~OneWayCommunication();
 
-    ASAAC_ReturnStatus assureCommunication() const;
-    ASAAC_ReturnStatus assureGlobalVc() const;
-    ASAAC_ReturnStatus assureSenderConnection() const;
-    ASAAC_ReturnStatus assureReceiverConnection() const;
+    void assureCommunication() const;
+    void assureGlobalVc() const;
+    void assureSenderConnection() const;
+    void assureReceiverConnection() const;
     
-    ASAAC_ReturnStatus detach() const;
-    ASAAC_ReturnStatus detachSender() const;
-    ASAAC_ReturnStatus detachReceiver() const;
+    void detach() const;
+    void detachSender() const;
+    void detachReceiver() const;
 
 	bool isAttached() const;
 	
@@ -69,12 +69,12 @@ private:
 	bool						isGlobalVcAdequate(const ASAAC_VcDescription currentDescription, const ASAAC_VcDescription referenceDescription) const;
 	bool						isLocalVcAdequate(const ASAAC_VcMappingDescription currentDescription, const ASAAC_VcMappingDescription referenceDescription) const;
 	
-	ASAAC_ReturnStatus 			invokeOSScope( const ASAAC_PublicId process_id, const OSScopeFunction foo, OSScopeData param) const;
+	void			 			invokeOSScope( const ASAAC_PublicId process_id, const OSScopeFunction foo, OSScopeData param) const;
 
 	//OSScope Functions (necessary if one of the processes is equal to the process asking for this configuration
-	static ASAAC_ReturnStatus 	attachLocalVc( OSScopeCommandBuffer param);
+	static void				 	attachLocalVc( OSScopeCommandBuffer param);
 	
-	static ASAAC_ReturnStatus 	detachLocalVc( OSScopeCommandBuffer param);
+	static void				 	detachLocalVc( OSScopeCommandBuffer param);
 
 };
 

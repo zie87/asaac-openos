@@ -15,39 +15,31 @@ TwoWayCommunication::~TwoWayCommunication()
 
 
 
-ASAAC_ReturnStatus TwoWayCommunication::attach() const
+void TwoWayCommunication::attach() const
 {
-	if ( (m_RequestChannel.assureCommunication() == ASAAC_SUCCESS) &&
-	     (m_ReplyChannel.assureCommunication() == ASAAC_SUCCESS) )
-		return ASAAC_SUCCESS;
-	return ASAAC_ERROR;
+	m_RequestChannel.assureCommunication();
+	m_ReplyChannel.assureCommunication();
 }
 
 
-ASAAC_ReturnStatus TwoWayCommunication::attachClient() const
+void TwoWayCommunication::attachClient() const
 {
-    if ( (m_RequestChannel.assureSenderConnection() == ASAAC_SUCCESS) &&
-         (m_ReplyChannel.assureReceiverConnection() == ASAAC_SUCCESS) )
-        return ASAAC_SUCCESS;
-    return ASAAC_ERROR;
+    m_RequestChannel.assureSenderConnection();
+    m_ReplyChannel.assureReceiverConnection();
 }
 
 
-ASAAC_ReturnStatus TwoWayCommunication::attachServer() const
+void TwoWayCommunication::attachServer() const
 {
-    if ( (m_RequestChannel.assureReceiverConnection() == ASAAC_SUCCESS) &&
-         (m_ReplyChannel.assureSenderConnection() == ASAAC_SUCCESS) )
-        return ASAAC_SUCCESS;
-    return ASAAC_ERROR;
+   m_RequestChannel.assureReceiverConnection();
+   m_ReplyChannel.assureSenderConnection();
 }
 
 
-ASAAC_ReturnStatus TwoWayCommunication::detach() const
+void TwoWayCommunication::detach() const
 {
-	if ( (m_RequestChannel.detach() == ASAAC_SUCCESS) &&
-	     (m_ReplyChannel.detach() == ASAAC_SUCCESS) )
-		return ASAAC_SUCCESS;
-	return ASAAC_ERROR;
+	m_RequestChannel.detach();
+	m_ReplyChannel.detach();
 }
 
 

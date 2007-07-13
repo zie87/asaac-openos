@@ -324,45 +324,51 @@ ASAAC_ReturnStatus ErrorHandler::logMessage( const ASAAC_CharacterSequence& log_
 	
 void ErrorHandler::activateErrorHandler( CommandBuffer Buffer )
 {
-	union DataType {
-		struct {
-			ASAAC_ErrorInfo		error_info;
-			ASAAC_TimeInterval	Timeout;
-		} send;
-		
-		ASAAC_ReturnStatus	Result;
-	};
-	
-	DataType* Data = (DataType*)Buffer;
-	
-	ErrorHandler* This = ErrorHandler::getInstance();
-	
-	This->m_ErrorInformation = Data->send.error_info;
-	This->m_HaveNewErrorInformation = true;
-	This->m_HaveErrorInformation = true;
-	
-	Data->Result = ASAAC_ERROR;
-	
-	Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-	if ( ThisProcess == 0 ) return;
-	
-	Thread* ErrorThread = ThisProcess->getThread( 0 );
-	if ( ErrorThread == 0 ) 
+	try
 	{
-		cout << "No error handler thread found." << endl;
-		return;
+		union DataType {
+			struct {
+				ASAAC_ErrorInfo		error_info;
+				ASAAC_TimeInterval	Timeout;
+			} send;
+			
+			ASAAC_ReturnStatus	Result;
+		};
+		
+		DataType* Data = (DataType*)Buffer;
+		
+		ErrorHandler* This = ErrorHandler::getInstance();
+		
+		This->m_ErrorInformation = Data->send.error_info;
+		This->m_HaveNewErrorInformation = true;
+		This->m_HaveErrorInformation = true;
+		
+		Data->Result = ASAAC_ERROR;
+		
+		Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
+		if ( ThisProcess == 0 ) return;
+		
+		Thread* ErrorThread = ThisProcess->getThread( 0 );
+		if ( ErrorThread == 0 ) 
+		{
+			cout << "No error handler thread found." << endl;
+			return;
+		}
+	
+		unsigned long CurrentTriggerState = This->m_ErrorHandlerTrigger.getTriggerState();
+	
+		ErrorThread->start();
+		
+		This->m_ErrorHandlerTrigger.waitForTrigger( CurrentTriggerState, Data->send.Timeout );
+		
+		Data->Result = This->m_ErrorHandlerReturnStatus;
 	}
-
-	unsigned long CurrentTriggerState = This->m_ErrorHandlerTrigger.getTriggerState();
-
-	ErrorThread->start();
-	
-	ASAAC_TimedReturnStatus ErrorHandlerResult = This->m_ErrorHandlerTrigger.waitForTrigger( CurrentTriggerState, Data->send.Timeout );
-
-	if ( ErrorHandlerResult != ASAAC_TM_SUCCESS ) 
-		return;
-	
-	Data->Result = This->m_ErrorHandlerReturnStatus;
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error activating error handler", LOCATION);
+		
+		e.raiseError();
+	}
 }
 
 

@@ -12,10 +12,10 @@ public:
 	TwoWayCommunication();
 	virtual ~TwoWayCommunication();
 	
-    ASAAC_ReturnStatus attach() const;
-    ASAAC_ReturnStatus attachClient() const;
-    ASAAC_ReturnStatus attachServer() const;
-	ASAAC_ReturnStatus detach() const;
+    void attach() const;
+    void attachClient() const;
+    void attachServer() const;
+	void detach() const;
 
 	bool isAttached() const;
 	

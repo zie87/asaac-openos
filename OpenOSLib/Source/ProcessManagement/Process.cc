@@ -1528,8 +1528,18 @@ void Process::InvokeOSScopeHandler( CommandBuffer Buffer )
 {
 	OSScopeCommandData* Data = (OSScopeCommandData*)Buffer; 
 
-	Data->Return = Data->Scope.foo(Data->Scope.param);
+	try
+	{
+		Data->Scope.foo(Data->Scope.param);
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Caught exception invoking a function in os scope", LOCATION);
+		e.raiseError();
+		
+		Data->Return = ASAAC_ERROR;
+	}
 	
-	return;
+	Data->Return = ASAAC_SUCCESS;
 }
 

@@ -1009,84 +1009,93 @@ ASAAC_ReturnStatus CommunicationManager::unlockBuffer ( const ASAAC_PublicId loc
 
 ASAAC_TimedReturnStatus CommunicationManager::waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in, const unsigned long min_no_vc, ASAAC_PublicIdSet &vc_set_out, const ASAAC_TimeInterval timeout)
 {
-	LocalVc* LocalVcObjects[ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE];
-
-	
-	// generate list of objects for which to wait,
-	// checkinf whether all VC's are receiving, too.
-	for ( unsigned long Index = 0; Index < ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE; Index++ )
+	try
 	{
-		if ( vc_set_in.vc_id[ Index ] == 0 ) 
-		{
-			LocalVcObjects[ Index ] = 0;
-			continue;
-		}
+		LocalVc* LocalVcObjects[ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE];
 		
-		Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-		
-		if (ThisProcess == NULL)
-			return ASAAC_TM_ERROR;
-	
-		LocalVcObjects[Index] = ThisProcess->getAttachedVirtualChannel( vc_set_in.vc_id[ Index ] );
-		
-		if ( LocalVcObjects[Index] == NULL )
-		{
-			return ASAAC_TM_ERROR;
-		}
-		
-		if (! LocalVcObjects[Index]->getDescription()->is_reading )
-		{
-			return ASAAC_TM_ERROR;
-		}
-		
-		for ( unsigned long CompareIndex = 0; CompareIndex < Index; CompareIndex ++ )
-		{
-			if ( vc_set_in.vc_id[ CompareIndex ] == vc_set_in.vc_id[ Index ] )
-			{
-//				return ASAAC_TM_ERROR;
-			}
-		}
-	}
-
-
-	Trigger* UpdateSignal = VcUpdateSignal::getInstance();
-
-	// Waiting loop
-	for (;;)
-	{
-		unsigned long TriggerState = UpdateSignal->getTriggerState();
-
-				
-		unsigned long AvailableVcs  = 0;
-
+		// generate list of objects for which to wait,
+		// checkinf whether all VC's are receiving, too.
 		for ( unsigned long Index = 0; Index < ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE; Index++ )
-		{		
-			vc_set_out.vc_id[ Index ] = 0;
-
-			if ( LocalVcObjects[ Index ] != NULL ) 
+		{
+			if ( vc_set_in.vc_id[ Index ] == 0 ) 
 			{
-				try
+				LocalVcObjects[ Index ] = 0;
+				continue;
+			}
+			
+			Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
+			
+			if (ThisProcess == NULL)
+				return ASAAC_TM_ERROR;
+		
+			LocalVcObjects[Index] = ThisProcess->getAttachedVirtualChannel( vc_set_in.vc_id[ Index ] );
+			
+			if ( LocalVcObjects[Index] == NULL )
+			{
+				return ASAAC_TM_ERROR;
+			}
+			
+			if (! LocalVcObjects[Index]->getDescription()->is_reading )
+			{
+				return ASAAC_TM_ERROR;
+			}
+			
+			for ( unsigned long CompareIndex = 0; CompareIndex < Index; CompareIndex ++ )
+			{
+				if ( vc_set_in.vc_id[ CompareIndex ] == vc_set_in.vc_id[ Index ] )
 				{
-			    	LocalVcObjects[ Index ]->waitForAvailableData( TimeStamp::Instant().asaac_Time() );
-			    	
-					vc_set_out.vc_id[ AvailableVcs ] = vc_set_in.vc_id[ Index ];
-					AvailableVcs ++;
-				}
-				catch ( ASAAC_Exception &e )
-				{
-					vc_set_out.vc_id[ Index ] = 0;
+	//				return ASAAC_TM_ERROR;
 				}
 			}
 		}
-
-		if ( AvailableVcs >= min_no_vc )
+	
+	
+		Trigger* UpdateSignal = VcUpdateSignal::getInstance();
+	
+		// Waiting loop
+		for (;;)
 		{
-			return ASAAC_TM_SUCCESS;
+			unsigned long TriggerState = UpdateSignal->getTriggerState();
+	
+					
+			unsigned long AvailableVcs  = 0;
+	
+			for ( unsigned long Index = 0; Index < ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE; Index++ )
+			{		
+				vc_set_out.vc_id[ Index ] = 0;
+	
+				if ( LocalVcObjects[ Index ] != NULL ) 
+				{
+					try
+					{
+				    	LocalVcObjects[ Index ]->waitForAvailableData( TimeStamp::Instant().asaac_Time() );
+				    	
+						vc_set_out.vc_id[ AvailableVcs ] = vc_set_in.vc_id[ Index ];
+						AvailableVcs ++;
+					}
+					catch ( ASAAC_Exception &e )
+					{
+						vc_set_out.vc_id[ Index ] = 0;
+					}
+				}
+			}
+	
+			if ( AvailableVcs >= min_no_vc )
+			{
+				return ASAAC_TM_SUCCESS;
+			}
+			
+			VcUpdateSignal::getInstance()->waitForTrigger( TriggerState, timeout );
 		}
-		
-		ASAAC_TimedReturnStatus WaitStatus = VcUpdateSignal::getInstance()->waitForTrigger( TriggerState, timeout );
-		
-		if ( WaitStatus != ASAAC_TM_SUCCESS ) return WaitStatus;
 	}
+	catch (ASAAC_Exception &e)
+	{
+		e.addPath("Error occured while waiting on multiple channels", LOCATION);
+		e.raiseError();
+
+		return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+	}
+	
+	return ASAAC_TM_SUCCESS;
 }
 

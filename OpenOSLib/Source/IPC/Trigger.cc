@@ -136,7 +136,7 @@ unsigned long Trigger::getTriggerState()
 }
 
 
-ASAAC_TimedReturnStatus Trigger::waitForTrigger( unsigned long& TriggerState, const ASAAC_TimeInterval& Timeout )
+void Trigger::waitForTrigger( unsigned long& TriggerState, const ASAAC_TimeInterval& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -169,17 +169,15 @@ ASAAC_TimedReturnStatus Trigger::waitForTrigger( unsigned long& TriggerState, co
 		throw OSException( strerror(errno), LOCATION );
 	
 	if ( iErrorCode == ETIMEDOUT ) 
-		return ASAAC_TM_TIMEOUT;
-	
-	return ASAAC_TM_SUCCESS;
+		throw TimeoutException(LOCATION);
 }
 
 
-ASAAC_TimedReturnStatus Trigger::waitForTrigger( const ASAAC_TimeInterval& Timeout )
+void Trigger::waitForTrigger( const ASAAC_TimeInterval& Timeout )
 {
 	unsigned long TriggerState = getTriggerState();
 	
-	return waitForTrigger( TriggerState, Timeout );
+	waitForTrigger( TriggerState, Timeout );
 }
 
 
