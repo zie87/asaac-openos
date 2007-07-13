@@ -637,9 +637,15 @@ void FileManager::readFile(const ASAAC_PrivateId filehandle, ASAAC_Address buffe
 					if (Timeout.isInfinity())
 						result = oal_mq_receive( Data.PosixHandle, (char*)buffer_address, read_count, &Prio );
 					else result = oal_mq_timedreceive( Data.PosixHandle, (char*)buffer_address, read_count, &Prio, &TimeSpecTimeout );
-					
-					if (( result <= 0 ) && ( errno == ETIMEDOUT )) 
-						throw TimeoutException( LOCATION );
+
+					if ( result <= 0 )
+					{
+						if ( errno == ETIMEDOUT ) 
+							throw TimeoutException( LOCATION );
+						
+						if ( errno != EINTR ) 
+							throw OSException( strerror(errno), LOCATION );
+					}
 				} 
 				while (( result <= 0 ) && ( errno == EINTR ));
         	}				
@@ -693,10 +699,16 @@ void FileManager::writeFile(const ASAAC_PrivateId file_handle, const ASAAC_Addre
 						result = oal_mq_send( Data.PosixHandle, (const char*)buffer_address, write_count, 1 );
 					else result = oal_mq_timedsend( Data.PosixHandle, (const char*)buffer_address, write_count, 1, &TimeSpecTimeout );
 					
-					if (( result <= 0 ) && ( errno == ETIMEDOUT )) 
-						throw TimeoutException( LOCATION );
+					if ( result < 0 )
+					{
+						if ( errno == ETIMEDOUT ) 
+							throw TimeoutException( LOCATION );
+						
+						if ( errno != EINTR ) 
+							throw OSException( strerror(errno), LOCATION );
+					}
 				} 
-				while (( result <= 0 ) && ( errno == EINTR ));
+				while (( result < 0 ) && ( errno == EINTR ));
 				
 		        count_written = write_count;
         	}

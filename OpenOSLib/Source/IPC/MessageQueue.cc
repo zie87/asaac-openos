@@ -107,7 +107,7 @@ void MessageQueue::sendMessage( ASAAC_Address BufferReference,
 	try
 	{	
 		unsigned long Written;
-	
+
 		FileManager::getInstance()->writeFile( m_QueueHandle, BufferReference, Size, Written, TimeStamp(Timeout).asaac_Interval() );
 	}
 	catch ( ASAAC_Exception &e )

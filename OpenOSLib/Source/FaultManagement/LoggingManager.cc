@@ -102,25 +102,33 @@ ASAAC_ResourceReturnStatus	LoggingManager::readLog( ASAAC_LogMessageType message
 {
 	if ( m_IsInitialized == false ) 
 		return ASAAC_RS_RESOURCE;
-	
-	oal_off_t SeekResult;
-	
-	if ( log_id == 0 )
+
+	try
 	{
-		SeekResult = oal_lseek( m_LogFileDescriptors[ message_type ], sizeof( ASAAC_CharacterSequence ), SEEK_END );
+		FileManager* FM = FileManager::getInstance();
+			
+		unsigned long NewPosition;
+		
+		if ( log_id == 0 )
+			FM->seekFile( m_LogFileDescriptors[ message_type ], ASAAC_END_OF_FILE, 0, NewPosition );
+		else FM->seekFile( m_LogFileDescriptors[ message_type ], ASAAC_START_OF_FILE, log_id * ASAAC_OS_MAX_STRING_SIZE, NewPosition );
+		
+		long BytesRead;
+		
+		FM->readFile( m_LogFileDescriptors[ message_type ], log_message.data, 
+				ASAAC_OS_MAX_STRING_SIZE, BytesRead, OS_SIMPLE_COMMAND_TIMEOUT );
+		
+		log_message.size = BytesRead;
+		
+		if ( BytesRead != ASAAC_OS_MAX_STRING_SIZE )
+			throw OSException("Message is not complete", LOCATION);
 	}
-	else
+	catch (ASAAC_Exception &e)
 	{
-		SeekResult = oal_lseek( m_LogFileDescriptors[ message_type ], log_id * sizeof( ASAAC_CharacterSequence ), SEEK_SET );
+		log_message = CharSeq("").asaac_str();
+		
+        return e.isResource()?ASAAC_RS_RESOURCE:ASAAC_RS_ERROR;		
 	}
-	
-	if ( SeekResult == -1 ) 
-		return ASAAC_RS_RESOURCE;
-	
-	size_t BytesRead = oal_read( m_LogFileDescriptors[ message_type ], &log_message, sizeof( ASAAC_CharacterSequence ) );
-	
-	if ( BytesRead != sizeof( ASAAC_CharacterSequence ) ) 
-		return ASAAC_RS_ERROR;
 	
 	return ASAAC_RS_SUCCESS;
 }
@@ -133,37 +141,39 @@ ASAAC_ResourceReturnStatus	LoggingManager::writeLog( ASAAC_LogMessageType messag
 	if ( m_IsInitialized == false ) 
 		return ASAAC_RS_RESOURCE;
 	
-	oal_off_t SeekResult;
-	
-	if ( log_id == 0 )
+	try
 	{
-		SeekResult = oal_lseek( m_LogFileDescriptors[ message_type ], 0, SEEK_END );
+		FileManager* FM = FileManager::getInstance();
+		
+		unsigned long NewPosition;
+		
+		if ( log_id == 0 )
+			FM->seekFile( m_LogFileDescriptors[ message_type ], ASAAC_END_OF_FILE, 0, NewPosition );
+		else FM->seekFile( m_LogFileDescriptors[ message_type ], ASAAC_START_OF_FILE, log_id * ASAAC_OS_MAX_STRING_SIZE, NewPosition );
+		
+		long Index;
+		switch(message_type)
+		{
+			case ASAAC_LOG_MESSAGE_TYPE_ERROR:       Index = 0; break;
+	  		case ASAAC_LOG_MESSAGE_TYPE_APPLICATION: Index = 1; break;
+	  		case ASAAC_LOG_MESSAGE_TYPE_GSM: 		 Index = 2; break;
+	  		case ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE: Index = 3; break;
+	  		default: Index = 0; break;
+		}
+		
+		ASAAC_CharacterSequence message = CharSeq(log_message).append( ASAAC_OS_MAX_STRING_SIZE-log_message.size-1, ' ' ).appendLineBreak().asaac_str(); 
+		unsigned long BytesWritten;
+		
+		FM->writeFile(m_LogFileDescriptors[ Index ], message.data, ASAAC_OS_MAX_STRING_SIZE, 
+				BytesWritten, OS_SIMPLE_COMMAND_TIMEOUT );
+		
+		if ( BytesWritten != ASAAC_OS_MAX_STRING_SIZE )
+			throw OSException("Message is not complety written to device", LOCATION);
 	}
-	else
+	catch (ASAAC_Exception &e)
 	{
-		SeekResult = oal_lseek( m_LogFileDescriptors[ message_type ], log_id * sizeof( ASAAC_CharacterSequence ), SEEK_SET );
+        return e.isResource()?ASAAC_RS_RESOURCE:ASAAC_RS_ERROR;		
 	}
-	
-	if ( SeekResult == -1 ) return ASAAC_RS_RESOURCE;
-	
-	long Index;
-	
-	switch(message_type)
-	{
-		case ASAAC_LOG_MESSAGE_TYPE_ERROR:       Index = 0; break;
-  		case ASAAC_LOG_MESSAGE_TYPE_APPLICATION: Index = 1; break;
-  		case ASAAC_LOG_MESSAGE_TYPE_GSM: 		 Index = 2; break;
-  		case ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE: Index = 3; break;
-  		default: Index = 0; break;
-	}
-	
-	const char * msg = CharacterSequence(log_message).c_str();
-	size_t BytesWritten = oal_write( m_LogFileDescriptors[ Index ], msg, log_message.size );
-	
-	char cr = 13; //Carriage Return
-	oal_write( m_LogFileDescriptors[ Index ], &cr, 1 );
-	
-	if ( BytesWritten != sizeof( ASAAC_CharacterSequence ) ) return ASAAC_RS_ERROR;
 	
 	return ASAAC_RS_SUCCESS;
 }
