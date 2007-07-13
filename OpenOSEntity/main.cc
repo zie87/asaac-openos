@@ -83,6 +83,9 @@ int main( char argc, char** argv )
         // Initialize OS
         OpenOS::getInstance()->initialize( entityConfiguration.Flush, LAS_ENTITY, entityConfiguration.CpuId );
         
+        // Register local threads
+        registerThreads();
+        
         // Determine entry points
         parseConfiguration();
 
