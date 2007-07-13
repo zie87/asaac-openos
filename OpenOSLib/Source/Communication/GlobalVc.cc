@@ -277,9 +277,6 @@ ASAAC_ReturnStatus GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& De
 	
 		// Find target Process. On failure, abort with ASAAC_ERROR
 		Process* TargetProcess = ProcessManager::getInstance()->getProcess( Description.global_pid );
-		if ( TargetProcess == 0 ) 
-			throw OSException("Target Process not found.", LOCATION);
-	
 		ProcessStatus ThisState = TargetProcess->getState();
 	
 		// Process must be in stopped or initialized state
@@ -290,26 +287,30 @@ ASAAC_ReturnStatus GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& De
 		// Assign Local Vc to empty LocalVc Slot determined above	
 		NewLocalVc->assign( Description );
 
-		if ( TargetProcess->attachLocalVc( m_Description->global_vc_id, Description.local_vc_id ) != ASAAC_SUCCESS )
+		try
+		{
+			TargetProcess->attachLocalVc( m_Description->global_vc_id, Description.local_vc_id );
+	
+			if ( Description.is_reading == false )
+			{
+				m_Status->SenderVcIndex = NewLocalVcIndex;
+		
+				for ( unsigned Count = 0; Count < Description.number_of_message_buffers; Count ++ )
+				{
+					unsigned long FreeBuffer = getFreeBuffer();
+		
+					NewLocalVc->queueBuffer( FreeBuffer );
+				}
+			}
+			
+			m_Status->NumberOfConnectedVCs ++;
+			m_Status->NumberOfBuffers += Description.number_of_message_buffers;
+		}
+		catch ( ASAAC_Exception &e )
 		{
 			NewLocalVc->unassign();
-			throw OSException("LocalVC couldn't be attached to process.", LOCATION);
+			throw;
 		}
-	
-		if ( Description.is_reading == false )
-		{
-			m_Status->SenderVcIndex = NewLocalVcIndex;
-	
-			for ( unsigned Count = 0; Count < Description.number_of_message_buffers; Count ++ )
-			{
-				unsigned long FreeBuffer = getFreeBuffer();
-	
-				NewLocalVc->queueBuffer( FreeBuffer );
-			}
-		}
-		
-		m_Status->NumberOfConnectedVCs ++;
-		m_Status->NumberOfBuffers += Description.number_of_message_buffers;
 	}	
 	catch(ASAAC_Exception &e)
 	{
@@ -351,15 +352,9 @@ ASAAC_ReturnStatus GlobalVc::removeLocalVc( ASAAC_PublicId ProcessId, ASAAC_Publ
 			throw OSException("LocalVc index not valid." ,LOCATION);		
 		
 		LocalVc* ThisLocalVc = &m_LocalVc[ ThisLocalVcIndex ];
-		if ( ThisLocalVc == NULL ) 
-			throw OSException("LocalVc with dedicated index not found." ,LOCATION);		
 
-		Process* LocalVcProcess = ProcessManager::getInstance()->getProcess( ProcessId );
-		if ( LocalVcProcess == NULL ) 
-			throw OSException("LocalVc Process not available" ,LOCATION);
-					
-		if ( LocalVcProcess->detachLocalVc( LocalVcId ) != ASAAC_SUCCESS ) 
-			throw OSException("detaching local vc from process not possible" ,LOCATION);		
+		Process* LocalVcProcess = ProcessManager::getInstance()->getProcess( ProcessId );					
+		LocalVcProcess->detachLocalVc( LocalVcId ); 
 	
 		m_Status->NumberOfBuffers -= ThisLocalVc->getDescription()->number_of_message_buffers;
 		m_Status->NumberOfConnectedVCs --;

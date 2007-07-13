@@ -1,7 +1,8 @@
+#include "OpenOSObject.hh"
+
 #include "ProcessManagement/ThreadManager.hh"
 #include "ProcessManagement/ProcessManager.hh"
-
-#include "OpenOSObject.hh"
+#include "IPC/BlockingScope.hh"
 
 
 
@@ -23,199 +24,137 @@ ThreadManager::ThreadManager()
 }		
 
 
-ASAAC_ReturnStatus ThreadManager::sleep(const ASAAC_TimeInterval timeout)
+void ThreadManager::initialize()
 {
-	ASAAC_Time t = TimeStamp(timeout).asaac_Time();
-	return ASAAC_APOS_sleepUntil( &t );
+	m_IsInitialized = true;
 }
 
 
-ASAAC_ReturnStatus ThreadManager::sleepUntil(const ASAAC_Time absolute_local_time)
+void ThreadManager::deinitialize()
 {
-	timespec TimeSpecTimeout = TimeStamp(absolute_local_time).timespec_Time();
-	timespec TimeLeft;
-
-	long iError = 0;
-
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	
-	if ( ThisThread != 0 ) ThisThread->setState( ASAAC_WAITING );	
-
-	do {
-	
-		iError = clock_nanosleep( CLOCK_REALTIME, TIMER_ABSTIME, &TimeSpecTimeout, &TimeLeft );
-		
-		if ( iError == EINVAL ) 
-			break;
-		
-	} while ( iError != 0 );
-
-    ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	if ( ThisThread != 0 ) 
-		ThisThread->setState( ASAAC_RUNNING );	
-	
-	return ( iError == 0 ) ? ASAAC_SUCCESS : ASAAC_ERROR;
+	m_IsInitialized = false;
 }
 
 
-ASAAC_ReturnStatus ThreadManager::getMyThreadId(ASAAC_PublicId thread_id)
+bool ThreadManager::isInitialized()
 {
-	Thread*	ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	
-	if ( ThisThread == 0 ) 
-		return ASAAC_ERROR;
-	
-	thread_id = ThisThread->getId();
-	
-	return ASAAC_SUCCESS;
+	return m_IsInitialized;
 }
 
 
-ASAAC_ReturnStatus ThreadManager::startThread(const ASAAC_PublicId thread_id)
+void ThreadManager::sleep(const ASAAC_TimeInterval timeout)
 {
-	try
-	{
-		Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-		
-		if ( ThisProcess == 0 ) 
-			throw OSException("'Current process' not found.", LOCATION);
-		
-		Thread* ThisThread = ThisProcess->getThread( thread_id );
-		
-		if ( ThisThread == 0 ) 
-			throw OSException("Thread not found.", LOCATION);
-			
-		if (ThisThread->start() == ASAAC_ERROR)
-			throw OSException("Thread could not be started.", LOCATION);
-			
-	}
-	catch (ASAAC_Exception &e)
-	{
-		e.raiseError();
-		
-		return ASAAC_ERROR;
-	}
-		
-	return ASAAC_SUCCESS
-	;
+	getCurrentThread()->sleep( timeout );
 }
 
 
-ASAAC_ReturnStatus ThreadManager::suspendSelf()
+void ThreadManager::sleepUntil(const ASAAC_Time absolute_local_time)
 {
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	
-	if ( ThisThread == 0 ) 
-		return ASAAC_ERROR;
-	
-	return ThisThread->suspendSelf();
+	getCurrentThread()->sleepUntil( absolute_local_time );
 }
 
 
-ASAAC_ReturnStatus ThreadManager::stopThread(const ASAAC_PublicId thread_id)
+void ThreadManager::getMyThreadId(ASAAC_PublicId thread_id)
 {
-	Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-	
-	if ( ThisProcess == 0 ) 
-		return ASAAC_ERROR;
-	
-	Thread* ThisThread = ThisProcess->getThread( thread_id );
-	
-	if ( ThisThread == 0 ) 
-		return ASAAC_ERROR;
+	thread_id = getCurrentThread()->getId();
+}
 
-	return ThisThread->stop();
+
+void ThreadManager::startThread(const ASAAC_PublicId thread_id)
+{
+	ProcessManager::getInstance()->getCurrentProcess()->getThread( thread_id )->start();
+}
+
+
+void ThreadManager::suspendSelf()
+{
+	getCurrentThread()->suspendSelf();
+}
+
+
+void ThreadManager::stopThread(const ASAAC_PublicId thread_id)
+{
+	getThread( thread_id )->stop();
 }
 
 	
 void ThreadManager::terminateSelf()
 {
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	
-	if ( ThisThread == 0 ) 
-		throw ASAAC_Exception( "Cannot find thread", LOCATION );
-	
-	ThisThread->terminate();
+	getCurrentThread()->terminate();
 }
 
 	
-ASAAC_ReturnStatus ThreadManager::lockThreadPreemption(unsigned long lock_level)
+void ThreadManager::lockThreadPreemption(unsigned long lock_level)
 {
-	Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-	
-	if ( ThisProcess == 0 ) 
-		return ASAAC_ERROR;
-	
-	return ThisProcess->lockThreadPreemption( lock_level );
+	ProcessManager::getInstance()->getCurrentProcess()->lockThreadPreemption( lock_level );
 }
 
 
-ASAAC_ReturnStatus ThreadManager::unlockThreadPreemption(unsigned long lock_level)
+void ThreadManager::unlockThreadPreemption(unsigned long lock_level)
 {
-	Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-	
-	if ( ThisProcess == 0 ) 
-		return ASAAC_ERROR;
-	
-	return ThisProcess->unlockThreadPreemption( lock_level );
+	ProcessManager::getInstance()->getCurrentProcess()->unlockThreadPreemption( lock_level );
 }
 
 	
-ASAAC_ReturnStatus ThreadManager::getThreadStatus(const ASAAC_PublicId thread_id, ASAAC_ThreadStatus thread_status)
+void ThreadManager::getThreadStatus(const ASAAC_PublicId thread_id, ASAAC_ThreadStatus thread_status)
 {
-	Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-	
-	if ( ThisProcess == 0 ) 
-		return ASAAC_ERROR;
-	
-	Thread* ThisThread = ThisProcess->getThread( thread_id );
-	
-	if ( ThisThread == 0 ) 
-		return ASAAC_ERROR;
-
-	return ThisThread->getState( thread_status );
+	getThread( thread_id )->getState( thread_status );
 }
 
 
-ASAAC_ReturnStatus ThreadManager::createThread(const ASAAC_ThreadDescription thread_desc)
+void ThreadManager::createThread(const ASAAC_ThreadDescription thread_desc)
 {
-	Process* TargetProcess = ProcessManager::getInstance()->getProcess( thread_desc.global_pid );
-	
-	if ( TargetProcess == 0 ) return ASAAC_ERROR;
-
-	return TargetProcess->createThread( thread_desc );
+	ProcessManager::getInstance()->getProcess( thread_desc.global_pid )->createThread( thread_desc );
 }
 
 
-ASAAC_ReturnStatus ThreadManager::setSchedulingParameters(const ASAAC_ThreadSchedulingInfo thread_scheduling_info)
+void ThreadManager::setSchedulingParameters(const ASAAC_ThreadSchedulingInfo thread_scheduling_info)
 {
-	Process* TargetProcess = ProcessManager::getInstance()->getProcess( thread_scheduling_info.global_pid );
-	
-	if ( TargetProcess == 0 ) 
-		return ASAAC_ERROR;
-	
-	Thread* TargetThread = TargetProcess->getThread( thread_scheduling_info.thread_id );
-	
-	if ( TargetThread == 0 ) 
-		return ASAAC_ERROR;
-
-	return TargetThread->setSchedulingParameters( thread_scheduling_info );
+	getThread(thread_scheduling_info.global_pid, thread_scheduling_info.thread_id )->setSchedulingParameters( thread_scheduling_info );
 }
 
 
-ASAAC_ReturnStatus ThreadManager::getThreadState(const ASAAC_PublicId process_id, const ASAAC_PublicId thread_id, ASAAC_ThreadStatus &thread_status)	
+void ThreadManager::getThreadState(const ASAAC_PublicId process_id, const ASAAC_PublicId thread_id, ASAAC_ThreadStatus &thread_status)	
 {
-	Process* TargetProcess = ProcessManager::getInstance()->getProcess( process_id );
-	
-	if ( TargetProcess == 0 ) 
-		return ASAAC_ERROR;
-	
-	Thread* TargetThread = TargetProcess->getThread( thread_id );
-	
-	if ( TargetThread == 0 ) 
-		return ASAAC_ERROR;
-
-	return TargetThread->getState( thread_status );
+	getThread( process_id, thread_id )->getState( thread_status );
 }
 
 
+Thread* ThreadManager::getCurrentThread( const bool do_throw )
+{
+	if (m_IsInitialized == false)
+	{
+		if (do_throw == true)
+			throw UninitializedObjectException(LOCATION);
+		else return NULL;
+	}
+
+	Process *P = ProcessManager::getInstance()->getCurrentProcess( do_throw );
+	
+	if ( P == NULL )
+		return NULL;
+	
+	return P->getCurrentThread( do_throw );
+}
+
+
+Thread* ThreadManager::getThread( ASAAC_PublicId ThreadId, const bool do_throw )
+{
+	Process *P = ProcessManager::getInstance()->getCurrentProcess( do_throw );
+	
+	if (P == NULL)
+		return NULL;
+	
+	return P->getThread(ThreadId);
+}
+
+
+Thread* ThreadManager::getThread( ASAAC_PublicId ProcessId, ASAAC_PublicId ThreadId, const bool do_throw )
+{
+	Process *P = ProcessManager::getInstance()->getProcess( do_throw );
+	
+	if (P == NULL)
+		return NULL;
+	
+	return P->getThread(ThreadId);
+}

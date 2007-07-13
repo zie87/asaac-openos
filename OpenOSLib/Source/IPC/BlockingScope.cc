@@ -1,20 +1,20 @@
 #include "BlockingScope.hh"
 
-#include "ProcessManagement/ProcessManager.hh"
+#include "ProcessManagement/ThreadManager.hh"
 #include "OpenOSObject.hh"
 
 BlockingScope::BlockingScope()
 {
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
+	Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread( false );
 	
-	if ( ThisThread != 0 ) 
+	if ( ThisThread != NULL ) 
 		ThisThread->setState( ASAAC_WAITING );
 }
 
 BlockingScope::~BlockingScope()
 {
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
+	Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread( false );
 	
-	if ( ThisThread != 0 ) 
+	if ( ThisThread != NULL ) 
 		ThisThread->setState( ASAAC_RUNNING );
 }

@@ -4,6 +4,7 @@
 #include "OpenOSObject.hh"
 
 #include "ProcessManagement/ProcessManager.hh"
+#include "ProcessManagement/ThreadManager.hh"
 #include "ProcessManagement/Process.hh"
 #include "ProcessManagement/Thread.hh"
 
@@ -81,14 +82,10 @@ namespace ASAAC
 			try
 			{
 				ProcessManager *PM = ProcessManager::getInstance();
+				ThreadManager *TM = ThreadManager::getInstance();
 			
 				Process *P = PM->getCurrentProcess();
-				if (P == 0)
-					throw FatalException("Current Process not found", LOCATION);
-			
-				Thread *T = PM->getCurrentThread();
-				if (T == 0)
-					throw FatalException("Current Thread not found", LOCATION);
+				Thread *T = TM->getCurrentThread();
 			
 				ASAAC_PublicId currentProcessId = P->getId();
 				ASAAC_PublicId currentThreadId = T->getId();

@@ -84,9 +84,7 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 		m_IsInitialized = true;	
 
 		if ( IsServer )
-		{
 			OpenOS::getInstance()->registerCpu(CurrentCpuId);
-		}
 		
 		m_CurrentCpuId = CurrentCpuId;			
 		
@@ -215,13 +213,13 @@ Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription& Descri
 		bool IsMaster = true;
 		 
 		bool IsServer; 
-		bool UseInternalCommandInterface;
+		SimpleCommandInterface *CommandInterface;
 		MemoryLocation Location;
 		
 		if ( Description.global_pid == OS_PROCESSID_MASTER )
 		{
 			IsServer = true;
-			UseInternalCommandInterface = false;
+			CommandInterface = &m_CommandInterface;
 			Location = LOCAL;
 			
 			Index = getProcessIndex( Description.global_pid );
@@ -232,7 +230,7 @@ Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription& Descri
 		else
 		{
 			IsServer = false;
-			UseInternalCommandInterface = true;
+			CommandInterface = NULL;
 			Location = SHARED;
 					
 			Index = getProcessIndex( Description.global_pid );
@@ -252,7 +250,7 @@ Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription& Descri
 
 		m_ProcessId[Index] = Description.global_pid;
 		
-		m_ProcessObject[Index].initialize( IsServer, IsMaster, UseInternalCommandInterface, Description, Location );
+		m_ProcessObject[Index].initialize( IsServer, IsMaster, Description, Location, CommandInterface );
 			
 		return &m_ProcessObject[Index];
 	}
@@ -265,10 +263,14 @@ Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription& Descri
 }
 
 
-Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, long &Index )
+Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, const bool do_throw )
 {
 	if (m_IsInitialized == false) 
-		throw UninitializedObjectException(LOCATION);
+	{
+		if (do_throw == true)
+			throw UninitializedObjectException(LOCATION);
+		else return NULL;
+	}
 	
 	Process* Object = NULL;
 	
@@ -279,7 +281,7 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, long &Index )
 		if ((ProcessId < OS_PROCESSID_MIN) || (ProcessId > OS_PROCESSID_MAX))
 			throw OSException( (ErrorString << "ProcessId is out of range (" << CharSeq(ProcessId) << ")").c_str(), LOCATION);
 
-		Index = getProcessIndex( ProcessId );
+		signed long Index = getProcessIndex( ProcessId );
 		
 		if ( Index == -1 ) 
 			throw OSException("Process not found", LOCATION);
@@ -294,12 +296,12 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, long &Index )
 			if (Object->getId() != ProcessId)
 			{
 				Object->deinitialize();
-				Object->initialize( false, false, true, Description, SHARED );
+				Object->initialize( false, false, Description, SHARED, NULL );
 			}	
 		}
 		else
 		{
-			Object->initialize( false, false, true, Description, SHARED );
+			Object->initialize( false, false, Description, SHARED, NULL );
 		}
 	}
 	catch (ASAAC_Exception &e)
@@ -307,20 +309,19 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, long &Index )
 		CharacterSequence ErrorString;
 		ErrorString << "Error configuring process object (pid = " << CharSeq(ProcessId) << ")";
 		e.addPath( ErrorString.c_str(), LOCATION);
-		e.raiseError();
-		
-		Index = -1;
-		return NULL;
+
+		if (do_throw)
+		{
+			throw e;
+		}
+		else
+		{
+			e.raiseError();
+			return NULL;
+		}
 	}
 	
 	return Object;
-}
-
-
-Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId )
-{
-	long dummy;
-	return getProcess( ProcessId, dummy );
 }
 
 
@@ -374,8 +375,11 @@ void ProcessManager::createProcess( const ASAAC_ProcessDescription& Description 
 				
 			CreatedProcess->refreshPosixPid();
 					
-			if ( d.Return == ASAAC_ERROR )
+			if ( d.Return == ASAAC_TM_ERROR )
 				throw OSException("process entity reported an error while creating a process", LOCATION);
+
+			if ( d.Return == ASAAC_TM_TIMEOUT )
+				throw TimeoutException("process entity reported an timeout event while creating a process", LOCATION);
 		}
 	}
 	catch ( ASAAC_Exception &e )
@@ -395,38 +399,43 @@ void ProcessManager::destroyProcess( const ASAAC_PublicId& ProcessId )
 	try
 	{
 		if ( ProcessId == OS_PROCESSID_MASTER )
+		{
 			OpenOS::getInstance()->destroyAllEntities();
-	
-		CharacterSequence ErrorString;
-	
-		if ( m_IsServer )
-		{		
-			Process* P = getProcess( ProcessId );
-			
-			if ( P == NULL ) 
-				throw OSException("Process not found", LOCATION);
-			
-			if (P->getProcessDescription().cpu_id == this->getCurrentCpuId())
-			{
-				P->destroy();
+		}
+		else
+		{
+		
+			CharacterSequence ErrorString;
+		
+			if ( m_IsServer )
+			{		
+				Process* P = getProcess( ProcessId );
+				
+				if ( P == NULL ) 
+					throw OSException("Process not found", LOCATION);
+				
+				if (P->getProcessDescription().cpu_id == this->getCurrentCpuId())
+				{
+					P->destroy();
+				}
+				else //different CPU from current one
+				{
+					CommandData d;		
+					d.Data.Description.global_pid = ProcessId;
+					d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
+					
+					OpenOS::getInstance()->sendCommand( P->getProcessDescription().cpu_id, CMD_DESTROY_PROCESS, d.ReturnBuffer, d.Data.Timeout );
+				}
 			}
-			else //different CPU from current one
+			else //not server
 			{
-				CommandData d;		
+				CommandData d;
+		
 				d.Data.Description.global_pid = ProcessId;
 				d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
-				
-				OpenOS::getInstance()->sendCommand( P->getProcessDescription().cpu_id, CMD_DESTROY_PROCESS, d.ReturnBuffer, d.Data.Timeout );
+		
+				sendCommand( CMD_DESTROY_PROCESS, d.ReturnBuffer, d.Data.Timeout );
 			}
-		}
-		else //not server
-		{
-			CommandData d;
-	
-			d.Data.Description.global_pid = ProcessId;
-			d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
-	
-			sendCommand( CMD_DESTROY_PROCESS, d.ReturnBuffer, d.Data.Timeout );
 		}
 	}
 	catch ( ASAAC_Exception &e )
@@ -440,6 +449,9 @@ void ProcessManager::destroyProcess( const ASAAC_PublicId& ProcessId )
 
 void ProcessManager::runProcess(const ASAAC_PublicId process_id)
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	Process* TargetProcess = ProcessManager::getInstance()->getProcess( process_id );
 
 	if ( TargetProcess == NULL ) 
@@ -451,6 +463,9 @@ void ProcessManager::runProcess(const ASAAC_PublicId process_id)
 
 void ProcessManager::stopProcess(const ASAAC_PublicId process_id)
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	Process* TargetProcess = ProcessManager::getInstance()->getProcess( process_id );
 
 	if ( TargetProcess == NULL ) 
@@ -462,7 +477,10 @@ void ProcessManager::stopProcess(const ASAAC_PublicId process_id)
 
 void ProcessManager::releaseProcess( ASAAC_PublicId ProcessId )
 {
-    long Index = getProcessIndex( ProcessId );
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	long Index = getProcessIndex( ProcessId );
     
     if (Index != -1)
     {
@@ -476,6 +494,9 @@ void ProcessManager::releaseProcess( ASAAC_PublicId ProcessId )
     
 void ProcessManager::releaseAllProcesses()
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	for ( long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
 	{
 		if ( m_ProcessObject[ Index ].isInitialized() ) 
@@ -488,6 +509,9 @@ void ProcessManager::releaseAllProcesses()
     
 void ProcessManager::releaseAllClientProcesses()
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	for ( long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
 	{
 		if ( (Index != m_CurrentProcessIndex) && (m_ProcessObject[ Index ].isInitialized()) ) 
@@ -498,9 +522,12 @@ void ProcessManager::releaseAllClientProcesses()
 
 void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	try
 	{
-		Process *P = getCurrentProcess();
+		Process *P = getCurrentProcess( false );
 		
 		if (P != NULL)
 			P->setServer( false );
@@ -526,32 +553,23 @@ void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 }
 
 
-Process* ProcessManager::getCurrentProcess()
+Process* ProcessManager::getCurrentProcess( const bool do_throw )
 {
-	if (m_IsInitialized == false) 
-		return NULL;
-	
-	if ( (m_CurrentProcessIndex < 0) || (m_CurrentProcessIndex >= OS_MAX_NUMBER_OF_PROCESSES) )	
-		return NULL;
-		
-	return (&m_ProcessObject[m_CurrentProcessIndex]);
-}
-
-
-Thread* ProcessManager::getCurrentThread()
-{
-	if (m_IsInitialized == false) 
-		return NULL;
-
-	Process *P = getCurrentProcess();
-	
-	if (P != NULL)
+	if (m_IsInitialized == false)
 	{
-		if (P->isInitialized())
-			return getCurrentProcess()->getCurrentThread();
+		if (do_throw == true)
+			throw UninitializedObjectException(LOCATION);
 		else return NULL;
 	}
-	else return NULL;
+	
+	if ( (m_CurrentProcessIndex < 0) || (m_CurrentProcessIndex >= OS_MAX_NUMBER_OF_PROCESSES) )	
+	{
+		if (do_throw == true)
+			throw OSException("CurrentProcess object not available", LOCATION);
+		else return NULL;
+	}
+		
+	return (&m_ProcessObject[m_CurrentProcessIndex]);
 }
 
 

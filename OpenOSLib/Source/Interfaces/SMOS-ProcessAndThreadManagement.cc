@@ -24,7 +24,19 @@ ASAAC_TimedReturnStatus ASAAC_SMOS_createProcess(const ASAAC_ProcessDescription*
 
 ASAAC_ReturnStatus ASAAC_SMOS_createThread(const ASAAC_ThreadDescription* thread_desc)
 {
-	return ThreadManager::getInstance()->createThread( *thread_desc );
+	try
+	{
+		ThreadManager::getInstance()->createThread( *thread_desc );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+	    e.addPath("SMOS::createThread", LOCATION);
+	    e.raiseError();
+	    
+	    return ASAAC_ERROR;
+	}
+	
+	return ASAAC_SUCCESS;
 }
 
 
@@ -84,13 +96,37 @@ ASAAC_ReturnStatus ASAAC_SMOS_destroyProcess(const ASAAC_PublicId process_id)
 
 ASAAC_ReturnStatus ASAAC_SMOS_setSchedulingParameters(const ASAAC_ThreadSchedulingInfo* thread_scheduling_info)
 {
-	return ThreadManager::getInstance()->setSchedulingParameters( *thread_scheduling_info );
+	try
+	{
+		ThreadManager::getInstance()->setSchedulingParameters( *thread_scheduling_info );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+	    e.addPath("SMOS::setSchedulingParameters", LOCATION);
+	    e.raiseError();
+	    
+	    return ASAAC_ERROR;
+	}
+	
+	return ASAAC_SUCCESS;
 }
 
 
 ASAAC_ReturnStatus ASAAC_SMOS_getThreadState(const ASAAC_PublicId process_id, const ASAAC_PublicId thread_id, ASAAC_ThreadStatus* thread_status)
 {
-	return ThreadManager::getInstance()->getThreadState( process_id, thread_id, *thread_status );
+	try
+	{
+		ThreadManager::getInstance()->getThreadState( process_id, thread_id, *thread_status );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+	    e.addPath("SMOS::getThreadState", LOCATION);
+	    e.raiseError();
+	    
+	    return ASAAC_ERROR;
+	}
+	
+	return ASAAC_SUCCESS;
 }
 
 

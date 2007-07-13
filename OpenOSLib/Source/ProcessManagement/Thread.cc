@@ -1,6 +1,7 @@
 #include "Thread.hh"
 #include "Process.hh"
 #include "ProcessManager.hh"
+#include "ThreadManager.hh"
 
 #include "Managers/SignalManager.hh"
 
@@ -31,14 +32,14 @@ public:
 				return;
 			}
 	
-			Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
+			Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
 
-			if ( ThisThread != 0 ) 
+			if ( ThisThread != NULL ) 
 				ThisThread->setSuspendPending( false );
 			
 			SignalManager::getInstance()->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
 	
-			if ( ThisThread != 0 ) 
+			if ( ThisThread != NULL ) 
 				ThisThread->setSuspendPending( false );
 		}
 		
@@ -52,7 +53,7 @@ class ThreadKillCallback : public Callback {
 public:	
 		virtual void call( void* Data ) 
 		{ 
-			Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
+			Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
 			
 			if ( ThisThread != 0 ) 
 				ThisThread->terminateSelf(); 
@@ -164,7 +165,7 @@ void Thread::exitProtectedScope(ProtectedScope *ps)
 }
 
 
-ASAAC_ReturnStatus Thread::assign( const ASAAC_ThreadDescription& Description )
+void Thread::assign( const ASAAC_ThreadDescription& Description )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -177,8 +178,6 @@ ASAAC_ReturnStatus Thread::assign( const ASAAC_ThreadDescription& Description )
 	m_ThreadData->PosixThread 			= 0;
 	m_ThreadData->Status				= ASAAC_DORMANT;
 	m_ThreadData->SuspendLevel			= 0;
-	
-	return ASAAC_SUCCESS;
 }
 
 	
@@ -226,29 +225,25 @@ ASAAC_PublicId Thread::getId()
 }
 
 
-ASAAC_ReturnStatus Thread::setState( ASAAC_ThreadStatus State )
+void Thread::setState( ASAAC_ThreadStatus State )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
 	m_ThreadData->Status = State;
-	
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus Thread::getState( ASAAC_ThreadStatus& State )
+void Thread::getState( ASAAC_ThreadStatus& State )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
 	State = m_ThreadData->Status;
-	
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus Thread::setSchedulingParameters( const ASAAC_ThreadSchedulingInfo& SchedulingInfo )
+void Thread::setSchedulingParameters( const ASAAC_ThreadSchedulingInfo& SchedulingInfo )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -256,7 +251,7 @@ ASAAC_ReturnStatus Thread::setSchedulingParameters( const ASAAC_ThreadScheduling
 	ProcessStatus ProcessState = m_ParentProcess->getState();
 	
 	if ( ProcessState == PROCESS_RUNNING )  
-        return ASAAC_ERROR;
+        throw OSException("Process is in state PROCESS_RUNNING", LOCATION);
 
 	m_ThreadData->SchedulingInfo = SchedulingInfo;
 		
@@ -264,12 +259,10 @@ ASAAC_ReturnStatus Thread::setSchedulingParameters( const ASAAC_ThreadScheduling
 	{
 		// TODO: Set scheduling parameters
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus Thread::start()
+void Thread::start()
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -305,58 +298,61 @@ ASAAC_ReturnStatus Thread::start()
 				  );
 	
 	m_ThreadData->Status = ASAAC_RUNNING;
-		  
-	return ASAAC_SUCCESS;
 }
 
 
 void* Thread::ThreadStartWrapper( void* RealAddress )
 {
-	// TODO: Maybe add 'dormant' state to thread, if createThread is changed to
-	//        actually CREATE the thread
-	
-	// if the preemption level is > 0, this thread needs to wait for the release signal,
-	// just like all threads that have been locked.
-	
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
-	
-	// Thread Id 0 ( Error Handler ) shall not be subject to suspension
-	if (( ThisThread->getId() != 0 ) &&
-		( ThisThread->m_ThreadData->SuspendLevel > 0 ))
-	{
-		// emulate a received 'suspend' call.
-		SuspendCallback.call( 0 );
-	}
-	
-	EntryPointAddr ThisEntryPoint = EntryPointAddr(RealAddress);
-	
-	void* result = 0;
-	
+	void* Result = 0;
+
 	try
 	{
-		result = ThisEntryPoint( 0 );
+		// TODO: Maybe add 'dormant' state to thread, if createThread is changed to
+		//        actually CREATE the thread
+		
+		// if the preemption level is > 0, this thread needs to wait for the release signal,
+		// just like all threads that have been locked.
+		
+		Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
+		
+		// Thread Id 0 ( Error Handler ) shall not be subject to suspension
+		if (( ThisThread->getId() != 0 ) &&
+			( ThisThread->m_ThreadData->SuspendLevel > 0 ))
+		{
+			// emulate a received 'suspend' call.
+			SuspendCallback.call( 0 );
+		}
+		
+		EntryPointAddr ThisEntryPoint = EntryPointAddr(RealAddress);
+			
+		Result = ThisEntryPoint( 0 );
+
+		ThisThread = ThreadManager::getInstance()->getCurrentThread();
+
+		ThisThread->setState(ASAAC_DORMANT);
 	}
-    catch ( ASAAC_Exception& e )
+    catch ( ASAAC_Exception &e )
     {
-        e.raiseError();
+    	e.addPath("Caught exception in main loop of thread", LOCATION);
+    	e.raiseError();
     }
-	
-	ThisThread = ProcessManager::getInstance()->getCurrentThread();
-    if ( ThisThread != 0 ) 
-        ThisThread->setState(ASAAC_DORMANT);
-	
-	return result;
+    catch ( ... )
+    {
+        OSException("Caught exception in main loop of thread", LOCATION).raiseError();
+    }
+		
+	return Result;
 }
 
 
 
-ASAAC_ReturnStatus Thread::stop()
+void Thread::stop()
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
 	if ( m_ThreadData->Status == ASAAC_DORMANT ) 
-        return ASAAC_ERROR;
+		throw OSException("Thread is in state ASAAC_DORMANT", LOCATION);
 	
 	oal_thread_cancel( m_ThreadData->PosixThread );
 
@@ -366,26 +362,22 @@ ASAAC_ReturnStatus Thread::stop()
 	waitForTermination();
 		
 	m_ThreadData->Status = ASAAC_DORMANT;
-	
-	return ASAAC_SUCCESS;
 }
 	
 	
-ASAAC_ReturnStatus	Thread::waitForTermination()
+void Thread::waitForTermination()
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
 	if ( isCurrentThread() ) 
-        return ASAAC_ERROR;
+		throw OSException("A thread cannot wait for its own termination", LOCATION);
 	
 	oal_thread_join( m_ThreadData->PosixThread, 0 );
-	
-	return ASAAC_SUCCESS;
 }
 	
 
-ASAAC_ReturnStatus Thread::suspend()
+void Thread::suspend()
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -425,32 +417,30 @@ ASAAC_ReturnStatus Thread::suspend()
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.raiseError();
+		e.addPath("Eror suspending a thread", LOCATION);
 		
-		return ASAAC_ERROR;
+		throw;
 	}
-		
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus Thread::resume()
+void Thread::resume()
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
 	if ( isCurrentThread() ) 
-		return ASAAC_ERROR;
+		throw OSException("A thread cannot resume itself", LOCATION);
 	
 	ProtectedScope Access( "Resuming a thread", *(m_ParentProcess->getSemaphore()) );
 
 	if ( m_ThreadData->SuspendLevel == 0 ) 
-		return ASAAC_ERROR;
+		throw OSException("Suspend level is zero", LOCATION);
 	
 	m_ThreadData->SuspendLevel--;
 
 	if ( m_ThreadData->Status == ASAAC_DORMANT ) 
-		return ASAAC_ERROR;
+		throw OSException("Thread is in state ASAAC_DORMANT", LOCATION);
 	
 	if ( m_ThreadData->SuspendLevel == 0 )
 	{
@@ -463,8 +453,6 @@ ASAAC_ReturnStatus Thread::resume()
 				 sched_yield(); 
 			}
 	}
-		
-	return ASAAC_SUCCESS;
 }
 		
 
@@ -486,31 +474,30 @@ void Thread::setSuspendPending( bool Value )
 }
 
 
-ASAAC_ReturnStatus Thread::suspendSelf()
+void Thread::suspendSelf()
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
+	if ( isCurrentThread() == false ) 
+		throw OSException("This thread object is not responsible for the current one", LOCATION);
+
 	if ( m_ParentProcess->getLockLevel() > 0 )
-	{
-		return ASAAC_ERROR;
-	}
+		throw OSException("The lock level of the thread must be zero", LOCATION);
 	
 	// Todo: What is a "release condition" ? It's specified in 11.4.1.5 of STANAG, but nowhere else.
 	
 	oal_sched_yield();
-	
-	return ASAAC_SUCCESS;
 }	
 	
 
-ASAAC_ReturnStatus Thread::terminateSelf()
+void Thread::terminateSelf()
 {
-    if (m_IsInitialized == false) 
+    if ( m_IsInitialized == false ) 
         throw UninitializedObjectException(LOCATION);
 
-	if (! isCurrentThread() ) 
-        return ASAAC_ERROR;
+	if ( isCurrentThread() == false ) 
+		throw OSException("This thread object is not responsible for the current one", LOCATION);
 	
 //	if ( m_ParentProcess->getLockLevel() > 0 ) return ASAAC_ERROR;
 	
@@ -520,23 +507,58 @@ ASAAC_ReturnStatus Thread::terminateSelf()
 }
 
 
-ASAAC_ReturnStatus Thread::terminate()
+void Thread::terminate()
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
 	if ( isCurrentThread() ) 
-        return ASAAC_ERROR;
+		throw OSException("A thread cannot terminate itself using this function", LOCATION);
 
 	if (m_ThreadData->Status == ASAAC_DORMANT)
-		return ASAAC_ERROR;
+		throw OSException("The thread is in state ASAAC_DORMANT", LOCATION);
 		
 	m_ThreadData->Status = ASAAC_DORMANT;
 	
 	oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_KILL );
-	return ASAAC_SUCCESS;
 }
 
+
+void Thread::sleep(const ASAAC_TimeInterval timeout)
+{
+    sleepUntil( TimeStamp(timeout).asaac_Time() );
+}
+
+
+void Thread::sleepUntil(const ASAAC_Time absolute_local_time)
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+	if ( isCurrentThread() == false ) 
+		throw OSException("This thread object is not responsible for the current one", LOCATION);
+
+	timespec TimeSpecTimeout = TimeStamp(absolute_local_time).timespec_Time();
+	timespec TimeLeft;
+
+	long iError = 0;
+
+	setState( ASAAC_WAITING );
+
+	do 
+	{
+		iError = clock_nanosleep( CLOCK_REALTIME, TIMER_ABSTIME, &TimeSpecTimeout, &TimeLeft );
+		
+		if ( iError == EINVAL ) 
+			break;
+		
+	} while ( iError != 0 );
+	
+	setState( ASAAC_RUNNING );
+	
+	if ( iError != 0 ) 
+		throw OSException( strerror(errno), LOCATION ); 
+}
 
 
 size_t Thread::predictSize()

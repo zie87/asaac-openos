@@ -10,13 +10,11 @@
 
 EventManager::EventManager() : m_IsInitialized(false)
 {
-	initialize();
 }
 
 
 EventManager::~EventManager()
 {
-	deinitialize();
 }
 
 

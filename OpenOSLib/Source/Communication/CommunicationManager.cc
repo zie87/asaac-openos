@@ -4,6 +4,7 @@
 
 #include "Managers/FileNameGenerator.hh"
 #include "ProcessManagement/ProcessManager.hh"
+#include "ProcessManagement/ThreadManager.hh"
 #include "TwoWayCommunication.hh"
 
 
@@ -649,14 +650,10 @@ ASAAC_TimedReturnStatus CommunicationManager::getPMData(ASAAC_PublicId &vc_id, A
 
 		//Check current process environment
 		ProcessManager *PM = ProcessManager::getInstance();
+		ThreadManager *TM = ThreadManager::getInstance();
 	
-		Process *P = PM->getCurrentProcess();
-		if (P == 0)
-			throw FatalException("Current process not found", LOCATION);
-	
-		Thread *T = PM->getCurrentThread();
-		if (T == 0)
-			throw FatalException("Current thread not found", LOCATION);
+		Process *P = PM->getCurrentProcess();	
+		Thread *T = TM->getCurrentThread();
 	
 		ASAAC_PublicId currentProcessId = P->getId();
 		ASAAC_PublicId currentThreadId = T->getId();
@@ -719,14 +716,10 @@ ASAAC_ReturnStatus 		CommunicationManager::returnPMData(const ASAAC_PublicId vc_
 	{
 		//Check current process environment
 		ProcessManager *PM = ProcessManager::getInstance();
+		ThreadManager *TM = ThreadManager::getInstance();
 	
 		Process *P = PM->getCurrentProcess();
-		if (P == 0)
-			throw FatalException("Current Process not found", LOCATION);
-	
-		Thread *T = PM->getCurrentThread();
-		if (T == 0)
-			throw FatalException("Current Thread not found", LOCATION);
+		Thread *T = TM->getCurrentThread();
 	
 		ASAAC_PublicId currentProcessId = P->getId();
 		ASAAC_PublicId currentThreadId = T->getId();

@@ -53,9 +53,9 @@ public:
 	void     stopProcess(const ASAAC_PublicId process_id);
 
 	long     getProcessIndex( ASAAC_PublicId ProcessId );
-	Process* getProcess( ASAAC_PublicId ProcessId, long &Index );
+
 	//! get process instance
-	Process* getProcess( ASAAC_PublicId ProcessId );
+	Process* getProcess( ASAAC_PublicId ProcessId, const bool do_throw = true );
 	/*!< This function returns a reference to the process instance handling
 	 *   the process with the indicated ProcessId, if such a process is
 	 *   a slave of the current process, or the current process itself.
@@ -75,10 +75,7 @@ public:
     void     setCurrentProcess( ASAAC_PublicId ProcessId );
 	
 	//! get reference to current process' controlling Process instance
-	Process* getCurrentProcess();
-	
-	//! get reference to current thread's controlling Thread instance
-	Thread*  getCurrentThread();
+	Process* getCurrentProcess(  const bool do_throw = true );
 	
 	//! forward for SimpleCommandInterface::addCommandHandler()
 	void 	 addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler );

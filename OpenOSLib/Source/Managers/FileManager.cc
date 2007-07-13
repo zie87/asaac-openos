@@ -85,6 +85,7 @@ void FileManager::deinitialize( const bool do_throw )
 
 FileManager::~FileManager()
 {
+	deinitialize();
 }
 
 

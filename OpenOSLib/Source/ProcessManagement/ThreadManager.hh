@@ -3,6 +3,7 @@
 
 #include "OpenOSIncludes.hh"
 
+#include "ProcessManager.hh"
 
 class ThreadManager
 {
@@ -15,38 +16,57 @@ public:
 	//! destructor
 	virtual ~ThreadManager();	
 
-
+	void initialize();
+	void deinitialize();
+	bool isInitialized();
+	
 	// APOS Calls
-	ASAAC_ReturnStatus sleep(const ASAAC_TimeInterval timeout);
+	void sleep(const ASAAC_TimeInterval timeout);
 		
-	ASAAC_ReturnStatus sleepUntil(const ASAAC_Time absolute_local_time);
+	void sleepUntil(const ASAAC_Time absolute_local_time);
 	
-	ASAAC_ReturnStatus getMyThreadId(ASAAC_PublicId thread_id);
+	void getMyThreadId(ASAAC_PublicId thread_id);
 	
-	ASAAC_ReturnStatus startThread(const ASAAC_PublicId thread_id);
+	void startThread(const ASAAC_PublicId thread_id);
 
-	ASAAC_ReturnStatus suspendSelf();
+	void suspendSelf();
 	
-	ASAAC_ReturnStatus stopThread(const ASAAC_PublicId thread_id);
+	void stopThread(const ASAAC_PublicId thread_id);
 		
 	void terminateSelf();
 		
-	ASAAC_ReturnStatus lockThreadPreemption(unsigned long lock_level);
+	void lockThreadPreemption(unsigned long lock_level);
 	
-	ASAAC_ReturnStatus unlockThreadPreemption(unsigned long lock_level);
+	void unlockThreadPreemption(unsigned long lock_level);
 		
-	ASAAC_ReturnStatus getThreadStatus(const ASAAC_PublicId thread_id, ASAAC_ThreadStatus thread_status);
+	void getThreadStatus(const ASAAC_PublicId thread_id, ASAAC_ThreadStatus thread_status);
 	
 	
 	// SMOS Calls
-	ASAAC_ReturnStatus createThread(const ASAAC_ThreadDescription thread_desc);
+	void createThread(const ASAAC_ThreadDescription thread_desc);
 	
-	ASAAC_ReturnStatus setSchedulingParameters(const ASAAC_ThreadSchedulingInfo thread_scheduling_info);
+	void setSchedulingParameters(const ASAAC_ThreadSchedulingInfo thread_scheduling_info);
 
-	ASAAC_ReturnStatus getThreadState(const ASAAC_PublicId process_id, const ASAAC_PublicId thread_id, ASAAC_ThreadStatus &thread_status);	
+	void getThreadState(const ASAAC_PublicId process_id, const ASAAC_PublicId thread_id, ASAAC_ThreadStatus &thread_status);
+	
+	
+	// Access
+	
+	//! get reference to current thread's controlling Thread instance
+	Thread* getCurrentThread( const bool do_throw = true );
+
+	//! get reference to thread defined by current process and ThreadId
+	Thread* getThread( ASAAC_PublicId ThreadId, const bool do_throw = true );
+
+	//! get reference to thread defined by ProcessId and ThreadId
+	Thread* getThread( ASAAC_PublicId ProcessId, ASAAC_PublicId ThreadId, const bool do_throw = true );
 
 private:
-	ThreadManager();		
+	ThreadManager();
+	
+	bool m_IsInitialized;
 };
 
 #endif /*THREADMANAGER_HH_*/
+
+

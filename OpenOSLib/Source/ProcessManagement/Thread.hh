@@ -19,7 +19,7 @@ public:
 	virtual ~Thread();
 
 	//! explicit initialization
-	void initialize( Allocator* ThisAllocator, bool IsMaster, Process* ParentProcess );
+	void 		initialize( Allocator* ThisAllocator, bool IsMaster, Process* ParentProcess );
 	/*!< This function allocates the memory required for the storing of
 	 *   thread configuration and control of one thread in a process.
 	 * 
@@ -41,10 +41,10 @@ public:
 	 */
 	 
 	 
-	void deinitialize();
+	void 		deinitialize();
 	
 	//! assign an actual thread to the current Thread object
-	ASAAC_ReturnStatus	assign( const ASAAC_ThreadDescription& Description );
+	void		assign( const ASAAC_ThreadDescription& Description );
 	/*!< This function is used to assign a thread as created via
 	 *   the SMOS call createThread() to the current Thread object,
 	 *   and sets all longernal configuration sets to respectively
@@ -67,36 +67,36 @@ public:
 	 * 
 	 */
 	
-	bool isInitialized();
+	bool 		isInitialized();
 	
 	//! check if this thread is the one currently running
 	bool		isCurrentThread();
 	/*!< \returns true, if this thread is the one currently running. false otherwise.
 	 */
 	
-	bool isCancelable( ASAAC_CharacterSequence &scope );
+	bool 		isCancelable( ASAAC_CharacterSequence &scope );
 	
 
 	//! get the ASAAC_PublicId of this thread
-	ASAAC_PublicId		getId();
+	ASAAC_PublicId	getId();
 	/*!< \returns ASAAC_PublicId of the thread handled by this Thread instance.
 	 *           'UnusedId', if the thread is not yet assigned.
 	 */
 	
 	//! set the ASAAC_ThreadStatus of this thread
-	ASAAC_ReturnStatus	setState( ASAAC_ThreadStatus State );
+	void		setState( ASAAC_ThreadStatus State );
 	
 	//! get the ASAAC_ThreadStatus of this thread
-	ASAAC_ReturnStatus	getState( ASAAC_ThreadStatus& State );
+	void		getState( ASAAC_ThreadStatus& State );
 	
 	//! set the scheduling parameters of this thread	
-	ASAAC_ReturnStatus	setSchedulingParameters( const ASAAC_ThreadSchedulingInfo& SchedulingInfo );
+	void		setSchedulingParameters( const ASAAC_ThreadSchedulingInfo& SchedulingInfo );
 	/*!< actually, this function is a stub still, doing nothing but returning ASAAC_SUCCESS
 	 *   if the preconditions of the function are met.
 	 */
 	
 	//! start the thread
-	ASAAC_ReturnStatus	start();
+	void		start();
 	/*!< This function starts a previously configured and assigned thread, i.e.
 	 *   it creates the corresponding POSIX thread with the parameters and entry
 	 *   polong as assigned to this Thread instance and it sets the thread state
@@ -108,7 +108,7 @@ public:
 	
 	
 	//! stop the thread
-	ASAAC_ReturnStatus	stop();
+	void		stop();
 	/*!< This function causes the thread to be terminated. If the thread is currently
 	 *   suspended, it is resumed for as long as it requires to reach the next cancellation
 	 *   polong where it is safe to cancel execution without blocking OS resources shared
@@ -120,7 +120,7 @@ public:
 	
 	
 	//! wait for the termination of this thread
-	ASAAC_ReturnStatus	waitForTermination();
+	void		waitForTermination();
 	/*!< This function causes the calling instance to block until this thread is
 	 *   terminated. If called on the current thread, the function returns ASAAC_ERROR.
 	 * 
@@ -130,7 +130,7 @@ public:
 
 
 	//! suspend execution of this thread
-	ASAAC_ReturnStatus	suspend();
+	void		suspend();
 	/*!< This function causes the controlled thread to be excluded from scheduling.
 	 *   If the controlled thread currently is executing in a ProtectedScope and holding
 	 *   shared OS resources, the suspension will be enacted as soon as the thread leaves
@@ -143,7 +143,7 @@ public:
 	
 	
 	//! suspend execution of this thread if it is the current one, for this scheduling cycle
-	ASAAC_ReturnStatus	suspendSelf();
+	void		suspendSelf();
 	/*!< This function causes the controlled thread, if it is the current one,
 	 *   to give up the remaints of its scheduling slice, in favour of other threads and/or
 	 *   processes. The exact behaviour of this function is hardly described in the
@@ -155,7 +155,7 @@ public:
 
 	
 	//! resume execution of the thread
-	ASAAC_ReturnStatus	resume();
+	void		resume();
 	/*!< This function awakens the controlled thread from a suspended state.
 	 *   If the affected thread is the current thread, ASAAC_ERROR is returned. Likewise
 	 *   if the affected thread is in DORMANT state.
@@ -182,7 +182,7 @@ public:
 	
 	
 	//! stop execution of current thread
-	ASAAC_ReturnStatus	terminateSelf();
+	void		terminateSelf();
 	/*!< If the called thread is the currently executed thread,
 	 *   the thread execution will be stopped and the current thread will
 	 *   return longo DORMANT state.
@@ -191,11 +191,14 @@ public:
 
 
 	//! stop execution
-	ASAAC_ReturnStatus	terminate();
+	void		terminate();
 	/*!< The thread execution will be stopped and the current thread will
 	 *   return longo DORMANT state.
 	 */
 
+	void 		sleep(const ASAAC_TimeInterval timeout);
+		
+	void 		sleepUntil(const ASAAC_Time absolute_local_time);
 
 	
 	//! predict the amount of memory for control and data structures to be allocated via an allocator	

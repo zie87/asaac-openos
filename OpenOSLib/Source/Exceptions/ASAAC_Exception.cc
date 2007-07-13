@@ -1,6 +1,10 @@
 #include "ASAAC_Exception.hh"
+
 #include "FaultManagement/ErrorHandler.hh"
+
 #include "ProcessManagement/ProcessManager.hh"
+#include "ProcessManagement/ThreadManager.hh"
+
 #include "Managers/TimeManager.hh"
 
 
@@ -40,8 +44,8 @@ void ASAAC_Exception::initialize()
 	m_ThreadId = OS_UNUSED_ID;
 
 	ProcessManager *PM = ProcessManager::getInstance();
-	Process *P = PM->getCurrentProcess();
-	if (P != 0)
+	Process *P = PM->getCurrentProcess(false);
+	if (P != NULL)
 	{
 	 	if ( P->isInitialized() )
 	 	{
@@ -49,8 +53,9 @@ void ASAAC_Exception::initialize()
 	 	}
 	}
 
-	Thread *T = PM->getCurrentThread();
-	if (T != 0)
+	ThreadManager *TM = ThreadManager::getInstance();
+	Thread *T = TM->getCurrentThread(false);
+	if (T != NULL)
 	{
 	 	if ( T->isInitialized() )
 	 	{

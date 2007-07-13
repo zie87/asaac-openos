@@ -1,7 +1,7 @@
 #include "IPC/ProtectedScope.hh"
 #include "Exceptions/Exceptions.hh"
 
-#include "ProcessManagement/ProcessManager.hh"
+#include "ProcessManagement/ThreadManager.hh"
 #include "ProcessManagement/Thread.hh"
 
 ProtectedScope::ProtectedScope( char * Scope, LockingObject& ThisLockingObject, const ASAAC_Time& Timeout, bool Cancelable ) : m_LockingObject(&ThisLockingObject), m_Cancelable(Cancelable)
@@ -66,9 +66,9 @@ ProtectedScope::~ProtectedScope()
 			{
 				oal_thread_testcancel();
 			
-				Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
+				Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
 			
-				if ( ThisThread != 0)
+				if ( ThisThread != NULL)
 				{
 					if (  ThisThread->isSuspendPending() )
 					{
@@ -94,18 +94,16 @@ ProtectedScope::~ProtectedScope()
 
 void ProtectedScope::enter()
 {
-	Thread * ThisThread = ProcessManager::getInstance()->getCurrentThread();
+	Thread *T = ThreadManager::getInstance()->getCurrentThread(false);
 	
-	if (ThisThread == 0)
-		return;
-		
-	ThisThread->enterProtectedScope(this);
+	if ( T != NULL )
+		T->enterProtectedScope(this);
 }
 
 
 void ProtectedScope::exit()
 {
-	Thread * ThisThread = ProcessManager::getInstance()->getCurrentThread();
+	Thread * ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
 	
 	if (ThisThread == 0)
 		return;

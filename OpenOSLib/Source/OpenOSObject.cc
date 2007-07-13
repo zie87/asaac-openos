@@ -6,7 +6,10 @@
 #include "Managers/AllocatorManager.hh"
 #include "Managers/FileManager.hh"
 #include "Managers/FileNameGenerator.hh"
+#include "Managers/EventManager.hh"
+#include "Managers/SemaphoreManager.hh"
 #include "ProcessManagement/ProcessManager.hh"
+#include "ProcessManagement/ThreadManager.hh"
 #include "Communication/CommunicationManager.hh"
 
 #include "FaultManagement/FaultManager.hh"
@@ -221,23 +224,34 @@ void OpenOS::initializeGlobalObjects( ASAAC_PublicId CpuId, ASAAC_PublicId Proce
 									break;
 		case LAS_REMOTE:			break;
 	}
+
+	//Initialize ThreadManager
+	ThreadManager::getInstance()->initialize();
 	
 	//Initialize CommunicatinManager
 	CommunicationManager::getInstance()->initialize( m_IsMaster, &m_Allocator );
 		
-	//Initialize Fault Manager and Logging Manager
+	//Initialize FaultManager and Logging Manager
     FaultManager::getInstance()->initialize( m_IsMaster );
     LoggingManager::getInstance()->initialize( m_IsMaster );
     
-    //Initialize Error Handler
-    ErrorHandler::getInstance()->initialize();		
+    //Initialize ErrorHandler
+    ErrorHandler::getInstance()->initialize();
+    
+    //Initialize SemaphoreManager and EventManager
+    SemaphoreManager::getInstance()->initialize();
+    EventManager::getInstance()->initialize();
 }
 
 
 void OpenOS::deinitializeGlobalObjects()
 {
-	CommunicationManager::getInstance()->deinitialize();
+    EventManager::getInstance()->deinitialize();
+    SemaphoreManager::getInstance()->deinitialize();
+
+    CommunicationManager::getInstance()->deinitialize();
 	    
+	ThreadManager::getInstance()->deinitialize();
 	ProcessManager::getInstance()->deinitialize();
 
 	ErrorHandler::getInstance()->deinitialize();    
@@ -517,17 +531,17 @@ void OpenOS::initializeMutex()
 
 void OpenOS::acquireMutex()
 {
-	Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-	Thread *ThisThread = ProcessManager::getInstance()->getCurrentThread();
+	Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess(false);
+	Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
 
 	ASAAC_PublicId process_id = 0;
 	ASAAC_PublicId thread_id = OS_UNUSED_ID;
 	
-	if (ThisProcess != 0)
+	if (ThisProcess != NULL)
 		if (ThisProcess->isInitialized())
 			process_id = ThisProcess->getId();
 
-	if (ThisThread != 0)
+	if (ThisThread != NULL)
 		if (ThisThread->isInitialized())
 			thread_id = ThisThread->getId();
 
@@ -560,17 +574,17 @@ void OpenOS::acquireMutex()
 
 void OpenOS::releaseMutex()
 {
-	Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-	Thread *ThisThread = ProcessManager::getInstance()->getCurrentThread();
+	Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess(false);
+	Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
 
 	ASAAC_PublicId process_id = 0;
 	ASAAC_PublicId thread_id = OS_UNUSED_ID;
 	
-	if (ThisProcess != 0)
+	if (ThisProcess != NULL)
 		if (ThisProcess->isInitialized())
 			process_id = ThisProcess->getId();
 
-	if (ThisThread != 0)
+	if (ThisThread != NULL)
 		if (ThisThread->isInitialized())
 			thread_id = ThisThread->getId();
 

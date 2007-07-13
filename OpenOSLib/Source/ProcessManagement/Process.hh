@@ -93,7 +93,7 @@ public:
 	void					refreshPosixPid();
 		
 	//! set up a thread inside the process
-	ASAAC_ReturnStatus		createThread( const ASAAC_ThreadDescription& Description );
+	void		            createThread( const ASAAC_ThreadDescription& Description );
 	/*!< \param[in] Description Thread description as supplied by the SMOS call
 	 *                          createThread()
 	 * 
@@ -104,21 +104,21 @@ public:
 	signed long				getThreadIndex( ASAAC_PublicId ThreadId );
 
 	//! get reference to a thread identified by thread ASAAC_PublicId
-	Thread*					getThread( ASAAC_PublicId ThreadId );
+	Thread*					getThread( ASAAC_PublicId ThreadId, const bool do_throw = true );
 	/*!< \param[in] ThreadId ASAAC_PublicId of thread object to obtain reference to
 	 *   \returns   Reference to indicated thread. 0, if no thread with the
 	 *              indicated ASAAC_PublicId is found within this process.
 	 */
 	
 	//! get reference to the currently executed thread
-	Thread*					getCurrentThread();
+	Thread*					getCurrentThread( const bool do_throw = true );
 	 /*!<   \returns   Reference to current thread. 0, if current thread is
 	  *                not found in this process.
 	  */
 
 
 	//! add an entry point	
-	ASAAC_ReturnStatus		addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address );
+	void            		addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address );
 	/*!< this function adds an entry polong to the table of entry points stored
 	 *   for this process. These entry points are required in order to
 	 *   indicate jump-in addresses for threads to be started inside the process.
@@ -130,6 +130,7 @@ public:
 	 *            the table. ASAAC_ERROR in case of an error.
 	 */
 	     
+	signed long				getEntryPointIndex( ASAAC_CharacterSequence Name );
 	
 	//! remove an entry point
 	EntryPoint*				getEntryPoint( ASAAC_CharacterSequence Name );
@@ -141,7 +142,7 @@ public:
 	 
 
 	//! attach the process to a Virtual Channel
-	ASAAC_ReturnStatus		attachLocalVc( ASAAC_PublicId GlobalVcId, ASAAC_PublicId LocalVcId );
+	void		            attachLocalVc( ASAAC_PublicId GlobalVcId, ASAAC_PublicId LocalVcId );
 	/*!< this function establishes the connection of a process with a virtual channel.
 	 *   if required, the shared memory object constituting the virtual channel is opened,
 	 *   and the reference to the proper LocalVc slot is stored in the process.
@@ -156,7 +157,7 @@ public:
 	
 
 	//! detach the process from a Virtual Channel	
-	ASAAC_ReturnStatus		detachLocalVc( ASAAC_PublicId LocalVcId );
+	void		            detachLocalVc( ASAAC_PublicId LocalVcId );
 	/*!<
 	 *   \param[in] LocalVcId	Process-Local ASAAC_PublicId of the virtual channel
 	 * 
@@ -177,11 +178,11 @@ public:
 
 
 	//! suspend all threads of the process, except for the calling thread
-	ASAAC_ReturnStatus		lockThreadPreemption( unsigned long& LockLevel );
+	void		            lockThreadPreemption( unsigned long& LockLevel );
 	
 	
 	//! resume all threads of the process
-	ASAAC_ReturnStatus		unlockThreadPreemption( unsigned long& LockLevel );
+	void		            unlockThreadPreemption( unsigned long& LockLevel );
 	
 	//! get lock level for the process resulting from lockThreadPreemption() and unlockThreadPreemption()
 	unsigned long			getLockLevel();
@@ -211,22 +212,22 @@ public:
 	 */
 	
 	//! forward for SimpleCommandInterface::addCommandHandler()
-	void 	 	addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler );
+	void 	 	            addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler );
 	
 	//! forward for SimpleCommandInterface::removeCommandHandler()
-	void 	 	removeCommandHandler( unsigned long CommandIdentifier );
+	void 	 	            removeCommandHandler( unsigned long CommandIdentifier );
 
 	//! forward for SimpleCommandInterface::removeAllCommandHandler()
-	void 	 	removeAllCommandHandler();
+	void 	 	            removeAllCommandHandler();
 
 	//! forward for SimpleCommandInterface::sendCommand()
-	void	    sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
+	void	                sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
 	
 	//! forward for SimpleCommandInterface::sendCommandNonblocking()
-	void 		sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer );
+	void 		            sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer );
 	
 	//! forward for SimpleCommandInterface::handleOneCommand()
-	void 	 	handleOneCommand( unsigned long& CommandIdentifier );
+	void 	 	            handleOneCommand( unsigned long& CommandIdentifier );
 		
 	//! start the process, or resume its runinng state
 	void					run();
@@ -239,7 +240,7 @@ public:
 	
 	bool					isOSScope();
     
-	ASAAC_ReturnStatus      invokeOSScope(OSScopeFunction foo, OSScopeCommandBuffer param);
+	void                    invokeOSScope(OSScopeFunction foo, OSScopeCommandBuffer param);
 	
     SchedulingData          getOSScopeSchedulingData();
     
@@ -250,7 +251,7 @@ private:
 	virtual ~Process();
 		
 	//! explicit initialization
-	void 					initialize( bool IsServer, bool IsMaster, bool UseInternalCommandInterface, const ASAAC_ProcessDescription& Description, MemoryLocation Location = SHARED );
+	void 					initialize( bool IsServer, bool IsMaster, const ASAAC_ProcessDescription& Description, MemoryLocation Location, SimpleCommandInterface *CommandInterface );
 	/*!< \param[in] IsMaster		Flag indicating whether the calling instance shall act as master and
 	 *                              initialize all communication structures of the process (usually the
 	 *                              GSM should do this, and call with IsMaster = true )
@@ -279,18 +280,18 @@ private:
 	 */ 
 		
 	//! stop and delete the process
-	ASAAC_ReturnStatus		destroy();
+	void		            destroy();
 	/*!< The termination of another process in its current implementation depends on
 	 *   waitpid() and kill() functions as defined in the POSIX specification IEEE 1003.1, 2004 Edition
 	 */
 
-	ASAAC_ReturnStatus		detachAndDestroyAllLocalVcs();
+	void		            detachAndDestroyAllLocalVcs();
 
-	ASAAC_ReturnStatus		resumeAllThreads();
+	void		            resumeAllThreads();
 
-	ASAAC_ReturnStatus		suspendAllThreads();
+	void		            suspendAllThreads();
 
-	ASAAC_ReturnStatus		terminateAllThreads();
+	void		            terminateAllThreads();
 
 	typedef struct  
 	{
@@ -349,13 +350,11 @@ private:
 	Semaphore					m_Semaphore; 
 
 	Shared<ProcessData>			m_ProcessData;
-	
 	Shared<VCData>				m_LocalVCs;
-
 	Shared<EntryPoint>			m_EntryPoints;
 	
 	SimpleCommandInterface		m_InternalCommandInterface;
-	bool						m_UseInternalCommandInterface;
+	SimpleCommandInterface*		m_CommandInterface;
 
 	bool						m_ActiveMainLoop;
 	
@@ -365,16 +364,16 @@ private:
     
 public:
 
-	static void         getPIDHandler( CommandBuffer Buffer );
+	static void         RequestPIDHandler( CommandBuffer Buffer );
 	
 	static void			RunHandler( CommandBuffer Buffer );
 	static void			StopHandler( CommandBuffer Buffer );
 	
 	static void 		DestroyHandler( CommandBuffer Buffer );
 	
-	static void			attachLocalVcHandler( CommandBuffer Buffer );
-	static void			detachLocalVcHandler( CommandBuffer Buffer );
-	static void 		invokeOSScopeHandler( CommandBuffer Buffer );
+	static void			AttachLocalVcHandler( CommandBuffer Buffer );
+	static void			DetachLocalVcHandler( CommandBuffer Buffer );
+	static void 		InvokeOSScopeHandler( CommandBuffer Buffer );
 };
 
 #endif /*PROCESS_HH_*/

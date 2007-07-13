@@ -35,7 +35,6 @@ const EntryPoint EmptyEntryPoint = { { 0, "" }, 0 };
 Process::Process() :  m_IsInitialized( false ),  m_IsMaster(false), m_IsServer(false)
 {
 	m_PosixPid = 0;
-	m_UseInternalCommandInterface = true;
 	m_ActiveMainLoop = false;
 }
 
@@ -45,7 +44,33 @@ Process::~Process()
 }
 
 
-void Process::initialize( bool IsServer, bool IsMaster, bool UseInternalCommandInterface, const ASAAC_ProcessDescription& Description, MemoryLocation Location )
+size_t Process::predictSize()
+{
+	size_t CumulativeSize = 0;
+	
+	// m_ProcessData
+	CumulativeSize +=  Shared<ProcessData>::predictSize();
+	
+	// m_RegisteredVCs
+	CumulativeSize +=  Shared<VCData>::predictSize( OS_MAX_NUMBER_OF_LOCALVCS );
+	
+	// m_Semaphore
+	CumulativeSize +=  Semaphore::predictSize();
+	
+	// m_Threads
+	CumulativeSize +=  OS_MAX_NUMBER_OF_THREADS * Thread::predictSize();
+				 
+	// m_EntryPoints
+	CumulativeSize +=  OS_MAX_NUMBER_OF_ENTRYPOINTS * Shared<EntryPoint>::predictSize();
+	
+	//m_InternalCommandInterface
+	CumulativeSize +=  SimpleCommandInterface::predictSize();
+	
+	return CumulativeSize;
+}
+
+	
+void Process::initialize( bool IsServer, bool IsMaster, const ASAAC_ProcessDescription& Description, MemoryLocation Location, SimpleCommandInterface *CommandInterface )
 {
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException( LOCATION );
@@ -56,7 +81,10 @@ void Process::initialize( bool IsServer, bool IsMaster, bool UseInternalCommandI
 
 		m_IsMaster = IsMaster;
 		m_IsServer = IsServer;
-		m_UseInternalCommandInterface = UseInternalCommandInterface;
+		
+		if (CommandInterface == NULL)
+			m_CommandInterface = &m_InternalCommandInterface;
+		else m_CommandInterface = CommandInterface;
 	
 		if ( Location == SHARED )
 		{
@@ -168,18 +196,21 @@ bool Process::isInitialized()
 
 void Process::setServer( bool IsServer )
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	if (m_IsServer == IsServer)
 		return;
 	
 	if ( IsServer == true )
 	{
 		addCommandHandler( CMD_RUN_PROCESS,  Process::RunHandler  );
-		addCommandHandler( CMD_GET_PID, Process::getPIDHandler );		
+		addCommandHandler( CMD_GET_PID, Process::RequestPIDHandler );		
 		addCommandHandler( CMD_STOP_PROCESS, Process::StopHandler );
 		addCommandHandler( CMD_TERM_PROCESS, Process::DestroyHandler );
-		addCommandHandler( CMD_ATTACH_VC, Process::attachLocalVcHandler );
-		addCommandHandler( CMD_DETACH_VC, Process::detachLocalVcHandler );
-		addCommandHandler( CMD_INVOKE_OS_SCOPE, Process::invokeOSScopeHandler );
+		addCommandHandler( CMD_ATTACH_VC, Process::AttachLocalVcHandler );
+		addCommandHandler( CMD_DETACH_VC, Process::DetachLocalVcHandler );
+		addCommandHandler( CMD_INVOKE_OS_SCOPE, Process::InvokeOSScopeHandler );
 
         m_ProcessData->OSScopeSchedulingData.Policy = SCHED_RR;
         m_ProcessData->OSScopeSchedulingData.Parameter.__sched_priority = sched_get_priority_min(SCHED_RR) + 1;
@@ -196,12 +227,18 @@ void Process::setServer( bool IsServer )
 
 bool Process::isServer()
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	return m_IsServer;
 }
 
 
 void Process::launch()
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	CharacterSequence ErrorString;
 	ASAAC_TimedReturnStatus Result = ASAAC_TM_SUCCESS;
 	
@@ -300,80 +337,11 @@ void Process::launch()
 }
 
 
-ASAAC_PublicId Process::getId()
-{
-	if ( m_IsInitialized == false ) 
-		return OS_UNUSED_ID;
-	
-	return m_ProcessData->Description.global_pid;
-}
-
-
-ASAAC_PublicId Process::getId( ProcessAlias Alias )
-{
-	switch (Alias)
-	{
-		case PROC_APOS: for (unsigned long id = OS_PROCESSID_APOS; id <= OS_PROCESSID_APOS_MAX; id++) 
-						{
-							if (ProcessManager::getInstance()->getProcessIndex(id) == -1)
-								return id;
-						} 
-						break;
-						
-		case PROC_SMOS: for (unsigned long id = OS_PROCESSID_SMOS; id <= OS_PROCESSID_SMOS_MAX; id++) 
-						{
-							if (ProcessManager::getInstance()->getProcessIndex(id) == -1)
-								return id;
-						} 
-						break;
-						
-		case PROC_GSM:  return OS_PROCESSID_GSM; 
-						break;
-						
-		case PROC_PCS:  return OS_PROCESSID_PCS; 
-						break;
-						
-		case PROC_OLI:  return OS_PROCESSID_OLI; 
-						break;
-						
-		case PROC_SM:   return OS_PROCESSID_SM; 
-						break;
-						
-		default: return OS_UNUSED_ID;
-	}
-
-	return OS_UNUSED_ID;
-}
-
-
-ProcessAlias Process::getAlias()
-{
-	if ( (getId() >=0) && (getId() <= OS_PROCESSID_APOS_MAX) )
-		return PROC_APOS;
-		
-	if ( (getId() > OS_PROCESSID_APOS_MAX) && (getId() <= OS_PROCESSID_SMOS_MAX) )
-	{
-		if ( getId() == OS_PROCESSID_GSM )
-			return PROC_GSM;	
-	
-		if ( getId() == OS_PROCESSID_PCS )
-			return PROC_PCS;	
-			
-		if ( getId() == OS_PROCESSID_OLI )
-			return PROC_OLI;	
-	
-		if ( getId() == OS_PROCESSID_SM )
-			return PROC_SM;
-			
-		return PROC_SMOS;
-	}
-	
-	return PROC_UNDEFINED; 
-}
-
-
 void Process::refreshPosixPid()
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	if ( m_IsServer )
 	{
 		m_PosixPid = getpid();
@@ -389,179 +357,11 @@ void Process::refreshPosixPid()
 }
 
 
-signed long	Process::getThreadIndex( ASAAC_PublicId ThreadId )
+void Process::createThread( const ASAAC_ThreadDescription& Description )
 {
-	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
-	{
-		if ( m_Threads[ Index ].getId() == ThreadId ) return Index;
-	}
-	
-	return -1;	
-}
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
 
-
-Thread* Process::getThread( ASAAC_PublicId ThreadId )
-{
-	signed long	Index = getThreadIndex( ThreadId );
-	
-	if (Index != -1) 
-		return &m_Threads[ Index ];
-	
-	return NULL;
-}
-
-
-Thread* Process::getCurrentThread()
-{
-	if ( m_IsInitialized == false ) 
-		return NULL;
-	
-	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
-	{
-		if ( m_Threads[ Index ].isCurrentThread() ) 
-            return &(m_Threads[ Index ]);
-	}
-	
-	return NULL;
-}
-
-
-ASAAC_ReturnStatus Process::addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address )
-{
-	if ( getEntryPoint( Name ) != NULL ) 
-		return ASAAC_ERROR;
-		
-	EntryPoint *NextFreeSlot = getEntryPoint( EmptyEntryPoint.Name );
-	
-	if ( NextFreeSlot == NULL ) 
-		return ASAAC_ERROR;
-	
-	NextFreeSlot->Name    = Name;
-	NextFreeSlot->Address = Address;
-		
-	return ASAAC_SUCCESS;
-}
-
-
-EntryPoint* Process::getEntryPoint( ASAAC_CharacterSequence Name )
-{
-	if ( m_IsInitialized == false ) 
-		return NULL;
-				 
-	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_ENTRYPOINTS; Index ++ )
-	{
-		if ( CharSeq(m_EntryPoints[ Index ].Name) != CharSeq(Name) ) continue;
-		
-		return &(m_EntryPoints[ Index ]);
-	}
-	
-	return NULL;
-}
-
-
-Semaphore* Process::getSemaphore()
-{
-	return &(m_Semaphore);
-}
-
-
-ASAAC_ReturnStatus Process::lockThreadPreemption( unsigned long& LockLevel )
-{
-	{
-		ProtectedScope Access( "Locking thread preemption", m_Semaphore );
-		
-		(m_ProcessData->LockLevel)++;
-		
-		LockLevel = m_ProcessData->LockLevel;
-	}
-	
-	suspendAllThreads();	
-	
-	return ASAAC_SUCCESS;
-}
-
-
-ASAAC_ReturnStatus Process::unlockThreadPreemption( unsigned long& LockLevel )
-{
-	{
-		ProtectedScope Access( "Unlocking thread preemption", m_Semaphore );
-		
-		(m_ProcessData->LockLevel)--;
-		
-		LockLevel = m_ProcessData->LockLevel;
-	}
-		
-	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
-	{
-		m_Threads[ Index ].resume();		
-	}
-	
-	return ASAAC_SUCCESS;
-}
-
-
-unsigned long Process::getLockLevel()
-{
-	return m_ProcessData->LockLevel;
-}
-
-
-ProcessStatus Process::getState()
-{
-	return m_ProcessData->Status;
-}
-
-
-void 	 Process::addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler )
-{
-	if 	(m_UseInternalCommandInterface)
-		m_InternalCommandInterface.addCommandHandler( CommandIdentifier, Handler );
-	else ProcessManager::getInstance()->addCommandHandler( CommandIdentifier, Handler );
-}
-
-
-void 	 Process::removeCommandHandler( unsigned long CommandIdentifier )
-{
-	if 	(m_UseInternalCommandInterface)
-		m_InternalCommandInterface.removeCommandHandler( CommandIdentifier );
-	else ProcessManager::getInstance()->removeCommandHandler( CommandIdentifier );
-}
-
-
-void 	Process::removeAllCommandHandler()
-{
-	if 	(m_UseInternalCommandInterface)
-		m_InternalCommandInterface.removeAllCommandHandler();
-	else ProcessManager::getInstance()->removeAllCommandHandler();
-}
-
-
-void 	Process::sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
-{
-	if 	(m_UseInternalCommandInterface)
-		m_InternalCommandInterface.sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
-	else ProcessManager::getInstance()->sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
-}
-
-
-void 	Process::sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer )
-{
-	if 	(m_UseInternalCommandInterface)
-		m_InternalCommandInterface.sendCommandNonblocking( CommandIdentifier, Buffer );
-	else ProcessManager::getInstance()->sendCommandNonblocking( CommandIdentifier, Buffer );
-}
-
-
-void	Process::handleOneCommand( unsigned long& CommandIdentifier )
-{
-	if 	(m_UseInternalCommandInterface)
-		m_InternalCommandInterface.handleOneCommand( CommandIdentifier );
-	else ProcessManager::getInstance()->handleOneCommand( CommandIdentifier );
-}
-
-
-ASAAC_ReturnStatus Process::createThread( const ASAAC_ThreadDescription& Description )
-{
 	try
 	{
 		ProtectedScope Access( "Creating a thread", m_Semaphore );
@@ -569,31 +369,98 @@ ASAAC_ReturnStatus Process::createThread( const ASAAC_ThreadDescription& Descrip
 		if ( m_ProcessData->Status != PROCESS_INITIALIZED ) 
 			throw OSException("Process shall be in state PROCESS_INITIALIZED", LOCATION);
 		
-		if ( getThread( Description.thread_id ) != NULL ) 
+		if ( getThreadIndex( Description.thread_id ) != -1 ) 
 			throw OSException("Thread with dedicated id already created", LOCATION);
 		
-		Thread* NextAvailableThread = getThread( OS_UNUSED_ID );
+		signed long Index = getThreadIndex( OS_UNUSED_ID );
 		
-		if ( NextAvailableThread == NULL ) 
+		if ( Index == -1 ) 
 			throw OSException("Maximum number of threads reached", LOCATION);
 		
-		if (NextAvailableThread->assign( Description ) == ASAAC_ERROR)
-			throw OSException("Thread couldn't be assigned", LOCATION);
+		m_Threads[ Index ].assign( Description );
 	}
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error creating thread", LOCATION);
-		e.raiseError();
 		
-		return ASAAC_ERROR;
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus Process::resumeAllThreads()
+signed long	Process::getThreadIndex( ASAAC_PublicId ThreadId )
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
+	{
+		if ( m_Threads[ Index ].getId() == ThreadId ) 
+			return Index;
+	}
+	
+	return -1;	
+}
+
+
+Thread* Process::getThread( ASAAC_PublicId ThreadId, const bool do_throw )
+{
+	if (m_IsInitialized == false)
+	{
+		if (do_throw == true)
+			throw UninitializedObjectException(LOCATION);
+		else return NULL;
+	}
+
+	signed long	Index = getThreadIndex( ThreadId );
+	
+	if (Index == -1) 
+	{
+		if (do_throw == true)
+			throw OSException("Thread object could not be found", LOCATION);
+		else return NULL;
+	}
+
+	return &m_Threads[ Index ];
+}
+
+
+Thread* Process::getCurrentThread( const bool do_throw )
+{
+	if (m_IsInitialized == false)
+	{
+		if (do_throw == true)
+			throw UninitializedObjectException(LOCATION);
+		else return NULL;
+	}
+	
+	unsigned long Index;
+	
+	for ( Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
+	{
+		if ( m_Threads[ Index ].isInitialized() )
+		{
+			if ( m_Threads[ Index ].isCurrentThread() ) 
+	            break;
+		}
+	}
+	
+	if (Index == OS_MAX_NUMBER_OF_THREADS)
+	{
+		if (do_throw == true)
+			throw OSException("Thread object could not be found", LOCATION);
+		else return NULL;
+	}
+	
+	return &(m_Threads[ Index ]);
+}
+
+
+void Process::resumeAllThreads()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	try
 	{
 		Process *P = ProcessManager::getInstance()->getCurrentProcess();
@@ -604,7 +471,6 @@ ASAAC_ReturnStatus Process::resumeAllThreads()
 		if (P->getId() != this->getId())
 			throw OSException("Calling process is not 'this' process.", LOCATION);
 		
-		ASAAC_ReturnStatus result = ASAAC_SUCCESS;
 		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 		{
 			if (m_Threads[ Index ].getId() == OS_UNUSED_ID)
@@ -616,26 +482,23 @@ ASAAC_ReturnStatus Process::resumeAllThreads()
 			if (state == ASAAC_DORMANT)
 				continue;
 			
-			if (m_Threads[ Index ].resume() != ASAAC_SUCCESS)
-				result = ASAAC_ERROR;
-		}
-		
-		if (result == ASAAC_ERROR)
-			throw OSException("An error occured while resuming a thread", LOCATION);
+			m_Threads[ Index ].resume();
+		}		
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.raiseError();
+		e.addPath("Error resuming all threads", LOCATION);
 		
-		return ASAAC_ERROR;
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus Process::suspendAllThreads()
+void Process::suspendAllThreads()
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	try
 	{
 		Process *P = ProcessManager::getInstance()->getCurrentProcess();
@@ -646,7 +509,6 @@ ASAAC_ReturnStatus Process::suspendAllThreads()
 		if (P->getId() != this->getId())
 			throw OSException("Calling process is not 'this' process.", LOCATION);
 		
-		ASAAC_ReturnStatus result = ASAAC_SUCCESS;
 		Thread *ThisThread = NULL;
 		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 		{
@@ -665,35 +527,28 @@ ASAAC_ReturnStatus Process::suspendAllThreads()
 				continue;
 			}
 			
-			
-			if (m_Threads[ Index ].suspend() != ASAAC_SUCCESS)
-				result = ASAAC_ERROR;
+			m_Threads[ Index ].suspend();
 		}
 		
 		if (ThisThread != NULL)
-		{
-			result = ThisThread->suspendSelf();
-		}
+			ThisThread->suspendSelf();
 		
-		if (result == ASAAC_ERROR)
-			throw OSException("An error occured while suspending a thread", LOCATION);
-			
 		m_ProcessData->Status = PROCESS_STOPPED;
-		
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.raiseError();
+		e.addPath("Error resuming all threads", LOCATION);
 		
-		return ASAAC_ERROR;
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus Process::terminateAllThreads()
+void Process::terminateAllThreads()
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	try
 	{
 		Process *P = ProcessManager::getInstance()->getCurrentProcess();
@@ -704,7 +559,6 @@ ASAAC_ReturnStatus Process::terminateAllThreads()
 		if (P->getId() != this->getId())
 			throw OSException("Calling process is not 'this' process.", LOCATION);
 		
-		ASAAC_ReturnStatus result = ASAAC_SUCCESS;
 		Thread *ThisThread = NULL;
 		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 		{
@@ -723,41 +577,33 @@ ASAAC_ReturnStatus Process::terminateAllThreads()
 				continue;
 			}
 			
-			if (m_Threads[ Index ].terminate() != ASAAC_SUCCESS)
-				result = ASAAC_ERROR;
+			m_Threads[ Index ].terminate();
 		}
 
 		if (ThisThread != NULL)
-		{
-			result = ThisThread->terminateSelf();
-		}
+			ThisThread->terminateSelf();
 		
-		if (result == ASAAC_ERROR)
-			throw OSException("An error occured while terminating a thread", LOCATION);
-			
 		m_ProcessData->Status = PROCESS_STOPPED; 			
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.raiseError();
+		e.addPath("Error resuming all threads", LOCATION);
 		
-		return ASAAC_ERROR;
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
 void Process::run()
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	try
 	{
 		if ( m_IsServer == true )
 		{
 			Thread* MainThread = getThread(1);
-			
-			if ( MainThread == NULL ) 
-				throw OSException( "Main thread not found", LOCATION );
 	
 			if ( m_ProcessData->Status == PROCESS_DORMANT ) 
 				throw OSException( "Process is in state dormant", LOCATION );
@@ -847,6 +693,9 @@ void Process::run()
 
 void Process::stop()
 {
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
 	try
 	{
 		if ( m_IsServer )
@@ -854,8 +703,7 @@ void Process::stop()
 			if ( (m_ProcessData->Status) != PROCESS_RUNNING )
 				throw OSException("Process is not in state 'RUNNING'", LOCATION);
 			
-			if (suspendAllThreads() != ASAAC_SUCCESS)
-				throw OSException("An error occured while suspending all threads.", LOCATION);
+			suspendAllThreads();
 		
 			m_ProcessData->Status = PROCESS_STOPPED;
 		}
@@ -880,186 +728,12 @@ void Process::stop()
 }
 
 
-ASAAC_ReturnStatus Process::attachLocalVc( ASAAC_PublicId GlobalVcId, ASAAC_PublicId LocalVcId )
+void Process::destroy()
 {
-	try
-	{
-		// process must be in STOPPED or INITIALIZED state
-		ProcessStatus ThisState = getState();
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
 
-		if (( ThisState != PROCESS_STOPPED ) && 
-			( ThisState != PROCESS_INITIALIZED )) 
-			throw OSException("Process must be in state 'STOPPED' or 'INITIALIZED'", LOCATION);
-
-		if (isAttachedTo( LocalVcId ) == true )
-			throw OSException("Local VC has already been attached to this process.", LOCATION);
-
-		if (m_IsServer == true)
-		{  					
-			LocalVc* ThisLocalVc = CommunicationManager::getInstance()->getLocalVirtualChannel( getId(), GlobalVcId, LocalVcId );
-	
-			if ( ThisLocalVc == NULL ) 
-				throw OSException("LocalVC could not be found in GlobalVC list", LOCATION);
-	
-            {
-	            ProtectedScope Access( "Attaching a local vc", m_Semaphore );
-	            
-				long Index = getAttachedVirtualChannelIndex( OS_UNUSED_ID );			
-				
-				if ( Index == -1 ) 
-					throw OSException("Maximum number of attached local VCs has been reached. No free slots.", LOCATION);
-									
-				m_LocalVCs[ Index ].GlobalVcId   = GlobalVcId;		
-				m_LocalVCs[ Index ].LocalVcId    = LocalVcId;
-            }		
-		}	
-		else		
-		{
-			VCCommandData Data;
-		
-			Data.VC.GlobalVcId = GlobalVcId;
-			Data.VC.LocalVcId  = LocalVcId;
-
-			sendCommand( CMD_ATTACH_VC, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time());
-						
-			if ( Data.Return == ASAAC_ERROR ) 
-				throw OSException("Server replied an error", LOCATION);
-		}
-				
-	}
-	catch ( ASAAC_Exception &e)
-	{
-		CharacterSequence ErrorString;
-		ErrorString << "LocalVc couldn't be attached to process. ProcessId:" << CharSeq(getId()) 
-			<< " GlobalVcId:" << CharSeq(GlobalVcId) << " LocalVcId:" << CharSeq(LocalVcId);
-		 
-		e.addPath(ErrorString.c_str(), LOCATION);
-		e.raiseError();
-		
-		return ASAAC_ERROR;
-	}
-	
-	return ASAAC_SUCCESS; 
-}
-
-
-ASAAC_ReturnStatus Process::detachAndDestroyAllLocalVcs()
-{
-	try
-	{	
-		if (m_IsServer == false)
-			throw OSException("This is not the server object", LOCATION);
-
-		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_LOCALVCS; Index ++ )
-		{
-			if ( m_LocalVCs[ Index ].GlobalVcId == OS_UNUSED_ID ) 
-				continue;
-	
-			if ( m_LocalVCs[ Index ].LocalVcId == OS_UNUSED_ID ) 
-				continue;
-			
-			LocalVc *LVc = CommunicationManager::getInstance()->getLocalVirtualChannel( getId(), m_LocalVCs[ Index ].GlobalVcId, m_LocalVCs[ Index ].LocalVcId );
-			
-			if (LVc == NULL)
-				continue;
-			
-			LVc->remove();
-			
-			m_LocalVCs[ Index ].GlobalVcId   = OS_UNUSED_ID;
-			m_LocalVCs[ Index ].LocalVcId    = OS_UNUSED_ID;
-		}
-	}
-	catch ( ASAAC_Exception &e )
-	{
-		e.addPath("Error detaching and destropying all local vcs from process", LOCATION);
-		e.raiseError();
-		
-		return ASAAC_ERROR;
-	}
-	
-	return ASAAC_SUCCESS;
-}
-
-
-ASAAC_ReturnStatus Process::detachLocalVc( ASAAC_PublicId LocalVcId )
-{
-	try
-	{
-		// process must be in STOPPED or INITIALIZED state
-		ProcessStatus ThisState = getState();
-		
-		if (( ThisState != PROCESS_STOPPED ) && 
-			( ThisState != PROCESS_INITIALIZED )) 
-			throw OSException("Process must be in state 'STOPPED' or 'INITIALIZED'", LOCATION);
-		
-        
-        if (m_IsServer == true)
-        {
-			long Index = getAttachedVirtualChannelIndex( LocalVcId );
-			
-			if ( Index == -1 )
-				throw OSException("LocalVcId not found", LOCATION);
-		
-			//free the slot
-			m_LocalVCs[ Index ].GlobalVcId   = OS_UNUSED_ID;
-			m_LocalVCs[ Index ].LocalVcId    = OS_UNUSED_ID;
-        }	
-        else
-		{
-			VCCommandData Data;
-			Data.VC.LocalVcId  = LocalVcId;
-		
-			sendCommand( CMD_DETACH_VC, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );
-
-			if ( Data.Return == ASAAC_ERROR ) 
-				throw OSException("Server replied an error", LOCATION);
-		}
-	}
-	catch ( ASAAC_Exception &e)
-	{
-		CharacterSequence ErrorString;
-		ErrorString << "Error detaching local vc. ProcessId:" << CharSeq(getId()) << " LocalVcId:" << CharSeq(LocalVcId);
-		e.addPath(ErrorString.c_str(), LOCATION);
-		
-		throw;
-	}
-	
-	return ASAAC_SUCCESS;
-}
-
-
-
-size_t Process::predictSize()
-{
-	size_t CumulativeSize = 0;
-	
-	// m_ProcessData
-	CumulativeSize +=  Shared<ProcessData>::predictSize();
-	
-	// m_RegisteredVCs
-	CumulativeSize +=  Shared<VCData>::predictSize( OS_MAX_NUMBER_OF_LOCALVCS );
-	
-	// m_Semaphore
-	CumulativeSize +=  Semaphore::predictSize();
-	
-	// m_Threads
-	CumulativeSize +=  OS_MAX_NUMBER_OF_THREADS * Thread::predictSize();
-				 
-	// m_EntryPoints
-	CumulativeSize +=  OS_MAX_NUMBER_OF_ENTRYPOINTS * Shared<EntryPoint>::predictSize();
-	
-	//m_InternalCommandInterface
-	CumulativeSize +=  SimpleCommandInterface::predictSize();
-	
-	return CumulativeSize;
-}
-
-
-	
-ASAAC_ReturnStatus Process::destroy()
-{
 	CommandData Data;
-	
 	CharSeq ErrorString;
 
 	try
@@ -1117,12 +791,358 @@ ASAAC_ReturnStatus Process::destroy()
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.raiseError();
+		e.addPath("Error destroying process", LOCATION);
 		
-		return ASAAC_ERROR;
+		throw;
 	}
+}
+
+
+void Process::addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	try
+	{
+		if ( getEntryPointIndex( Name ) != -1 ) 
+			throw OSException("EntryPoint with dedicated name is already registered", LOCATION);
+			
+		signed long Index = getEntryPointIndex( EmptyEntryPoint.Name );
 		
-	return ASAAC_SUCCESS;
+		if ( Index == -1 ) 
+			throw OSException("No more free slots", LOCATION);
+		
+		m_EntryPoints[ Index ].Name    = Name;
+		m_EntryPoints[ Index ].Address = Address;
+	}
+	catch (ASAAC_Exception &e)
+	{
+		e.addPath("Error adding an entry point to process", LOCATION);
+		
+		throw;
+	}
+}
+
+
+signed long	Process::getEntryPointIndex( ASAAC_CharacterSequence Name )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_ENTRYPOINTS; Index++ )
+	{
+		if ( CharSeq(m_EntryPoints[ Index ].Name) == CharSeq(Name) ) 
+			return Index;
+	}
+	
+	return -1;	
+}
+
+
+EntryPoint* Process::getEntryPoint( ASAAC_CharacterSequence Name )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	signed long	Index = getEntryPointIndex( Name );
+	
+	if (Index == -1) 
+		throw OSException("EntryPoint could not be found", LOCATION);
+
+	return &m_EntryPoints[ Index ];
+}
+
+
+Semaphore* Process::getSemaphore()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	return &(m_Semaphore);
+}
+
+
+void Process::lockThreadPreemption( unsigned long& LockLevel )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	try
+	{
+		{
+			ProtectedScope Access( "Locking thread preemption", m_Semaphore );
+			
+			(m_ProcessData->LockLevel)++;
+			
+			LockLevel = m_ProcessData->LockLevel;
+		}
+		
+		suspendAllThreads();
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error locking thread preemption", LOCATION);
+		
+		throw;
+	}
+}
+
+
+void Process::unlockThreadPreemption( unsigned long& LockLevel )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	try
+	{
+		{
+			ProtectedScope Access( "Unlocking thread preemption", m_Semaphore );
+			
+			(m_ProcessData->LockLevel)--;
+			
+			LockLevel = m_ProcessData->LockLevel;
+		}
+			
+		resumeAllThreads();
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error unlocking thread preemption", LOCATION);
+		
+		throw;
+	}
+}
+
+
+unsigned long Process::getLockLevel()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	return m_ProcessData->LockLevel;
+}
+
+
+void 	 Process::addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	m_CommandInterface->addCommandHandler( CommandIdentifier, Handler );
+}
+
+
+void 	 Process::removeCommandHandler( unsigned long CommandIdentifier )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	m_CommandInterface->removeCommandHandler( CommandIdentifier );
+}
+
+
+void 	Process::removeAllCommandHandler()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	m_CommandInterface->removeAllCommandHandler();
+}
+
+
+void 	Process::sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	m_CommandInterface->sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
+}
+
+
+void 	Process::sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	m_CommandInterface->sendCommandNonblocking( CommandIdentifier, Buffer );
+}
+
+
+void	Process::handleOneCommand( unsigned long& CommandIdentifier )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	m_CommandInterface->handleOneCommand( CommandIdentifier );
+}
+
+
+void Process::attachLocalVc( ASAAC_PublicId GlobalVcId, ASAAC_PublicId LocalVcId )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	try
+	{
+		// process must be in STOPPED or INITIALIZED state
+		ProcessStatus ThisState = getState();
+
+		if (( ThisState != PROCESS_STOPPED ) && 
+			( ThisState != PROCESS_INITIALIZED )) 
+			throw OSException("Process must be in state 'STOPPED' or 'INITIALIZED'", LOCATION);
+
+		if (isAttachedTo( LocalVcId ) == true )
+			throw OSException("Local VC has already been attached to this process.", LOCATION);
+
+		if (m_IsServer == true)
+		{  					
+			LocalVc* ThisLocalVc = CommunicationManager::getInstance()->getLocalVirtualChannel( getId(), GlobalVcId, LocalVcId );
+	
+			if ( ThisLocalVc == NULL ) 
+				throw OSException("LocalVC could not be found in GlobalVC list", LOCATION);
+	
+            {
+	            ProtectedScope Access( "Attaching a local vc", m_Semaphore );
+	            
+				long Index = getAttachedVirtualChannelIndex( OS_UNUSED_ID );			
+				
+				if ( Index == -1 ) 
+					throw OSException("Maximum number of attached local VCs has been reached. No free slots.", LOCATION);
+									
+				m_LocalVCs[ Index ].GlobalVcId   = GlobalVcId;		
+				m_LocalVCs[ Index ].LocalVcId    = LocalVcId;
+            }		
+		}	
+		else		
+		{
+			VCCommandData Data;
+		
+			Data.VC.GlobalVcId = GlobalVcId;
+			Data.VC.LocalVcId  = LocalVcId;
+
+			sendCommand( CMD_ATTACH_VC, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time());
+						
+			if ( Data.Return == ASAAC_ERROR ) 
+				throw OSException("Server replied an error", LOCATION);
+		}
+				
+	}
+	catch ( ASAAC_Exception &e)
+	{
+		CharacterSequence ErrorString;
+		ErrorString << "LocalVc couldn't be attached to process. ProcessId:" << CharSeq(getId()) 
+			<< " GlobalVcId:" << CharSeq(GlobalVcId) << " LocalVcId:" << CharSeq(LocalVcId);
+		 
+		e.addPath(ErrorString.c_str(), LOCATION);
+		
+		throw;
+	}
+}
+
+
+void Process::detachLocalVc( ASAAC_PublicId LocalVcId )
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	try
+	{
+		// process must be in STOPPED or INITIALIZED state
+		ProcessStatus ThisState = getState();
+		
+		if (( ThisState != PROCESS_STOPPED ) && 
+			( ThisState != PROCESS_INITIALIZED )) 
+			throw OSException("Process must be in state 'STOPPED' or 'INITIALIZED'", LOCATION);
+		
+        
+        if (m_IsServer == true)
+        {
+			long Index = getAttachedVirtualChannelIndex( LocalVcId );
+			
+			if ( Index == -1 )
+				throw OSException("LocalVcId not found", LOCATION);
+		
+			//free the slot
+			m_LocalVCs[ Index ].GlobalVcId   = OS_UNUSED_ID;
+			m_LocalVCs[ Index ].LocalVcId    = OS_UNUSED_ID;
+        }	
+        else
+		{
+			VCCommandData Data;
+			Data.VC.LocalVcId  = LocalVcId;
+		
+			sendCommand( CMD_DETACH_VC, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );
+
+			if ( Data.Return == ASAAC_ERROR ) 
+				throw OSException("Server replied an error", LOCATION);
+		}
+	}
+	catch ( ASAAC_Exception &e)
+	{
+		CharacterSequence ErrorString;
+		ErrorString << "Error detaching local vc. ProcessId:" << CharSeq(getId()) << " LocalVcId:" << CharSeq(LocalVcId);
+		e.addPath(ErrorString.c_str(), LOCATION);
+		
+		throw;
+	}
+}
+
+
+void Process::detachAndDestroyAllLocalVcs()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	try
+	{	
+		if (m_IsServer == false)
+			throw OSException("This is not the server object", LOCATION);
+
+		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_LOCALVCS; Index ++ )
+		{
+			if ( m_LocalVCs[ Index ].GlobalVcId == OS_UNUSED_ID ) 
+				continue;
+	
+			if ( m_LocalVCs[ Index ].LocalVcId == OS_UNUSED_ID ) 
+				continue;
+			
+			LocalVc *LVc = CommunicationManager::getInstance()->getLocalVirtualChannel( getId(), m_LocalVCs[ Index ].GlobalVcId, m_LocalVCs[ Index ].LocalVcId );
+			
+			if (LVc == NULL)
+				continue;
+			
+			LVc->remove();
+			
+			m_LocalVCs[ Index ].GlobalVcId   = OS_UNUSED_ID;
+			m_LocalVCs[ Index ].LocalVcId    = OS_UNUSED_ID;
+		}
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error detaching and destropying all local vcs from process", LOCATION);
+		
+		throw;
+	}
+}
+
+
+long Process::getAttachedVirtualChannelIndex( ASAAC_PublicId LocalVcId )
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+    long Index;
+    for ( Index = 0; Index < OS_MAX_NUMBER_OF_LOCALVCS; Index ++ )
+    {
+        if ( m_LocalVCs[ Index ].LocalVcId == LocalVcId )
+            break;
+    }
+    
+    if (Index == OS_MAX_NUMBER_OF_LOCALVCS)
+        return -1;
+    
+    return Index;
 }
 
 
@@ -1156,25 +1176,6 @@ LocalVc* Process::getAttachedVirtualChannel( ASAAC_PublicId LocalVcId )
 }
 
 
-long Process::getAttachedVirtualChannelIndex( ASAAC_PublicId LocalVcId )
-{
-    if (m_IsInitialized == false) 
-        throw UninitializedObjectException(LOCATION);
-
-    long Index;
-    for ( Index = 0; Index < OS_MAX_NUMBER_OF_LOCALVCS; Index ++ )
-    {
-        if ( m_LocalVCs[ Index ].LocalVcId == LocalVcId )
-            break;
-    }
-    
-    if (Index == OS_MAX_NUMBER_OF_LOCALVCS)
-        return -1;
-    
-    return Index;
-}
-
-
 bool Process::isAttachedTo( ASAAC_PublicId LocalVcId )
 {
     if (m_IsInitialized == false) 
@@ -1184,6 +1185,150 @@ bool Process::isAttachedTo( ASAAC_PublicId LocalVcId )
         return false;
     
     return true;
+}
+
+
+void Process::invokeOSScope(OSScopeFunction foo, OSScopeCommandBuffer param)
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	try
+	{
+		if ( isOSScope() )
+		{
+			foo(param);
+		}
+		else
+		{
+			OSScopeCommandData Data;
+			Data.Return = ASAAC_ERROR;
+			
+			try
+			{
+				Data.Scope.foo = foo;
+				memcpy( Data.Scope.param, param, sizeof(OSScopeCommandBuffer) );
+			
+				sendCommand( CMD_INVOKE_OS_SCOPE, Data.ReturnBuffer, TimeStamp::Infinity().asaac_Time(), true);
+			}
+			catch (ASAAC_Exception &e)
+			{
+				e.raiseError();
+			}
+						
+			if (Data.Return == ASAAC_ERROR)
+				throw OSException("OSScopeFunction reported an error", LOCATION);
+		}
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error occured invoking a function in os scope", LOCATION);
+		
+		throw;
+	}
+}
+
+
+SchedulingData  Process::getOSScopeSchedulingData()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	return m_ProcessData->OSScopeSchedulingData;
+}
+
+
+
+bool Process::isOSScope()
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+	return (getCurrentThread(false) == NULL);
+}
+
+
+ASAAC_PublicId Process::getId()
+{
+	if ( m_IsInitialized == false ) 
+		return OS_UNUSED_ID;
+	
+	return m_ProcessData->Description.global_pid;
+}
+
+
+ASAAC_PublicId Process::getId( ProcessAlias Alias )
+{
+	switch (Alias)
+	{
+		case PROC_APOS: for (unsigned long id = OS_PROCESSID_APOS; id <= OS_PROCESSID_APOS_MAX; id++) 
+						{
+							if (ProcessManager::getInstance()->getProcessIndex(id) == -1)
+								return id;
+						} 
+						break;
+						
+		case PROC_SMOS: for (unsigned long id = OS_PROCESSID_SMOS; id <= OS_PROCESSID_SMOS_MAX; id++) 
+						{
+							if (ProcessManager::getInstance()->getProcessIndex(id) == -1)
+								return id;
+						} 
+						break;
+						
+		case PROC_GSM:  return OS_PROCESSID_GSM; 
+						break;
+						
+		case PROC_PCS:  return OS_PROCESSID_PCS; 
+						break;
+						
+		case PROC_OLI:  return OS_PROCESSID_OLI; 
+						break;
+						
+		case PROC_SM:   return OS_PROCESSID_SM; 
+						break;
+						
+		default: return OS_UNUSED_ID;
+	}
+
+	return OS_UNUSED_ID;
+}
+
+
+ProcessAlias Process::getAlias()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	if ( (getId() >=0) && (getId() <= OS_PROCESSID_APOS_MAX) )
+		return PROC_APOS;
+		
+	if ( (getId() > OS_PROCESSID_APOS_MAX) && (getId() <= OS_PROCESSID_SMOS_MAX) )
+	{
+		if ( getId() == OS_PROCESSID_GSM )
+			return PROC_GSM;	
+	
+		if ( getId() == OS_PROCESSID_PCS )
+			return PROC_PCS;	
+			
+		if ( getId() == OS_PROCESSID_OLI )
+			return PROC_OLI;	
+	
+		if ( getId() == OS_PROCESSID_SM )
+			return PROC_SM;
+			
+		return PROC_SMOS;
+	}
+	
+	return PROC_UNDEFINED; 
+}
+
+
+ProcessStatus Process::getState()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	return m_ProcessData->Status;
 }
 
 
@@ -1203,50 +1348,6 @@ ASAAC_ProcessDescription Process::getProcessDescription()
 
 	return ( m_ProcessData->Description );
 }
-
-
-bool Process::isOSScope()
-{
-    if (m_IsInitialized == false) 
-        throw UninitializedObjectException(LOCATION);
-
-	return (getCurrentThread() == NULL);
-}
-
-
-ASAAC_ReturnStatus Process::invokeOSScope(OSScopeFunction foo, OSScopeCommandBuffer param)
-{
-	if ( isOSScope() )
-	{
-		return foo(param);
-	}
-	else
-	{
-		OSScopeCommandData Data;
-		Data.Return = ASAAC_ERROR;
-		
-		try
-		{
-			Data.Scope.foo = foo;
-			memcpy( Data.Scope.param, param, sizeof(OSScopeCommandBuffer) );
-		
-			sendCommand( CMD_INVOKE_OS_SCOPE, Data.ReturnBuffer, TimeStamp::Infinity().asaac_Time(), true);
-		}
-		catch (ASAAC_Exception &e)
-		{
-			e.raiseError();
-		}
-					
-		return Data.Return;
-	} 
-}
-
-
-SchedulingData  Process::getOSScopeSchedulingData()
-{
-    return m_ProcessData->OSScopeSchedulingData;
-}
-
 
 
 // *******************************************************************************************
@@ -1340,7 +1441,7 @@ void Process::DestroyHandler( CommandBuffer Buffer )
 
 
 
-void Process::getPIDHandler( CommandBuffer Buffer )
+void Process::RequestPIDHandler( CommandBuffer Buffer )
 {
 	pid_t* Return = (pid_t*)( Buffer );
 
@@ -1351,7 +1452,7 @@ void Process::getPIDHandler( CommandBuffer Buffer )
 
 
 
-void Process::attachLocalVcHandler( CommandBuffer Buffer )
+void Process::AttachLocalVcHandler( CommandBuffer Buffer )
 {
 	VCCommandData* Data = (VCCommandData*)Buffer; 
 
@@ -1364,8 +1465,7 @@ void Process::attachLocalVcHandler( CommandBuffer Buffer )
 		if (ThisProcess == NULL)
 			throw FatalException("Current Process not found", LOCATION);
 
-		if (ThisProcess->attachLocalVc( Data->VC.GlobalVcId, Data->VC.LocalVcId ) == ASAAC_ERROR)
-			throw OSException("An error occured while attaching VC.", LOCATION);
+		ThisProcess->attachLocalVc( Data->VC.GlobalVcId, Data->VC.LocalVcId );
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -1389,7 +1489,7 @@ void Process::attachLocalVcHandler( CommandBuffer Buffer )
 
 
 
-void Process::detachLocalVcHandler( CommandBuffer Buffer )
+void Process::DetachLocalVcHandler( CommandBuffer Buffer )
 {
 	VCCommandData* Data = (VCCommandData*)Buffer; 
 
@@ -1402,8 +1502,7 @@ void Process::detachLocalVcHandler( CommandBuffer Buffer )
 		if (ThisProcess == NULL)
 			throw FatalException("Current Process not found", LOCATION);
 
-		if (ThisProcess->detachLocalVc( Data->VC.LocalVcId ) == ASAAC_ERROR)
-			throw OSException("An error occured while detaching VC.", LOCATION);
+		ThisProcess->detachLocalVc( Data->VC.LocalVcId );
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -1425,7 +1524,7 @@ void Process::detachLocalVcHandler( CommandBuffer Buffer )
 	return;
 }
 
-void Process::invokeOSScopeHandler( CommandBuffer Buffer )
+void Process::InvokeOSScopeHandler( CommandBuffer Buffer )
 {
 	OSScopeCommandData* Data = (OSScopeCommandData*)Buffer; 
 

@@ -12,13 +12,11 @@ using namespace std;
 
 SemaphoreManager::SemaphoreManager() : m_IsInitialized(false)
 {
-	initialize();
 }
 
 
 SemaphoreManager::~SemaphoreManager()
 {
-	deinitialize();
 }
 
 

@@ -5,7 +5,10 @@
 #include "Managers/TimeManager.hh"
 
 #include "ProcessManagement/ProcessManager.hh"
+#include "ProcessManagement/ThreadManager.hh"
 #include "ProcessManagement/Process.hh"
+#include "ProcessManagement/Thread.hh"
+
 #include "Exceptions/Exceptions.hh"
 
 
@@ -78,9 +81,9 @@ void ErrorHandler::deinitialize()
 		//m_ErrorMessageQueue.close();
 		//m_LoggingMessageQueue.close();
 		
-		Process *P = ProcessManager::getInstance()->getCurrentProcess();
+		Process *P = ProcessManager::getInstance()->getCurrentProcess(false);
 		
-		if (P != 0)		
+		if (P != NULL)		
 			P->removeCommandHandler( CMD_ACTIVATE_ERROR_HANDLER );
 	}
 	catch (ASAAC_Exception &e)
@@ -109,8 +112,8 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 		
 	try
 	{	
-		Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-		Thread *ThisThread = ProcessManager::getInstance()->getCurrentThread();
+		Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess(false);
+		Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
 	
 
 		ASAAC_Time absolute_local_time;
@@ -130,11 +133,11 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 		ASAAC_PublicId process_id = 0;
 		ASAAC_PublicId thread_id = OS_UNUSED_ID;
 		
-		if (ThisProcess != 0)
+		if (ThisProcess != NULL)
 			if (ThisProcess->isInitialized())
 				process_id = ThisProcess->getId();
 	
-		if (ThisThread != 0)
+		if (ThisThread != NULL)
 			if (ThisThread->isInitialized())
 				thread_id = ThisThread->getId();
 	
@@ -188,9 +191,9 @@ ASAAC_ReturnStatus ErrorHandler::getErrorInformation( ASAAC_PublicId& faulty_thr
 	if (m_HaveErrorInformation == false) 
 		return ASAAC_ERROR;
 	
-	Thread* ThisThread = ProcessManager::getInstance()->getCurrentThread();
+	Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
 	
-	if (( ThisThread == 0 ) || ( ThisThread->getId() != 0 )) 
+	if (( ThisThread == NULL ) || ( ThisThread->getId() != OS_UNUSED_ID )) 
 		return ASAAC_ERROR;
 	
 	faulty_thread_id = m_ErrorInformation.thread_id;
@@ -226,7 +229,7 @@ void ErrorHandler::terminateErrorHandler( ASAAC_ReturnStatus return_status )
 	
 	m_ErrorHandlerTrigger.trigger();
 	
-	ProcessManager::getInstance()->getCurrentThread()->terminateSelf();
+	ThreadManager::getInstance()->getCurrentThread()->terminateSelf();
 }
 
 
@@ -241,21 +244,21 @@ ASAAC_ReturnStatus ErrorHandler::logMessage( const ASAAC_CharacterSequence& log_
 		LogReportData ThisReportData;
 		ThisReportData.time = TimeStamp::Now().asaac_Time();	
 	
-		Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-		Thread *ThisThread = ProcessManager::getInstance()->getCurrentThread();
+		Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess(false);
+		Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
 	
 		ASAAC_PublicId authentication_code = 0;
 		ASAAC_PublicId process_id = OS_UNUSED_ID;
 		ASAAC_PublicId thread_id = OS_UNUSED_ID;
 		
-		if (ThisProcess != 0)
+		if (ThisProcess != NULL)
 			if (ThisProcess->isInitialized())
 			{
 				process_id = ThisProcess->getId();
 				authentication_code = ThisProcess->getAuthenticationCode();
 			}
 	
-		if (ThisThread != 0)
+		if (ThisThread != NULL)
 			if (ThisThread->isInitialized())
 				thread_id = ThisThread->getId();
 			

@@ -610,7 +610,7 @@ ASAAC_ReturnStatus OneWayCommunication::invokeOSScope( const ASAAC_PublicId proc
 	{	
 		//In this case the calling process must stop itself to attach/detach local Vcs
 		//This call takes more time, but necessary
-		return P->invokeOSScope(foo, param.buffer);
+		P->invokeOSScope(foo, param.buffer);
 	}
 }
 
