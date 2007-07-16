@@ -433,7 +433,6 @@ Thread* Process::getCurrentThread( const bool do_throw )
 			throw UninitializedObjectException(LOCATION);
 		else return NULL;
 	}
-	
 	unsigned long Index;
 	
 	for ( Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )

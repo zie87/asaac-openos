@@ -82,7 +82,7 @@ void CommunicationManager::deinitialize()
 	
 	try
 	{
-		releaseAllGlobalVirtualChannels();
+		releaseAllVirtualChannels();
 				
 		VcUpdateSignal::deinitialize();	
 	
@@ -129,7 +129,7 @@ void CommunicationManager::configurePCS()
 //* Global Virtual Channel functions															*
 //***********************************************************************************************
 
-long CommunicationManager::getGlobalVirtualChannelIndex( ASAAC_PublicId GlobalVcId )
+long CommunicationManager::getVirtualChannelIndex( ASAAC_PublicId GlobalVcId )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -144,7 +144,7 @@ long CommunicationManager::getGlobalVirtualChannelIndex( ASAAC_PublicId GlobalVc
 }
 
 
-GlobalVc* CommunicationManager::getGlobalVirtualChannel( ASAAC_PublicId GlobalVcId, long &Index )
+GlobalVc* CommunicationManager::getVirtualChannel( ASAAC_PublicId GlobalVcId, long &Index )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -158,7 +158,7 @@ GlobalVc* CommunicationManager::getGlobalVirtualChannel( ASAAC_PublicId GlobalVc
 		if (GlobalVcId == OS_UNUSED_ID) 
 			return NULL;
 		
-		Index = getGlobalVirtualChannelIndex( GlobalVcId );
+		Index = getVirtualChannelIndex( GlobalVcId );
 		
 		if ( Index == -1 ) 
 			return NULL;
@@ -186,7 +186,7 @@ GlobalVc* CommunicationManager::getGlobalVirtualChannel( ASAAC_PublicId GlobalVc
 	}
 	catch (ASAAC_Exception &e)
 	{
-		destroyGlobalVirtualChannel( GlobalVcId );
+		destroyVirtualChannel( GlobalVcId );
 		
 		e.addPath("GlobalVc has been destroyed.", LOCATION);
 		
@@ -201,7 +201,7 @@ GlobalVc* CommunicationManager::getGlobalVirtualChannel( ASAAC_PublicId GlobalVc
 
 LocalVc* CommunicationManager::getLocalVirtualChannel( ASAAC_PublicId ProcessId, ASAAC_PublicId GlobalVcId, ASAAC_PublicId LocalVcId)
 {
-	GlobalVc* GVc = getGlobalVirtualChannel( GlobalVcId );
+	GlobalVc* GVc = getVirtualChannel( GlobalVcId );
 
 	if (GVc == 0)
 		return NULL;
@@ -210,14 +210,14 @@ LocalVc* CommunicationManager::getLocalVirtualChannel( ASAAC_PublicId ProcessId,
 }
 
 
-GlobalVc* CommunicationManager::getGlobalVirtualChannel( ASAAC_PublicId GlobalVcId )
+GlobalVc* CommunicationManager::getVirtualChannel( ASAAC_PublicId GlobalVcId )
 {
 	long dummy;
-	return getGlobalVirtualChannel( GlobalVcId, dummy );
+	return getVirtualChannel( GlobalVcId, dummy );
 }
 
 
-GlobalVc* CommunicationManager::createGlobalVirtualChannel( const ASAAC_VcDescription& Description)
+GlobalVc* CommunicationManager::createVirtualChannel( const ASAAC_VcDescription& Description)
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -228,12 +228,12 @@ GlobalVc* CommunicationManager::createGlobalVirtualChannel( const ASAAC_VcDescri
 	{
 		ProtectedScope Access( "Creating a global vc", m_Semaphore );
 	
-		long Index = getGlobalVirtualChannelIndex( Description.global_vc_id );
+		long Index = getVirtualChannelIndex( Description.global_vc_id );
 		
 		if (Index != -1)
 			throw OSException("GlobalVC is already created with dedicated id", LOCATION);
 	
-		Index = getGlobalVirtualChannelIndex( OS_UNUSED_ID );
+		Index = getVirtualChannelIndex( OS_UNUSED_ID );
 		
 		if ( Index == -1 ) 
 			throw OSException("Maximum number of global Vcs reached. No more free slots.", LOCATION);
@@ -259,7 +259,7 @@ GlobalVc* CommunicationManager::createGlobalVirtualChannel( const ASAAC_VcDescri
 }
 
 
-ASAAC_ReturnStatus	CommunicationManager::destroyGlobalVirtualChannel( const ASAAC_PublicId vc_id )
+void	CommunicationManager::destroyVirtualChannel( const ASAAC_PublicId vc_id )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -270,7 +270,7 @@ ASAAC_ReturnStatus	CommunicationManager::destroyGlobalVirtualChannel( const ASAA
     {
 		ProtectedScope Access( "Destroying a global vc", m_Semaphore );
 	
-		long Index = getGlobalVirtualChannelIndex( vc_id );
+		long Index = getVirtualChannelIndex( vc_id );
 	
 		if (Index == -1)
 			throw OSException( (ErrorString << "Global VC is not available:" << vc_id).c_str(), LOCATION);
@@ -284,37 +284,30 @@ ASAAC_ReturnStatus	CommunicationManager::destroyGlobalVirtualChannel( const ASAA
 	catch ( ASAAC_Exception& e )
 	{
 		e.addPath("Error while destroying Global VC", LOCATION);
-		e.raiseError();
-		return ASAAC_ERROR;
+
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus	CommunicationManager::destroyAllGlobalVirtualChannels()
+void	CommunicationManager::destroyAllVirtualChannels()
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	ASAAC_ReturnStatus Status = ASAAC_SUCCESS;
-	
 	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_GLOBALVCS; Index ++ )
 	{
 		if (m_GlobalVcIndex[ Index ].GlobalVcId != OS_UNUSED_ID)
 		{
-			if (destroyGlobalVirtualChannel( m_GlobalVcIndex[ Index ].GlobalVcId ) == ASAAC_ERROR)
-				Status = ASAAC_ERROR;
+			destroyVirtualChannel( m_GlobalVcIndex[ Index ].GlobalVcId );
 		}
 	}
-	
-	return Status;
 }
 
 
-void CommunicationManager::releaseGlobalVirtualChannel( ASAAC_PublicId GlobalVcId )
+void CommunicationManager::releaseVirtualChannel( ASAAC_PublicId GlobalVcId )
 {
-    long Index = getGlobalVirtualChannelIndex( GlobalVcId );
+    long Index = getVirtualChannelIndex( GlobalVcId );
     
     if (Index != -1)
     {
@@ -323,7 +316,7 @@ void CommunicationManager::releaseGlobalVirtualChannel( ASAAC_PublicId GlobalVcI
 }
 
 
-void CommunicationManager::releaseAllGlobalVirtualChannels()
+void CommunicationManager::releaseAllVirtualChannels()
 {
 	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_GLOBALVCS; Index ++ )
 	{
@@ -333,62 +326,53 @@ void CommunicationManager::releaseAllGlobalVirtualChannels()
 }
 
 
-ASAAC_ReturnStatus CommunicationManager::attachChannelToProcessOrThread(const ASAAC_VcMappingDescription vc_mapping)
+void CommunicationManager::attachChannelToProcessOrThread(const ASAAC_VcMappingDescription vc_mapping)
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	ASAAC_ReturnStatus Result = ASAAC_ERROR;
 	CharacterSequence ErrorString;
 	
 	try
 	{
-		GlobalVc* ThisVc = CommunicationManager::getInstance()->getGlobalVirtualChannel( vc_mapping.global_vc_id );
+		GlobalVc* ThisVc = CommunicationManager::getInstance()->getVirtualChannel( vc_mapping.global_vc_id );
 	
 		if ( ThisVc == 0 )  
 			throw OSException( (ErrorString << "Global VC is not available: " << CharSeq(vc_mapping.global_vc_id)).c_str(), LOCATION);
 	
-		Result = ThisVc->createLocalVc( vc_mapping );
+		ThisVc->createLocalVc( vc_mapping );
 	}
 	catch ( ASAAC_Exception &e)
 	{
 		e.addPath("Error attaching channel to process or thread", LOCATION);
-		e.raiseError();
-		
-		Result = ASAAC_ERROR;
+
+		throw;
 	}
-	
-	return Result;
 }
 
 
-ASAAC_ReturnStatus CommunicationManager::detachAllThreadsOfProcessFromVc(const ASAAC_PublicId vc_id, const ASAAC_PublicId process_id)
+void CommunicationManager::detachAllThreadsOfProcessFromVc(const ASAAC_PublicId vc_id, const ASAAC_PublicId process_id)
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	ASAAC_ReturnStatus Result = ASAAC_ERROR;
-	
 	try
 	{
 		CharacterSequence ErrorString;
 		
-		GlobalVc* ThisVc = CommunicationManager::getInstance()->getGlobalVirtualChannel( vc_id );
+		GlobalVc* ThisVc = CommunicationManager::getInstance()->getVirtualChannel( vc_id );
 		
 		if ( ThisVc == NULL )  
 			throw OSException( (ErrorString << "Global VC is not available: " << vc_id).c_str(), LOCATION);
 	
-		Result = ThisVc->removeLocalVcsFromProcess( process_id );
+		ThisVc->removeLocalVcsFromProcess( process_id );
 	}
 	catch ( ASAAC_Exception &e)
 	{
 		e.addPath("Error attaching channel to process or thread", LOCATION);
-		e.raiseError();
-		
-		Result = ASAAC_ERROR;
+
+		throw;
 	}
-	
-	return Result;
 }
 
 
@@ -396,91 +380,79 @@ ASAAC_ReturnStatus CommunicationManager::detachAllThreadsOfProcessFromVc(const A
 //* TransferChannel functions																	*
 //***********************************************************************************************
 	
-ASAAC_ReturnStatus CommunicationManager::configureInterface( const ASAAC_InterfaceData& if_config )
+void CommunicationManager::configureInterface( const ASAAC_InterfaceData& if_config )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
     
-    ASAAC_ReturnStatus Status = ASAAC_ERROR;
-    
     try
     {
-	    Status = m_PCSClient.configureInterface( if_config );
+	    m_PCSClient.configureInterface( if_config );
     }
     catch ( ASAAC_Exception &e )
     {
         e.addPath("SMOS::configureInterface", LOCATION);
-        e.raiseError();
+
+        throw;
     }
-    
-    return Status;
 }
 
 
-ASAAC_ReturnStatus CommunicationManager::createTransferConnection( const ASAAC_TcDescription& tc_desc )
+void CommunicationManager::createTransferConnection( const ASAAC_TcDescription& tc_desc )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
     
-    ASAAC_ReturnStatus Status = ASAAC_ERROR;
-    
     try
     {
-        Status = m_PCSClient.createTransferConnection( tc_desc );
+        m_PCSClient.createTransferConnection( tc_desc );
     }
     catch ( ASAAC_Exception &e )
     {
         e.addPath("SMOS::createTransferConnection", LOCATION);
-        e.raiseError();
+
+        throw;
     }
-    
-    return Status;
 }
 
 
-ASAAC_ReturnStatus CommunicationManager::destroyTransferConnection( ASAAC_PublicId tc_id, const ASAAC_NetworkDescriptor& network_descr )
+void CommunicationManager::destroyTransferConnection( ASAAC_PublicId tc_id, const ASAAC_NetworkDescriptor& network_descr )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
     
-    ASAAC_ReturnStatus Status = ASAAC_ERROR;
-    
     try
     {
-        Status = m_PCSClient.destroyTransferConnection( tc_id, network_descr );
+        m_PCSClient.destroyTransferConnection( tc_id, network_descr );
     }
     catch ( ASAAC_Exception &e )
     {
         e.addPath("SMOS::destroyTransferConnection", LOCATION);
-        e.raiseError();
+
+        throw;
     }
-    
-    return Status;
 }
 
 
-ASAAC_ReturnStatus CommunicationManager::getNetworkPortStatus( const ASAAC_NetworkDescriptor& network_desc, ASAAC_NetworkPortStatus& network_status )
+void CommunicationManager::getNetworkPortStatus( const ASAAC_NetworkDescriptor& network_desc, ASAAC_NetworkPortStatus& network_status )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-    ASAAC_ReturnStatus Status = ASAAC_ERROR;
-    
     try
     {
-	    Status = m_PCSClient.getNetworkPortStatus( network_desc, network_status );
+	    m_PCSClient.getNetworkPortStatus( network_desc, network_status );
     }
     catch ( ASAAC_Exception &e )
     {
         e.addPath("SMOS::getNetworkPortStatus", LOCATION);
-        e.raiseError();
+
+        throw;
     }
-    
-    return Status;
 }
 
 
-ASAAC_ReturnStatus CommunicationManager::attachTransferConnectionToVirtualChannel( const ASAAC_VcToTcMappingDescription& vc_to_tc_mapping )
+void CommunicationManager::attachTransferConnectionToVirtualChannel( const ASAAC_VcToTcMappingDescription& vc_to_tc_mapping )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -495,10 +467,10 @@ ASAAC_ReturnStatus CommunicationManager::attachTransferConnectionToVirtualChanne
 	
 	try
 	{
-		GlobalVc* ThisVc = getGlobalVirtualChannel( vc_to_tc_mapping.global_vc_id );
+		GlobalVc* ThisVc = getVirtualChannel( vc_to_tc_mapping.global_vc_id );
 		
-		if (ThisVc == 0)
-			return ASAAC_ERROR;
+		if (ThisVc == NULL)
+			throw OSException("Virtual channel not found", LOCATION);
 		
 		vc_description = ThisVc->getDescription();
 		vc_status = ThisVc->getStatus();
@@ -506,8 +478,7 @@ ASAAC_ReturnStatus CommunicationManager::attachTransferConnectionToVirtualChanne
 		tc_id = vc_to_tc_mapping.tc_id;
 		is_data_representation = vc_to_tc_mapping.is_data_representation;
 		
-		if (m_PCSClient.getTransferConnectionDescription( tc_id, tc_description ) != ASAAC_SUCCESS)
-			throw OSException("Error while requesting TC description from PCS.", LOCATION); 
+		m_PCSClient.getTransferConnectionDescription( tc_id, tc_description ); 
 
 		if ((vc_description->max_number_of_buffers > LONG_MAX) ||
 		    (vc_description->max_number_of_threads_attached > LONG_MAX))
@@ -537,7 +508,7 @@ ASAAC_ReturnStatus CommunicationManager::attachTransferConnectionToVirtualChanne
 	    vc_mapping.is_refusing_queue		 = ASAAC_BOOL_TRUE;
 	    
 	   	Process *PCSProcess = ProcessManager::getInstance()->getProcess(OS_PROCESSID_PCS);
-	   	if (PCSProcess == 0)
+	   	if (PCSProcess == NULL)
 	   		throw OSException("PCS Process was not found.", LOCATION);
 	   	
 	   	//Stop PCS Process now
@@ -545,8 +516,7 @@ ASAAC_ReturnStatus CommunicationManager::attachTransferConnectionToVirtualChanne
 	    
 	    try //This inner exception block is needed to surely restart PCS Process
 	    {
-			if (ThisVc->createLocalVc( vc_mapping ) != ASAAC_SUCCESS)
-				throw OSException("Error while creating local VC for a TC connection.", LOCATION);
+			ThisVc->createLocalVc( vc_mapping );
 	    }
 	    catch (ASAAC_Exception &e)
 	    {
@@ -566,38 +536,33 @@ ASAAC_ReturnStatus CommunicationManager::attachTransferConnectionToVirtualChanne
 		//Restart PCS Process
 	    PCSProcess->run();
 		
-        if (m_PCSClient.attachTransferConnectionToVirtualChannel( *vc_description, tc_id, is_data_representation) == ASAAC_ERROR)
-            throw OSException("PCS returned an error", LOCATION);
+        m_PCSClient.attachTransferConnectionToVirtualChannel( *vc_description, tc_id, is_data_representation);
 	}		
 	catch (ASAAC_Exception &e)
 	{
         e.addPath("SMOS::attachTransferConnectionToVirtualChannel", LOCATION);
-        e.raiseError();
 
-		return ASAAC_ERROR;
+        throw;
 	}			
-		
-	return ASAAC_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus CommunicationManager::detachTransferConnectionFromVirtualChannel( ASAAC_PublicId vc_id, ASAAC_PublicId tc_id )
+void CommunicationManager::detachTransferConnectionFromVirtualChannel( ASAAC_PublicId vc_id, ASAAC_PublicId tc_id )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
     try
     {
-    	if (m_PCSClient.detachTransferConnectionFromVirtualChannel( vc_id, tc_id ) == ASAAC_ERROR)
-            throw OSException("PCS returned an error", LOCATION);
+    	m_PCSClient.detachTransferConnectionFromVirtualChannel( vc_id, tc_id );
     	
-		GlobalVc* ThisVc = getGlobalVirtualChannel( vc_id );
+		GlobalVc* ThisVc = getVirtualChannel( vc_id );
 		
-		if ( ThisVc == 0 ) 
+		if ( ThisVc == NULL ) 
 			throw OSException("Global VC was not found.", LOCATION);
 
 	   	Process *PCSProcess = ProcessManager::getInstance()->getProcess(OS_PROCESSID_PCS);
-	   	if (PCSProcess == 0)
+	   	if (PCSProcess == NULL)
 	   		throw OSException("PCS Process was not found.", LOCATION);
 	   	
 	   	//Stop PCS Process now
@@ -605,8 +570,7 @@ ASAAC_ReturnStatus CommunicationManager::detachTransferConnectionFromVirtualChan
 
 	    try //This inner exception block is needed to surely restart PCS Process
 	    {
-			if (ThisVc->removeLocalVcsFromProcess( OS_PROCESSID_PCS ) == ASAAC_ERROR)
-				throw OSException("LocalVC couldn't be removed.", LOCATION);
+			ThisVc->removeLocalVcsFromProcess( OS_PROCESSID_PCS );
 	    }
 	    catch (ASAAC_Exception &e)
 	    {
@@ -622,12 +586,9 @@ ASAAC_ReturnStatus CommunicationManager::detachTransferConnectionFromVirtualChan
 	catch (ASAAC_Exception &e)
 	{
         e.addPath("SMOS::detachTransferConnectionFromVirtualChannel", LOCATION);
-		e.raiseError();
-        
-        return ASAAC_ERROR;
+
+        throw;
 	}			
-	
-	return ASAAC_SUCCESS;
 }
 
 
@@ -635,14 +596,13 @@ ASAAC_ReturnStatus CommunicationManager::detachTransferConnectionFromVirtualChan
 //* Security Manager functions																	*
 //***********************************************************************************************
 	
-ASAAC_TimedReturnStatus CommunicationManager::getPMData(ASAAC_PublicId &vc_id, ASAAC_Address &message_buffer_reference, const unsigned long max_msg_length, unsigned long &msg_length, const ASAAC_TimeInterval timeout)
+void CommunicationManager::getPMData(ASAAC_PublicId &vc_id, ASAAC_Address &message_buffer_reference, const unsigned long max_msg_length, unsigned long &msg_length, const ASAAC_TimeInterval timeout)
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
 	CharacterSequence ErrorString;
 
-	ASAAC_TimedReturnStatus status = ASAAC_TM_ERROR;
 	try
 	{
 		//generate timeout stamp
@@ -668,7 +628,7 @@ ASAAC_TimedReturnStatus CommunicationManager::getPMData(ASAAC_PublicId &vc_id, A
 		//Free buffer of last getPMData call
 		LocalVc* LVc = P->getAttachedVirtualChannel( OS_SM_CLIENT_VC_RECEIVE );
 	
-		if ( LVc == 0 ) 
+		if ( LVc == NULL ) 
 			throw FatalException( (ErrorString << "Local VC not found (" << CharSeq((unsigned long)OS_SM_CLIENT_VC_RECEIVE) << ")").c_str(), LOCATION);
 
 		if (m_SMLastMessageBufferReference != 0)
@@ -678,13 +638,7 @@ ASAAC_TimedReturnStatus CommunicationManager::getPMData(ASAAC_PublicId &vc_id, A
 		}		
 	
 		//Send request to PCS to send data via vc
-		status = m_PCSClient.getPMData( max_msg_length, abs_timeout, OS_SM_SERVER_VC_SEND, vc_id );
-
-		if (status == ASAAC_TM_ERROR)
-			throw OSException("Error while a PM request was send to PCS", LOCATION);
-
-		if (status == ASAAC_TM_TIMEOUT)
-			throw TimeoutException("Timeout while a PM request was send to PCS", LOCATION);
+		m_PCSClient.getPMData( max_msg_length, abs_timeout, OS_SM_SERVER_VC_SEND, vc_id );
 		
 		//Now receive this data on local vc
 	    LVc->receiveBuffer( message_buffer_reference, msg_length, abs_timeout );
@@ -695,19 +649,13 @@ ASAAC_TimedReturnStatus CommunicationManager::getPMData(ASAAC_PublicId &vc_id, A
 	catch (ASAAC_Exception &e)
 	{
 		e.addPath("SMOS::getPMData", LOCATION);
-		e.raiseError();
+		
+		throw;
 	}
-	catch (...)
-	{
-		FatalException("SMOS::getPMData", LOCATION).raiseError();
-		return ASAAC_TM_ERROR;
-	}
-	
-	return status;	
 }
 
 
-ASAAC_ReturnStatus 		CommunicationManager::returnPMData(const ASAAC_PublicId vc_id, const ASAAC_Address message_buffer_reference, const unsigned long msg_length, const ASAAC_ReturnStatus sm_return_status)
+void CommunicationManager::returnPMData(const ASAAC_PublicId vc_id, const ASAAC_Address message_buffer_reference, const unsigned long msg_length, const ASAAC_ReturnStatus sm_return_status)
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -739,30 +687,22 @@ ASAAC_ReturnStatus 		CommunicationManager::returnPMData(const ASAAC_PublicId vc_
 	    LVc->sendMessage( message_buffer_reference, msg_length, TimeStamp::Infinity().asaac_Time() );
 
 		//Send now reply to PCS to get the data from dedicated vc
-		if (m_PCSClient.returnPMData( vc_id, OS_SM_SERVER_VC_RECEIVE, sm_return_status ) == ASAAC_ERROR)
-			throw OSException("Error while a PM reply was send to PCS", LOCATION);
+		m_PCSClient.returnPMData( vc_id, OS_SM_SERVER_VC_RECEIVE, sm_return_status );
 
 	}
 	catch (ASAAC_Exception &e)
 	{
         e.addPath("SMOS::returnPMData", LOCATION);
-		e.raiseError();
-		return ASAAC_ERROR;		
+
+        throw;
 	}
-	catch (...)
-	{
-        FatalException("SMOS::returnPMData", LOCATION).raiseError();
-		return ASAAC_ERROR;
-	}
-	
-	return ASAAC_SUCCESS;	
 }
 
 //***********************************************************************************************
 //* Local Virtual Channel functions																*
 //***********************************************************************************************
 
-ASAAC_ResourceReturnStatus CommunicationManager::sendMessageNonblocking(const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference, const unsigned long actual_size)
+void CommunicationManager::sendMessageNonblocking(const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference, const unsigned long actual_size)
 {
     try
     {
@@ -781,22 +721,14 @@ ASAAC_ResourceReturnStatus CommunicationManager::sendMessageNonblocking(const AS
     catch ( ASAAC_Exception &e )
     {
         if (e.isTimeout())
-        {            
-            return ASAAC_RS_RESOURCE;
-        }
+            throw ResourceException("", LOCATION);
         else
-        {
-	        e.addPath("APOS::sendMessageNonblocking", LOCATION);
-	        e.raiseError();
-            return ASAAC_RS_ERROR;
-        }
+	        throw;
     }
-    
-    return ASAAC_RS_SUCCESS;
 }
 
 
-ASAAC_ResourceReturnStatus CommunicationManager::receiveMessageNonblocking(const ASAAC_PublicId local_vc_id, const unsigned long maximum_size, const ASAAC_Address message_buffer_reference, unsigned long &actual_size)
+void CommunicationManager::receiveMessageNonblocking(const ASAAC_PublicId local_vc_id, const unsigned long maximum_size, const ASAAC_Address message_buffer_reference, unsigned long &actual_size)
 {
     try
     {
@@ -815,22 +747,14 @@ ASAAC_ResourceReturnStatus CommunicationManager::receiveMessageNonblocking(const
     catch ( ASAAC_Exception &e )
     {
         if (e.isTimeout())
-        {            
-            return ASAAC_RS_RESOURCE;
-        }
+            throw ResourceException("", LOCATION);
         else
-        {
-            e.addPath("APOS::receiveMessageNonblocking", LOCATION);
-            e.raiseError();
-            return ASAAC_RS_ERROR;
-        }
+	        throw;
     }
-    
-    return ASAAC_RS_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus CommunicationManager::sendMessage(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, const ASAAC_Address message_buffer_reference, const unsigned long actual_size)
+void CommunicationManager::sendMessage(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, const ASAAC_Address message_buffer_reference, const unsigned long actual_size)
 {
     try
     {
@@ -851,16 +775,13 @@ ASAAC_TimedReturnStatus CommunicationManager::sendMessage(const ASAAC_PublicId l
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::sendMessage", LOCATION);
-        e.raiseError();
-        
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+
+        throw;
     }
-    
-    return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus CommunicationManager::receiveMessage(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, const unsigned long maximum_size, const ASAAC_Address message_buffer_reference, unsigned long& actual_size)
+void CommunicationManager::receiveMessage(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, const unsigned long maximum_size, const ASAAC_Address message_buffer_reference, unsigned long& actual_size)
 {
     try
     {
@@ -882,16 +803,13 @@ ASAAC_TimedReturnStatus CommunicationManager::receiveMessage(const ASAAC_PublicI
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::receiveMessage", LOCATION);
-        e.raiseError();
         
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        throw;
     }
-    
-    return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus CommunicationManager::lockBuffer(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, ASAAC_Address& message_buffer_reference, const unsigned long maximum_size)
+void CommunicationManager::lockBuffer(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, ASAAC_Address& message_buffer_reference, const unsigned long maximum_size)
 {
     try
     {
@@ -912,16 +830,13 @@ ASAAC_TimedReturnStatus CommunicationManager::lockBuffer(const ASAAC_PublicId lo
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::lockBuffer", LOCATION);
-        e.raiseError();
-        
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+
+        throw;
     }
-    
-    return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus CommunicationManager::sendBuffer( const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference, const unsigned long maximum_size )
+void CommunicationManager::sendBuffer( const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference, const unsigned long maximum_size )
 {
     try
     {
@@ -940,16 +855,13 @@ ASAAC_ReturnStatus CommunicationManager::sendBuffer( const ASAAC_PublicId local_
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::sendBuffer", LOCATION);
-        e.raiseError();
         
-        return ASAAC_ERROR;
+        throw;
     }
-    
-    return ASAAC_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus CommunicationManager::receiveBuffer(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, ASAAC_Address &message_buffer_reference, unsigned long &actual_size)
+void CommunicationManager::receiveBuffer(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, ASAAC_Address &message_buffer_reference, unsigned long &actual_size)
 {
     try
     {
@@ -970,16 +882,13 @@ ASAAC_TimedReturnStatus CommunicationManager::receiveBuffer(const ASAAC_PublicId
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::receiveBuffer", LOCATION);
-        e.raiseError();
-        
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+
+        throw;
     }
-    
-    return ASAAC_TM_SUCCESS;
 }
 
 
-ASAAC_ReturnStatus CommunicationManager::unlockBuffer ( const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference )
+void CommunicationManager::unlockBuffer ( const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference )
 {
     try
     {
@@ -998,16 +907,13 @@ ASAAC_ReturnStatus CommunicationManager::unlockBuffer ( const ASAAC_PublicId loc
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::unlockBuffer", LOCATION);
-        e.raiseError();
         
-        return ASAAC_ERROR;
+        throw;
     }
-    
-    return ASAAC_SUCCESS;
 }
 
 
-ASAAC_TimedReturnStatus CommunicationManager::waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in, const unsigned long min_no_vc, ASAAC_PublicIdSet &vc_set_out, const ASAAC_TimeInterval timeout)
+void CommunicationManager::waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in, const unsigned long min_no_vc, ASAAC_PublicIdSet &vc_set_out, const ASAAC_TimeInterval timeout)
 {
 	try
 	{
@@ -1026,18 +932,18 @@ ASAAC_TimedReturnStatus CommunicationManager::waitOnMultiChannel(const ASAAC_Pub
 			Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
 			
 			if (ThisProcess == NULL)
-				return ASAAC_TM_ERROR;
+				throw OSException("Process not found", LOCATION);
 		
 			LocalVcObjects[Index] = ThisProcess->getAttachedVirtualChannel( vc_set_in.vc_id[ Index ] );
 			
 			if ( LocalVcObjects[Index] == NULL )
 			{
-				return ASAAC_TM_ERROR;
+				throw OSException("Virtual channel not found", LOCATION);
 			}
 			
-			if (! LocalVcObjects[Index]->getDescription()->is_reading )
+			if ( LocalVcObjects[Index]->getDescription()->is_reading == false )
 			{
-				return ASAAC_TM_ERROR;
+				throw OSException("Virtual channel is not a receiving one", LOCATION);
 			}
 			
 			for ( unsigned long CompareIndex = 0; CompareIndex < Index; CompareIndex ++ )
@@ -1081,9 +987,7 @@ ASAAC_TimedReturnStatus CommunicationManager::waitOnMultiChannel(const ASAAC_Pub
 			}
 	
 			if ( AvailableVcs >= min_no_vc )
-			{
-				return ASAAC_TM_SUCCESS;
-			}
+				break;
 			
 			VcUpdateSignal::getInstance()->waitForTrigger( TriggerState, timeout );
 		}
@@ -1091,11 +995,8 @@ ASAAC_TimedReturnStatus CommunicationManager::waitOnMultiChannel(const ASAAC_Pub
 	catch (ASAAC_Exception &e)
 	{
 		e.addPath("Error occured while waiting on multiple channels", LOCATION);
-		e.raiseError();
 
-		return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+		throw;
 	}
-	
-	return ASAAC_TM_SUCCESS;
 }
 

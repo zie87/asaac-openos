@@ -191,11 +191,12 @@ void GlobalVc::deinitialize()
 	}
 	catch (ASAAC_Exception &e)
 	{
+		m_IsInitialized = false;
+		
 		e.addPath("Error deinitializing GlobalVc", LOCATION);	
 		e.raiseError();	
 	}	
 	
-	m_IsInitialized = false;	
 }
 
 
@@ -242,7 +243,7 @@ SessionId GlobalVc::getSessionId()
 //                                         LOCAL VC CONFIGURATION
 // ******************************************************************************************************
 
-ASAAC_ReturnStatus GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& Description )
+void GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& Description )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
@@ -319,17 +320,14 @@ ASAAC_ReturnStatus GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& De
 			<< " global_vc_id:" << CharSeq(Description.global_vc_id) << " plobal_pid:" << CharSeq(Description.global_pid) << ")";
 			
 		e.addPath(ErrorString.c_str(), LOCATION);
-		e.raiseError();
 		
-		return ASAAC_ERROR;
+		throw;
 	}
-
-	return ASAAC_SUCCESS;
 }
 
 	  
 
-ASAAC_ReturnStatus GlobalVc::removeLocalVc( ASAAC_PublicId ProcessId, ASAAC_PublicId LocalVcId )
+void GlobalVc::removeLocalVc( ASAAC_PublicId ProcessId, ASAAC_PublicId LocalVcId )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
@@ -369,15 +367,14 @@ ASAAC_ReturnStatus GlobalVc::removeLocalVc( ASAAC_PublicId ProcessId, ASAAC_Publ
 	catch (ASAAC_Exception &e)
 	{
 		e.addPath("Error removing local vc", LOCATION);
+
 		throw;
 	}	
-	
-	return ASAAC_SUCCESS;
 }
 	
 
 
-ASAAC_ReturnStatus GlobalVc::removeLocalVcsFromProcess( ASAAC_PublicId ProcessId )
+void GlobalVc::removeLocalVcsFromProcess( ASAAC_PublicId ProcessId )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
@@ -395,17 +392,13 @@ ASAAC_ReturnStatus GlobalVc::removeLocalVcsFromProcess( ASAAC_PublicId ProcessId
 	{
         e.addPath("Error while removing local vcs from process", LOCATION);
         
-		e.raiseError();
-		
-		return ASAAC_ERROR;
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
 
-ASAAC_ReturnStatus GlobalVc::removeAllLocalVcs( )
+void GlobalVc::removeAllLocalVcs( )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
@@ -426,10 +419,8 @@ ASAAC_ReturnStatus GlobalVc::removeAllLocalVcs( )
 		e.addPath("Error removing all local vcs", LOCATION);
 		e.raiseError();
 		
-		return ASAAC_ERROR;
+		throw;
 	}
-	
-	return ASAAC_SUCCESS;
 }
 
 
@@ -489,7 +480,7 @@ long GlobalVc::getBufferNumber( ASAAC_Address BufferLocation ) const
 //                                         BUFFER COMMUNICATION
 // ******************************************************************************************************
 
-ASAAC_TimedReturnStatus GlobalVc::sendBuffer( unsigned long SourceBuffer, const ASAAC_Time& Timeout )
+void GlobalVc::sendBuffer( unsigned long SourceBuffer, const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
@@ -584,8 +575,6 @@ ASAAC_TimedReturnStatus GlobalVc::sendBuffer( unsigned long SourceBuffer, const 
         
         throw;        
     }
-    
-    return ASAAC_TM_SUCCESS;
 }
 
 

@@ -28,6 +28,8 @@ size_t FileManager::predictSize()
 	// m_InfoDataList
 	CumulativeSize +=  FileInfoList::predictSize(OS_MAX_NUMBER_OF_LOCAL_FILES);
 	
+	CumulativeSize += Semaphore::predictSize();
+	
 	return CumulativeSize;
 }
 
@@ -44,6 +46,8 @@ void FileManager::initialize()
         m_Allocator.initialize( predictSize() );
                 
         m_FileInfoList.initialize( &m_Allocator, true, OS_MAX_NUMBER_OF_LOCAL_FILES );
+        
+        m_Semaphore.initialize( &m_Allocator, true );
         
         readFileInfoListFromEnvironment();                
     }
@@ -70,6 +74,8 @@ void FileManager::deinitialize( const bool do_throw )
     {
         writeFileInfoListToEnvironment();
 
+        m_Semaphore.deinitialize();
+        
         m_FileInfoList.deinitialize();
         
         m_Allocator.deinitialize();
@@ -608,10 +614,10 @@ void FileManager::seekFile(const ASAAC_PrivateId filehandle, const ASAAC_SeekMod
 
 void FileManager::readFile(const ASAAC_PrivateId filehandle, ASAAC_Address buffer_address, const long read_count, long &count_read, const ASAAC_TimeInterval timeout)
 {
+	CharSeq ErrorString;
     try 
     {
     	BlockingScope TimeoutScope();
-    	
 		FileInfoData Data = getFileDataByAsaacHandle(filehandle);
 		
 		TimeStamp Timeout( timeout );
@@ -661,7 +667,8 @@ void FileManager::readFile(const ASAAC_PrivateId filehandle, ASAAC_Address buffe
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("Error reading file", LOCATION);
+        //e.addPath("Error reading file", LOCATION);
+        e.addPath(ErrorString.c_str(), LOCATION);
 
 		throw;
     }
@@ -1001,6 +1008,8 @@ long FileManager::indexOf( const int posix_handle )
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
 
+	ProtectedScope Access( "Determine the index of a posix_handle", m_Semaphore );
+
 	long Index;
 	
 	for ( Index = 0; Index < (long)m_FileInfoList.getCount(); Index++)
@@ -1015,6 +1024,8 @@ long FileManager::indexOf( const ASAAC_CharacterSequence name, FileType type, AS
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
+
+	ProtectedScope Access( "Determine the index of a filename", m_Semaphore );
 
 	long Index;
 	
@@ -1033,6 +1044,8 @@ FileManager::FileInfoData FileManager::getFileDataByAsaacHandle( const ASAAC_Pri
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
+
+	ProtectedScope Access( "retrieve a file handle by an asaac handle", m_Semaphore );
 
 	CharacterSequence ErrorString;
 	

@@ -32,10 +32,10 @@ public:
 
     void                    configurePCS();
 
-	long 					getGlobalVirtualChannelIndex( ASAAC_PublicId GlobalVcId );	
+	long 					getVirtualChannelIndex( ASAAC_PublicId GlobalVcId );	
 
 	//! get reference to a GlobalVc instance
-	GlobalVc*				getGlobalVirtualChannel( ASAAC_PublicId GlobalVcId );
+	GlobalVc*				getVirtualChannel( ASAAC_PublicId GlobalVcId );
 	/*!< \param[in] GlobalVcId ASAAC_PublicId of the GlobalVc.
 	 * 
 	 *   \return    reference to GlobalVc object instance handling the designated Global Vc.
@@ -56,7 +56,7 @@ public:
 	
 	 
 	//! create a GlobalVc (as SMOS)
-	GlobalVc*				createGlobalVirtualChannel( const ASAAC_VcDescription& Description );
+	GlobalVc*				createVirtualChannel( const ASAAC_VcDescription& Description );
 	/*!< This function creates a shared memory object and required data structures to communicate
 	 *   via this shared memory object as a Global Vc, as is required for the setup of a virtual channel
 	 *   via the SMOS call createVirtualChannel().
@@ -71,7 +71,7 @@ public:
 
 	
 	//! delete a GlobalVc (as SMOS)
-	ASAAC_ReturnStatus		destroyGlobalVirtualChannel( const ASAAC_PublicId vc_id );
+	void					destroyVirtualChannel( const ASAAC_PublicId vc_id );
 	/*!< This function destroy a shared memory object.
 	 * 
 	 *   \param[in] vc_id is the identification number for the destroying global vc. 
@@ -79,68 +79,68 @@ public:
 	 *   \return    refer to STANAG 4626, 11.7.3.2.
 	 */
 
-	ASAAC_ReturnStatus		destroyAllGlobalVirtualChannels();
+	void					destroyAllVirtualChannels();
     
-    void                    releaseGlobalVirtualChannel( ASAAC_PublicId GlobalVcId );
+    void                    releaseVirtualChannel( ASAAC_PublicId GlobalVcId );
 
-    void                    releaseAllGlobalVirtualChannels();
+    void                    releaseAllVirtualChannels();
 	
 	//! SMOS call to attach a process or thread to a global virtual channels while implicit creating a local virtual channel. 
-	ASAAC_ReturnStatus 		attachChannelToProcessOrThread(const ASAAC_VcMappingDescription vc_mapping);
+	void			 		attachChannelToProcessOrThread(const ASAAC_VcMappingDescription vc_mapping);
 
 	//! SMOS call to detach all threads from global virtual channel. 
-	ASAAC_ReturnStatus 		detachAllThreadsOfProcessFromVc(const ASAAC_PublicId vc_id, const ASAAC_PublicId process_id);
+	void			  		detachAllThreadsOfProcessFromVc(const ASAAC_PublicId vc_id, const ASAAC_PublicId process_id);
 	
 	//! SMOS call to configure a network longerface. 
-	ASAAC_ReturnStatus		configureInterface( const ASAAC_InterfaceData& if_config );
+	void			 		configureInterface( const ASAAC_InterfaceData& if_config );
 	
 	//! SMOS call to configure a transfer connection.
-	ASAAC_ReturnStatus		createTransferConnection( const ASAAC_TcDescription& tc_desc );
+	void			 		createTransferConnection( const ASAAC_TcDescription& tc_desc );
 
 	//! SMOS call to remove a transfer connection. 
-	ASAAC_ReturnStatus		destroyTransferConnection( ASAAC_PublicId tc_id, const ASAAC_NetworkDescriptor& network_descr );
+	void			 		destroyTransferConnection( ASAAC_PublicId tc_id, const ASAAC_NetworkDescriptor& network_descr );
 	
 	//! SMOS call to longerface with NII
-	ASAAC_ReturnStatus		getNetworkPortStatus( const ASAAC_NetworkDescriptor& network_desc, ASAAC_NetworkPortStatus& network_status );
+	void			 		getNetworkPortStatus( const ASAAC_NetworkDescriptor& network_desc, ASAAC_NetworkPortStatus& network_status );
 	
 	//! SMOS call to control the switching of the PCS 
-	ASAAC_ReturnStatus		attachTransferConnectionToVirtualChannel( const ASAAC_VcToTcMappingDescription& vc_to_tc_mapping );
+	void			 		attachTransferConnectionToVirtualChannel( const ASAAC_VcToTcMappingDescription& vc_to_tc_mapping );
 
 	//! SMOS call to control the switching of the PCS 
-	ASAAC_ReturnStatus		detachTransferConnectionFromVirtualChannel( ASAAC_PublicId vc_id, ASAAC_PublicId tc_id );
+	void			 		detachTransferConnectionFromVirtualChannel( ASAAC_PublicId vc_id, ASAAC_PublicId tc_id );
 
 	//! SMOS call to obtain data to Security Manager 
-	ASAAC_TimedReturnStatus getPMData(ASAAC_PublicId &vc_id, ASAAC_Address &message_buffer_reference, const unsigned long max_msg_length, unsigned long &msg_length, const ASAAC_TimeInterval timeout);
+	void			 		getPMData(ASAAC_PublicId &vc_id, ASAAC_Address &message_buffer_reference, const unsigned long max_msg_length, unsigned long &msg_length, const ASAAC_TimeInterval timeout);
 
 	//! SMOS call to send data back from Security Manager 
-	ASAAC_ReturnStatus 		returnPMData(const ASAAC_PublicId vc_id, const ASAAC_Address message_buffer_reference, const unsigned long msg_length, const ASAAC_ReturnStatus sm_return_status);
+	void			  		returnPMData(const ASAAC_PublicId vc_id, const ASAAC_Address message_buffer_reference, const unsigned long msg_length, const ASAAC_ReturnStatus sm_return_status);
 
 	//! APOS call to send a message nonblocking 
-	ASAAC_ResourceReturnStatus sendMessageNonblocking(const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference, const unsigned long actual_size);
+	void			 		sendMessageNonblocking(const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference, const unsigned long actual_size);
 	
 	//! APOS call to receive a message nonblocking 
-	ASAAC_ResourceReturnStatus receiveMessageNonblocking(const ASAAC_PublicId local_vc_id, const unsigned long maximum_size, const ASAAC_Address message_buffer_reference, unsigned long &actual_size);
+	void			 		receiveMessageNonblocking(const ASAAC_PublicId local_vc_id, const unsigned long maximum_size, const ASAAC_Address message_buffer_reference, unsigned long &actual_size);
 
 	//! APOS call to send a message 
-	ASAAC_TimedReturnStatus sendMessage(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, const ASAAC_Address message_buffer_reference, const unsigned long actual_size);
+	void			 		sendMessage(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, const ASAAC_Address message_buffer_reference, const unsigned long actual_size);
 
 	//! APOS call to receive a message 
-	ASAAC_TimedReturnStatus receiveMessage(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, const unsigned long maximum_size, const ASAAC_Address message_buffer_reference, unsigned long& actual_size);
+	void			 		receiveMessage(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, const unsigned long maximum_size, const ASAAC_Address message_buffer_reference, unsigned long& actual_size);
 
 	//! APOS call to lock a buffer 
-	ASAAC_TimedReturnStatus lockBuffer(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, ASAAC_Address& message_buffer_reference, const unsigned long maximum_size);
+	void			 		lockBuffer(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, ASAAC_Address& message_buffer_reference, const unsigned long maximum_size);
 
 	//! APOS call to send a buffer 
-	ASAAC_ReturnStatus sendBuffer( const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference, const unsigned long maximum_size );
+	void			 		sendBuffer( const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference, const unsigned long maximum_size );
 
 	//! APOS call to receive a buffer 
-	ASAAC_TimedReturnStatus receiveBuffer(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, ASAAC_Address &message_buffer_reference, unsigned long &actual_size);
+	void			 		receiveBuffer(const ASAAC_PublicId local_vc_id, const ASAAC_TimeInterval timeout, ASAAC_Address &message_buffer_reference, unsigned long &actual_size);
 
 	//! APOS call to unlock a buffer 
-	ASAAC_ReturnStatus unlockBuffer ( const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference );
+	void			 		unlockBuffer ( const ASAAC_PublicId local_vc_id, const ASAAC_Address message_buffer_reference );
 
 	//! APOS call to wait for data on multiple virtual channels 
-	ASAAC_TimedReturnStatus waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in, const unsigned long min_no_vc, ASAAC_PublicIdSet &vc_set_out, const ASAAC_TimeInterval timeout);
+	void			 		waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in, const unsigned long min_no_vc, ASAAC_PublicIdSet &vc_set_out, const ASAAC_TimeInterval timeout);
 
 	//! predict the amount of memory for control and data structures to be allocated via an allocator
 	static size_t	predictSize();
@@ -151,7 +151,7 @@ private:
 
 	CommunicationManager();
 	
-	GlobalVc*				getGlobalVirtualChannel( ASAAC_PublicId GlobalVcId, long &Index );
+	GlobalVc*				getVirtualChannel( ASAAC_PublicId GlobalVcId, long &Index );
 
     typedef struct
     {

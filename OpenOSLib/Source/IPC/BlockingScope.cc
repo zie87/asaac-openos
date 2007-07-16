@@ -5,6 +5,7 @@
 
 BlockingScope::BlockingScope()
 {
+	
 	Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread( false );
 	
 	if ( ThisThread != NULL ) 

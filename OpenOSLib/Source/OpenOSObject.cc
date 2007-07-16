@@ -109,7 +109,7 @@ void OpenOS::switchState( bool IsMaster, LocalActivityState State,  ASAAC_Public
 
 		AllocatorManager::getInstance()->reallocateAllObjects( getSessionId() );
 
-	    CommunicationManager::getInstance()->releaseAllGlobalVirtualChannels();
+	    CommunicationManager::getInstance()->releaseAllVirtualChannels();
 	    
 	    ProcessManager::getInstance()->setCurrentProcess(ProcessId);
 	    ProcessManager::getInstance()->releaseAllClientProcesses();    
@@ -514,7 +514,7 @@ void OpenOS::flushLocalSession( SessionId NewSessionId )
 		ProcessManager::getInstance()->destroyAllClientProcesses();
 		
 	if ( CommunicationManager::getInstance()->isInitialized() )
-		CommunicationManager::getInstance()->destroyAllGlobalVirtualChannels();
+		CommunicationManager::getInstance()->destroyAllVirtualChannels();
 	
 	AllocatorManager::getInstance()->reallocateAllObjects( NewSessionId );
 }

@@ -111,10 +111,10 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 	Executing = true;
 		
 	try
-	{	
+	{
 		Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess(false);
 		Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
-	
+
 
 		ASAAC_Time absolute_local_time;
 		ASAAC_Time absolute_global_time;
@@ -225,11 +225,20 @@ ASAAC_ReturnStatus ErrorHandler::getDebugErrorInformation(
 
 void ErrorHandler::terminateErrorHandler( ASAAC_ReturnStatus return_status )
 {
-	m_ErrorHandlerReturnStatus = return_status;
-	
-	m_ErrorHandlerTrigger.trigger();
-	
-	ThreadManager::getInstance()->getCurrentThread()->terminateSelf();
+	try
+	{
+		m_ErrorHandlerReturnStatus = return_status;
+		
+		m_ErrorHandlerTrigger.trigger();
+		
+		ThreadManager::getInstance()->getCurrentThread()->terminateSelf();
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error terminating error handler thread", LOCATION);
+		
+		throw;
+	}
 }
 
 

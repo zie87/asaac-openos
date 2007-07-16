@@ -98,7 +98,7 @@ public:
 	GlobalVcStatus getStatus();
 	
 	//! initialize a local vc slot
-	ASAAC_ReturnStatus createLocalVc( const ASAAC_VcMappingDescription& Description );
+	void createLocalVc( const ASAAC_VcMappingDescription& Description );
 	/*!< this method initializes the next free local vc slot for usage as indicated
 	 *   by the ASAAC_VcMappingDescription provided as parameter. Note that the instances
 	 *   of LocalVc contained in the GlobalVc instance are already initialized in a way that
@@ -116,7 +116,7 @@ public:
 	 
 
 	//! uninitialize a local vc slot	 
-	ASAAC_ReturnStatus removeLocalVc( ASAAC_PublicId ProcessId, ASAAC_PublicId LocalVcId );
+	void removeLocalVc( ASAAC_PublicId ProcessId, ASAAC_PublicId LocalVcId );
 	/*!< this method uninitializes the indicated local vc slot, preventing any further
 	 *   sending or receiving via it. The longernal data structures are reset longo
 	 *   a corresponding state.
@@ -131,7 +131,7 @@ public:
 	 */
 	
 	//! remove all local vc slots from one process
-	ASAAC_ReturnStatus removeLocalVcsFromProcess( ASAAC_PublicId ProcessId );
+	void removeLocalVcsFromProcess( ASAAC_PublicId ProcessId );
 	/*< this method causes the the list of local vc slots on this global vc to be
 	 *  traversed, and all local vc slots owned by the indicated processor to be
 	 *  removed via removeLocalVc().
@@ -144,7 +144,7 @@ public:
 	 */
 
 	//! remove all local vc slots from one process
-	ASAAC_ReturnStatus removeAllLocalVcs( );
+	void removeAllLocalVcs( );
 	/*< this method causes the the list of local vc slots on this global vc to be
 	 *  traversed, and all local vc slots to be removed via removeLocalVc().
 	 * 
@@ -260,7 +260,7 @@ public:
 	
 	
 	//! send a buffer to all receivers
-	ASAAC_TimedReturnStatus sendBuffer( unsigned long SourceBuffer, const ASAAC_Time& Timeout ); 
+	void sendBuffer( unsigned long SourceBuffer, const ASAAC_Time& Timeout ); 
 	/*!< this is the function to do the actual communication. By means of this method, all local vc slots of
 	 *   the current global vc are traversed, and all initialized local vc slots configured as receivers (which
 	 *   should be all except for one) will receive notification of the buffer indicated by its index number

@@ -124,6 +124,7 @@ Thread* ThreadManager::getCurrentThread( const bool do_throw )
 {
 	if (m_IsInitialized == false)
 	{
+		return NULL;
 		if (do_throw == true)
 			throw UninitializedObjectException(LOCATION);
 		else return NULL;

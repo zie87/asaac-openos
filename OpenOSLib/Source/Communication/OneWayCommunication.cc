@@ -61,12 +61,12 @@ void OneWayCommunication::assureGlobalVc() const
     	
         CommunicationManager *CM = CommunicationManager::getInstance();     
         
-        GlobalVc* GVc = CM->getGlobalVirtualChannel( m_Configuration.global_vc_id );
+        GlobalVc* GVc = CM->getVirtualChannel( m_Configuration.global_vc_id );
         ASAAC_VcDescription GVc_desc = getReferenceGlobalVcDescription();
 
         if (GVc == NULL) 
         {
-            GVc = CM->createGlobalVirtualChannel( GVc_desc );
+            GVc = CM->createVirtualChannel( GVc_desc );
         }       
         else
         {
@@ -89,9 +89,9 @@ void OneWayCommunication::assureGlobalVc() const
                         
                     invokeOSScope( param_LVc.mapping.global_pid, detachLocalVc, param_LVc );
                 }
-                CM->destroyGlobalVirtualChannel( GVc_desc_old.global_vc_id );
+                CM->destroyVirtualChannel( GVc_desc_old.global_vc_id );
                 
-                GVc = CM->createGlobalVirtualChannel( GVc_desc );
+                GVc = CM->createVirtualChannel( GVc_desc );
             }
         }
         
@@ -117,7 +117,7 @@ void OneWayCommunication::assureSenderConnection() const
         
         CommunicationManager *CM = CommunicationManager::getInstance();     
 
-        GlobalVc* GVc = CM->getGlobalVirtualChannel( m_Configuration.global_vc_id );
+        GlobalVc* GVc = CM->getVirtualChannel( m_Configuration.global_vc_id );
         
         if (GVc == NULL)
             throw OSException("GlobalVC object not found", LOCATION);
@@ -181,7 +181,7 @@ void OneWayCommunication::assureReceiverConnection() const
 
         CommunicationManager *CM = CommunicationManager::getInstance();     
 
-        GlobalVc* GVc = CM->getGlobalVirtualChannel( m_Configuration.global_vc_id );
+        GlobalVc* GVc = CM->getVirtualChannel( m_Configuration.global_vc_id );
         
         if (GVc == NULL)
             throw OSException("GlobalVC object not found", LOCATION);
@@ -222,18 +222,16 @@ void OneWayCommunication::detach() const
     try
     {
 	    CommunicationManager *CM = CommunicationManager::getInstance();
-	    GlobalVc* GVc = CM->getGlobalVirtualChannel( m_Configuration.global_vc_id );
+	    GlobalVc* GVc = CM->getVirtualChannel( m_Configuration.global_vc_id );
 	
 	    if (GVc != NULL)
         {	
 	        detachSender();
 	        detachReceiver();
 	
-	        if (GVc->removeAllLocalVcs() == ASAAC_ERROR)
-                throw OSException("Error removing other local vcs", LOCATION);
+	        GVc->removeAllLocalVcs();
                 
-            if (CM->destroyGlobalVirtualChannel(m_Configuration.global_vc_id) == ASAAC_ERROR)
-                throw OSException("Error destroying global vc", LOCATION);;
+            CM->destroyVirtualChannel(m_Configuration.global_vc_id);
         }
     }   
     catch ( ASAAC_Exception &e )
@@ -251,7 +249,7 @@ void OneWayCommunication::detachSender() const
     try
     {
 	    CommunicationManager *CM = CommunicationManager::getInstance();
-	    GlobalVc* GVc = CM->getGlobalVirtualChannel( m_Configuration.global_vc_id );
+	    GlobalVc* GVc = CM->getVirtualChannel( m_Configuration.global_vc_id );
 	    
 	    if (GVc != NULL)
         {	    
@@ -277,7 +275,7 @@ void OneWayCommunication::detachReceiver() const
     try
     {
 	    CommunicationManager *CM = CommunicationManager::getInstance();
-	    GlobalVc* GVc = CM->getGlobalVirtualChannel( m_Configuration.global_vc_id );
+	    GlobalVc* GVc = CM->getVirtualChannel( m_Configuration.global_vc_id );
 	    
 	    if (GVc != NULL)
         {	    
@@ -303,7 +301,7 @@ bool OneWayCommunication::isAttached() const
 	//Check Global VC Configuration
 	CommunicationManager *CM = CommunicationManager::getInstance();
 	
-	GlobalVc* GVc = CM->getGlobalVirtualChannel( m_Configuration.global_vc_id );
+	GlobalVc* GVc = CM->getVirtualChannel( m_Configuration.global_vc_id );
 
 	if (GVc == NULL)
 		return false;

@@ -52,7 +52,6 @@ void ASAAC_Exception::initialize()
 	 		m_ProcessId = P->getId();
 	 	}
 	}
-
 	ThreadManager *TM = ThreadManager::getInstance();
 	Thread *T = TM->getCurrentThread(false);
 	if (T != NULL)

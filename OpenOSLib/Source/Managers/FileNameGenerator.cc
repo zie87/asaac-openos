@@ -20,7 +20,7 @@ const char * subdir = "";
 
 ASAAC_CharacterSequence FileNameGenerator::getGlobalVcName( ASAAC_PublicId GlobalVcId )
 {
-	long Index = CommunicationManager::getInstance()->getGlobalVirtualChannelIndex(GlobalVcId);
+	long Index = CommunicationManager::getInstance()->getVirtualChannelIndex(GlobalVcId);
 	
 	if (Index == -1)
 		throw OSException("GlobalVcId not found", LOCATION);

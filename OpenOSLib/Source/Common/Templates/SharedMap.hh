@@ -82,6 +82,8 @@ protected:
 	SharedList<MapData>  	m_List;	
 	bool					m_IsInitialized;
 
+	Semaphore               m_Semaphore; 
+
 private:
 	// probit implicit copying and assignment
 	SharedMap( const SharedMap<TID, T>& Value );
@@ -108,7 +110,10 @@ template <class TID, class T> void SharedMap<TID, T>::initialize( Allocator* Thi
 {
 	try 
 	{
-		m_List.initialize( ThisAllocator, IsMaster, Size );		
+		m_List.initialize( ThisAllocator, IsMaster, Size );
+		
+		//Instantiate Semaphore
+		m_Semaphore.initialize( ThisAllocator, IsMaster, 1 );
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -125,12 +130,16 @@ template <class TID, class T> void SharedMap<TID, T>::initialize( Allocator* Thi
 template <class TID, class T> void SharedMap<TID, T>::deinitialize()
 {
 	m_List.deinitialize();
+	
+	m_Semaphore.deinitialize();
 }
 
 
 
 template <class TID, class T> long SharedMap<TID, T>::add( const TID Id, const T Value, const ASAAC_Time& Timeout )
 {
+	ProtectedScope Access( "Add an element into SharedMap", m_Semaphore, Timeout );
+
 	long Index = 0;
 	
 	long l = 0;
@@ -197,7 +206,8 @@ template <class TID, class T> bool SharedMap<TID, T>::isEmpty() const
 
 template <class TID, class T> size_t SharedMap<TID, T>::predictSize( unsigned long Size )
 {
-	return SharedList<MapData>::predictSize(Size);
+	return ( SharedList<MapData>::predictSize(Size)+
+	         Semaphore::predictSize() );
 }
 
 
@@ -211,6 +221,8 @@ template <class TID, class T> T& SharedMap<TID, T>::operator[]( const long Index
 
 template <class TID, class T> long SharedMap<TID, T>::indexOf( const TID Id )
 {
+	ProtectedScope Access( "Determine index of an element in SharedMap", m_Semaphore );
+
 	long i;
 	
 	long l = 0;

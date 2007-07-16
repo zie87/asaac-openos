@@ -121,7 +121,7 @@ template <class T> void SharedList<T>::initialize( Allocator* ThisAllocator,
 		// Initialize Global Data and Buffer.
 		m_GlobalData.initialize( ThisAllocator, 1 );
 		
-		//Instantiate Semaphore and Events
+		//Instantiate Semaphore
 		m_Semaphore.initialize( ThisAllocator, IsMaster, 1 );
 
 		// Only Master initializes global data. Slaves will use this data

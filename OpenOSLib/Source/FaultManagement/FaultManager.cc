@@ -79,11 +79,11 @@ ASAAC_TimedReturnStatus		FaultManager::getError( ASAAC_ErrorInfo& error_info, co
 		m_ErrorMessageQueue.receiveMessage( &error_info, sizeof( ASAAC_ErrorInfo ), ActualSize, timeOut );
 		
 		if ( ActualSize != sizeof( ASAAC_ErrorInfo ) ) 
-			throw OSException("", LOCATION);
+			throw OSException("Size of received message doesnt fit to size of ASAAC_ErrorInfo", LOCATION);
 	}
 	catch ( ASAAC_Exception &e )
 	{
-		e.addPath("Error retrieving error", LOCATION);
+		e.addPath("Error retrieving error data", LOCATION);
 		e.raiseError();
 				
         return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;

@@ -3,6 +3,8 @@
 
 #include "OpenOSObject.hh"
 
+#include "Communication/CommunicationManager.hh"
+
 #include "ProcessManagement/ProcessManager.hh"
 #include "ProcessManagement/ThreadManager.hh"
 #include "ProcessManagement/Process.hh"
@@ -107,7 +109,7 @@ namespace ASAAC
 		}	
 
 
-        ASAAC_ReturnStatus Client::configurePCS()
+        void Client::configurePCS()
         {
             try
             {
@@ -116,11 +118,9 @@ namespace ASAAC
             catch (ASAAC_Exception &e)
             {
                 e.addPath("Configuring PCS failed");
-                e.raiseError();
-                return ASAAC_ERROR;
+                
+                throw;
             }
-            
-            return ASAAC_SUCCESS;
         }                        
 
 
@@ -143,13 +143,7 @@ namespace ASAAC
 
 			ASAAC_TimeInterval int_timeout = TimeStamp( Timeout ).asaac_Interval();
 
-			ASAAC_TimedReturnStatus Status = ASAAC_APOS_sendMessage( getRequestVc(), &int_timeout, &Message, max_size);
-			
-			if (Status == ASAAC_TM_ERROR)
-				throw OSException("Error sending request", LOCATION);
-
-			if (Status == ASAAC_TM_TIMEOUT)
-				throw TimeoutException("Timeout sending request", LOCATION);			
+			CommunicationManager::getInstance()->sendMessage( getRequestVc(), int_timeout, &Message, max_size);
 		}
 
 
@@ -161,20 +155,13 @@ namespace ASAAC
 		{
 			size_t max_size = sizeof(ASAAC_PCS_Message);
 			long unsigned size = 0;
-			ASAAC_TimedReturnStatus status;
 			ASAAC_PCS_Message Message;
 
 			do
 			{
 				ASAAC_TimeInterval int_timeout = TimeStamp( Timeout ).asaac_Interval();
 				
-				status = ASAAC_APOS_receiveMessage( getReplyVc(), &int_timeout, max_size, &Message, &size);
-				
-				if (status == ASAAC_TM_ERROR)
-					throw OSException("Error receiving reply", LOCATION);
-
-				if (status == ASAAC_TM_TIMEOUT)
-					throw TimeoutException("Timeout receiving reply", LOCATION);
+				CommunicationManager::getInstance()->receiveMessage( getReplyVc(), int_timeout, max_size, &Message, size);
 			}				
 			while (Message.transfer_id != TransferId);
 			
@@ -212,18 +199,19 @@ namespace ASAAC
 	    }	
 		
 		
-		ASAAC_ReturnStatus Client::configureInterface( const ASAAC_InterfaceData& if_config )
+		void Client::configureInterface( const ASAAC_InterfaceData& if_config )
 		{
 			ASAAC_PCS_MessageParameter Param;			
 			Param._u.request_configure_interface.if_config = if_config;
 			
 			sendAndReceive( ASAAC_PCS_ConfigureInterface, Param);
 			
-			return Param._u.reply_configure_interface.result;
+			if (Param._u.reply_configure_interface.result == ASAAC_ERROR)
+				throw OSException("PCS replied an error", LOCATION);
 		}
 
 			
-		ASAAC_ReturnStatus Client::createTransferConnection( const ASAAC_TcDescription& tc_description )
+		void Client::createTransferConnection( const ASAAC_TcDescription& tc_description )
 		{
 			ASAAC_PCS_MessageParameter Param;
 			
@@ -231,11 +219,12 @@ namespace ASAAC
 			
 			sendAndReceive( ASAAC_PCS_CreateTransferConnection, Param);
 
-			return Param._u.reply_create_connection.result;
+			if (Param._u.reply_create_connection.result == ASAAC_ERROR)
+				throw OSException("PCS replied an error", LOCATION);
 		}
 
 
-		ASAAC_ReturnStatus Client::getTransferConnectionDescription( ASAAC_PublicId tc_id, ASAAC_TcDescription& tc_description )
+		void Client::getTransferConnectionDescription( ASAAC_PublicId tc_id, ASAAC_TcDescription& tc_description )
 		{
 			ASAAC_PCS_MessageParameter Param;
 			
@@ -243,12 +232,14 @@ namespace ASAAC
 			
 			sendAndReceive( ASAAC_PCS_GetTransferConnectionDescription, Param);
 
+			if (Param._u.reply_tc_description.result == ASAAC_ERROR)
+				throw OSException("PCS replied an error", LOCATION);
+
 			tc_description = Param._u.reply_tc_description.tc_description;
-			return Param._u.reply_tc_description.result;
 		}
 		
 		
-		ASAAC_ReturnStatus Client::destroyTransferConnection( ASAAC_PublicId tc_id, const ASAAC_NetworkDescriptor& network_descriptor )
+		void Client::destroyTransferConnection( ASAAC_PublicId tc_id, const ASAAC_NetworkDescriptor& network_descriptor )
 		{
 			ASAAC_PCS_MessageParameter Param;
 			
@@ -257,11 +248,12 @@ namespace ASAAC
 			
 			sendAndReceive( ASAAC_PCS_DestroyTransferConnection, Param);
 			
-			return Param._u.reply_destroy_connection.result;
+			if (Param._u.reply_destroy_connection.result == ASAAC_ERROR)
+				throw OSException("PCS replied an error", LOCATION);
 		}
 
 			
-		ASAAC_ReturnStatus Client::getNetworkPortStatus( const ASAAC_NetworkDescriptor& network_descriptor, ASAAC_NetworkPortStatus& status )
+		void Client::getNetworkPortStatus( const ASAAC_NetworkDescriptor& network_descriptor, ASAAC_NetworkPortStatus& status )
 		{
 			ASAAC_PCS_MessageParameter Param;
 			
@@ -269,12 +261,14 @@ namespace ASAAC
 			
 			sendAndReceive( ASAAC_PCS_GetNetworkPortStatus, Param);
 			
+			if (Param._u.reply_network_status.result == ASAAC_ERROR)
+				throw OSException("PCS replied an error", LOCATION);
+
 			status = Param._u.reply_network_status.status;
-			return Param._u.reply_network_status.result;
 		}
 
 			
-	    ASAAC_ReturnStatus Client::attachTransferConnectionToVirtualChannel(  const ASAAC_VcDescription vc_description, ASAAC_PublicId tc_id, ASAAC_Bool is_data_representation )
+	    void Client::attachTransferConnectionToVirtualChannel(  const ASAAC_VcDescription vc_description, ASAAC_PublicId tc_id, ASAAC_Bool is_data_representation )
 		{
 			ASAAC_PCS_MessageParameter Param;
 			
@@ -284,11 +278,12 @@ namespace ASAAC
 			
 			sendAndReceive( ASAAC_PCS_AttachTransferConnectionToVirtualChannel, Param);
 			
-			return Param._u.reply_attach_channel.result;
+			if (Param._u.reply_attach_channel.result == ASAAC_ERROR)
+				throw OSException("PCS replied an error", LOCATION);
 		}
 
 		
-		ASAAC_ReturnStatus Client::detachTransferConnectionFromVirtualChannel( ASAAC_PublicId vc_id, ASAAC_PublicId tc_id )
+		void Client::detachTransferConnectionFromVirtualChannel( ASAAC_PublicId vc_id, ASAAC_PublicId tc_id )
 		{
 			ASAAC_PCS_MessageParameter Param;
 			
@@ -297,10 +292,11 @@ namespace ASAAC
 			
 			sendAndReceive( ASAAC_PCS_DetachTransferConnectionFromVirtualChannel, Param);
 
-			return Param._u.reply_detach_channel.result;
+			if (Param._u.reply_detach_channel.result == ASAAC_ERROR)
+				throw OSException("PCS replied an error", LOCATION);
 		}
 		
-		ASAAC_TimedReturnStatus Client::getPMData( const unsigned long max_msg_length, const ASAAC_Time timeout, const ASAAC_PublicId sm_send_vc_id, ASAAC_PublicId &vc_id)
+		void Client::getPMData( const unsigned long max_msg_length, const ASAAC_Time timeout, const ASAAC_PublicId sm_send_vc_id, ASAAC_PublicId &vc_id)
 		{
 			ASAAC_PCS_MessageParameter Param;
 			
@@ -310,11 +306,16 @@ namespace ASAAC
 			
 			sendAndReceive( ASAAC_PCS_GetPMData, Param, timeout);
 
+			if (Param._u.reply_pm_data.result == ASAAC_TM_ERROR)
+				throw OSException("PCS replied an error", LOCATION);
+			
+			if (Param._u.reply_pm_data.result == ASAAC_TM_TIMEOUT)
+				throw TimeoutException(LOCATION);
+
 			vc_id = Param._u.reply_pm_data.vc_id;
-			return Param._u.reply_pm_data.result;
 		}
 		
-		ASAAC_ReturnStatus Client::returnPMData( const ASAAC_PublicId vc_id, const ASAAC_PublicId sm_receive_vc_id, const ASAAC_ReturnStatus sm_return_status)
+		void Client::returnPMData( const ASAAC_PublicId vc_id, const ASAAC_PublicId sm_receive_vc_id, const ASAAC_ReturnStatus sm_return_status)
 		{
 			ASAAC_PCS_MessageParameter Param;
 			
@@ -324,7 +325,8 @@ namespace ASAAC
 			
 			sendAndReceive( ASAAC_PCS_ReturnPMData, Param);
 
-			return Param._u.reply_return_pm_data.result;
+			if (Param._u.reply_return_pm_data.result == ASAAC_ERROR)
+				throw OSException("PCS replied an error", LOCATION);
 		}
 		
 		
