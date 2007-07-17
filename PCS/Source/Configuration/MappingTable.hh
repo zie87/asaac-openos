@@ -1,7 +1,7 @@
 #ifndef MAPPINGTABLE_HH_
 #define MAPPINGTABLE_HH_
 
-#include "PcsIncludes.hh"
+#include "PcsHIncludes.hh"
 
 //! Configuration object to hold the Vc <-> Tc mapping information
 

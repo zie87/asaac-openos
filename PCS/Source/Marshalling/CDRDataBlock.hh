@@ -1,14 +1,12 @@
 #ifndef CDRDATABLOCK_HH_
 #define CDRDATABLOCK_HH_
 
-#include "PcsIncludes.hh"
-#include "MemoryOverflowException.hh"
+#include "PcsHIncludes.hh"
 
 class CDRDataBlock
 {
 public:
-	CDRDataBlock();
-	CDRDataBlock( ASAAC_Address Data, unsigned long MaxLength );
+	CDRDataBlock( ASAAC_Address Data, unsigned long Size );
 	
 	unsigned long getCurrentIndex();
 	
@@ -45,13 +43,13 @@ private:
 
 	bool		jumpToAlign( size_t Alignment );
 
-	char*			m_Data;
-	unsigned long	m_MaxLength;
+	unsigned long			m_CurrentIndex;
 	
-	unsigned long	m_CurrentIndex;
+	bool					m_LittleEndian;
 	
-	bool			m_LittleEndian;
-	
+	char* 					m_Data;
+	unsigned long			m_Size;
+
 };
 
 #endif /*CDRDATABLOCK_HH_*/

@@ -2,9 +2,7 @@
 
 #include "FormatString.hh"
 
-#include "Exceptions/Exception.hh"
-
-#include "PcsIncludes.hh"
+#include "PcsCIncludes.hh"
 
 #include <iostream>
 
@@ -41,17 +39,19 @@ bool MarshallingProcessor::readFromCDR( ASAAC_Address CDRData, unsigned long CDR
 	try {
 		ActualSize = getSize( FormatDescription );
 
-		if ( ActualSize > MaxNativeSize ) return false;
+		if ( ActualSize > MaxNativeSize ) 
+			return false;
 		
-		CDRDataBlock CDR( CDRData, CDRSize );
+		CDRDataBlock CDR( (char*)CDRData, CDRSize );
 	
 		return readStruct( CDR, FormatDescription, NativeData, 0 );
 	}
-	catch ( MemoryOverflowException& E )
+	catch ( PcsMemoryOverflowException& e )
 	{
 		cout << "Memory overflow encountered." << endl;
 		return false;
 	}
+	return true;
 }	
 	
 
@@ -75,11 +75,12 @@ bool MarshallingProcessor::writeToCDR( ASAAC_Address NativeData, unsigned long N
 			return false;
 		}
 	}
-	catch ( MemoryOverflowException& E )
+	catch ( PcsMemoryOverflowException& e )
 	{
 		cout << "Memory overflow encountered." << endl;
 		return false;
 	}
+	return true;
 }	
 
 
@@ -114,7 +115,7 @@ unsigned long MarshallingProcessor::getElementSize( char Identifier, const strin
 		case 'Q' : 
 		case 'C' : 
 		default:
-				   throw PCSException( 0, 0, "Sequence and String types not yet supported in marshalling filter." );
+				   throw PcsException( 0, 0, "Sequence and String types not yet supported in marshalling filter." );
 				   return 0;
 	}
 }
@@ -150,7 +151,7 @@ unsigned long MarshallingProcessor::getElementAlign( char Identifier, const stri
 		case 'Q' :
 		case 'C' :
 		default  :
-				   throw PCSException( 0, 0, "Sequence and String types not yet supported in marshalling filter." );
+				   throw PcsException( 0, 0, "Sequence and String types not yet supported in marshalling filter." );
 				   return 0;
 	}
 }
@@ -197,7 +198,7 @@ bool MarshallingProcessor::readElement( CDRDataBlock& CDR, char Identifier, cons
 		case 'Q' :
 		case 'C' :
 		default  :
-				   throw PCSException( 0, 0, "Sequence and String types not yet supported in marshalling filter." );
+				   throw PcsException( 0, 0, "Sequence and String types not yet supported in marshalling filter." );
 				   return 0;
 	}
 }
@@ -235,7 +236,7 @@ bool MarshallingProcessor::writeElement( CDRDataBlock& CDR, char Identifier, con
 		case 'Q' :
 		case 'C' :
 		default  :
-				   throw PCSException( 0, 0, "Sequence and String types not yet supported in marshalling filter." );
+				   throw PcsException( 0, 0, "Sequence and String types not yet supported in marshalling filter." );
 				   return 0;
 	}
 }

@@ -1,9 +1,10 @@
 #include "TcUnpacker.hh"
 
+#include "PcsCIncludes.hh"
+
 #include <arpa/inet.h>
 
 #include <iostream>
-
 using namespace std;
 
 TcUnpacker::TcUnpacker()
@@ -92,7 +93,7 @@ ASAAC_ReturnStatus TcUnpacker::processTcMessage( ASAAC_PublicId TcId, ASAAC_Addr
 		
 		if ( Index == Number ) 
 		{
-			PCSException( TcId, GlobalVc, "Received Tc packet contains invalid Vc" );
+			PcsException( TcId, GlobalVc, "Received Tc packet contains invalid Vc" );
 			return ASAAC_ERROR;
 		}
 	}

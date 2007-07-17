@@ -1,5 +1,7 @@
 #include "VcSender.hh"
 
+#include "PcsCIncludes.hh"
+
 #include <assert.h>
 
 #include <iostream>
@@ -31,14 +33,14 @@ ASAAC_ReturnStatus VcSender::processVcMessage( ASAAC_PublicId LocalVc, ASAAC_Add
 	if ( Result == ASAAC_TM_ERROR )
 	{
 		cerr << "VcSender::processVcMessage() Could not send on named LocalVc"<< endl;
-		throw PCSException( 0, LocalVc, "Could not send on named LocalVc." );
+		throw PcsException( 0, LocalVc, "Could not send on named LocalVc." );
 
 	}
 	
 	if ( Result == ASAAC_TM_TIMEOUT )
 	{
 		cerr << "VcSender::processVcMessage() Timeout occurred sending on LocalVc"<< endl;
-		throw PCSException( 0, LocalVc, "Timeout occurred sending on LocalVc." );
+		throw PcsException( 0, LocalVc, "Timeout occurred sending on LocalVc." );
 	}
 	
 	return ASAAC_SUCCESS;

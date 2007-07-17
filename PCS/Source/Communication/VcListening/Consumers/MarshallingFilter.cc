@@ -1,6 +1,6 @@
 #include "MarshallingFilter.hh"
 
-#include <string.h>
+#include "PcsCIncludes.hh"
 
 #include <iostream>
 
@@ -41,7 +41,7 @@ ASAAC_ReturnStatus MarshallingFilter::processVcMessage(ASAAC_PublicId GlobalVc, 
 #ifdef _DEBUG_       
 		cerr << "MarshallingFilter::processVcMessage() No VcDescription found" << endl;
 #endif	
-		throw PCSException( 0, GlobalVc, "No VcDescription found" );
+		throw PcsException( 0, GlobalVc, "No VcDescription found" );
 	}
 	
 	if ( m_OutputConsumer == 0 ) 
@@ -49,7 +49,7 @@ ASAAC_ReturnStatus MarshallingFilter::processVcMessage(ASAAC_PublicId GlobalVc, 
 #ifdef _DEBUG_       
 		cerr << "MarshallingFilter::processVcMessage() No OutputConsumer set" << endl;
 #endif	
-		throw PCSException( 0, GlobalVc, "No OutputConsumer set." );
+		throw PcsException( 0, GlobalVc, "No OutputConsumer set." );
 	}
 
 	if(Description.is_typed_message == ASAAC_BOOL_FALSE)
@@ -66,9 +66,10 @@ ASAAC_ReturnStatus MarshallingFilter::processVcMessage(ASAAC_PublicId GlobalVc, 
 	
 	char Buffer[ MaxLength ];
 	
-	if ( ! m_Processor.writeToCDR( Data, Length, Buffer, MaxLength, Description.data_representation_format, ActualSize ) )
+	if ( m_Processor.writeToCDR( Data, Length, Buffer, MaxLength, 
+			Description.data_representation_format, ActualSize ) == false )
 	{
-		throw PCSException( 0, GlobalVc, "Marshalling: Error converting into CDR." );
+		throw PcsException( 0, GlobalVc, "Marshalling: Error converting into CDR." );
 		return ASAAC_ERROR;
 	}
 	

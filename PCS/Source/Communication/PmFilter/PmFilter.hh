@@ -5,9 +5,7 @@
 #include "Configuration/PCSConfiguration.hh"
 #include "IPC/SemaphoreProtectedScope.hh"
 
-#include "Exceptions/Exception.hh"
-
-#include "PcsIncludes.hh"
+#include "PcsHIncludes.hh"
 
 //! causes the message to be redirected via the GSM/SM to perform authentication/encryption if required
 
@@ -40,6 +38,10 @@ public:
 	{
 		public:
 		Queue();
+		
+		void initialize();
+		void deinitialize();
+		
 		bool isEmtpy() { return m_NextFreeQueue == m_NextMessage; }
 		
 		ASAAC_ReturnStatus enqueueMessage(ASAAC_PublicId VcId, ASAAC_Address Data, unsigned long Length, PmFilter* Source);
@@ -73,6 +75,7 @@ public:
 	void setQueue(Queue& q);
 
 	void initialize();
+	void deinitialize();
 	
 	virtual ASAAC_ReturnStatus processVcMessage(ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length );
 	

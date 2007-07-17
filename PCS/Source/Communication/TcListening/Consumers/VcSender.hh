@@ -3,9 +3,7 @@
 
 #include "Interfaces/VcMessageConsumer.hh"
 
-#include "Exceptions/Exception.hh"
-
-#include "PcsIncludes.hh"
+#include "PcsHIncludes.hh"
 
 class VcSender : public VcMessageConsumer
 {

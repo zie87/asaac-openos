@@ -1,17 +1,16 @@
 #include "PmFilter.hh"
 #include "Common/Asaac/TimeInterval.hh"
 
+#include "PcsCIncludes.hh"
+
 PmFilter::PmFilter() : m_Consumer(0), m_Configuration(0),  m_Queue(0)
 {
-	initialize();
 }
 
 
 PmFilter::PmFilter( VcMessageConsumer& Consumer, PCSConfiguration& Configuration, Queue& q) :
 	m_Consumer( &Consumer ), m_Configuration( &Configuration ),  m_Queue(&q)
 {
-	
-	initialize();
 }
 
 
@@ -27,21 +26,26 @@ void PmFilter::setQueue(Queue& q)
 
 void PmFilter::initialize()
 {
-	
-	
+}
+
+void PmFilter::deinitialize()
+{
 }
 
 PmFilter::Queue::Queue() : m_NextFreeQueue(0), m_NextMessage(0)
 {
-		
+}
+
+void PmFilter::Queue::initialize()
+{
 	ASAAC_CharacterSequence nqSemName = CharacterSequence("NqSemaphore").asaac_str();
 	
 	ASAAC_ResourceReturnStatus semCreateStatus = ASAAC_APOS_createSemaphore(&nqSemName, &m_nqSem, 1, 1, ASAAC_QUEUING_DISCIPLINE_PRIORITY);
 
 	if(semCreateStatus == ASAAC_RS_ERROR)
 	{
-		cerr << "PmFilter::Queue::Queue() could not create enqueueMessage semaphore " << endl;
-		throw PCSException( 0, 0, "Could not create enqueueMessage semaphore" );
+		cerr << "PmFilter::Queue::initialize() could not create enqueueMessage semaphore " << endl;
+		throw PcsException( 0, 0, "Could not create enqueueMessage semaphore" );
 	}
 	
 	ASAAC_CharacterSequence eventName = CharacterSequence("EnqueueEvent").asaac_str();
@@ -49,10 +53,14 @@ PmFilter::Queue::Queue() : m_NextFreeQueue(0), m_NextMessage(0)
 	
 	if(eventCreateStatus == ASAAC_RS_ERROR)
 	{
-		cerr << "PmFilter::Queue::Queue() could not create enqueue event " << endl;
-		throw PCSException( 0, 0, "Could not create Enqueue Event" );
+		cerr << "PmFilter::Queue::initialize() could not create enqueue event " << endl;
+		throw PcsException( 0, 0, "Could not create Enqueue Event" );
 	}
-	
+}
+
+void PmFilter::Queue::deinitialize()
+{
+
 }
 
 VcMessageConsumer* PmFilter::getConsumer()

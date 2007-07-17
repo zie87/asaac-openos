@@ -1,25 +1,25 @@
-#include "PcsClass.hh"
-
-#include "Common/Aid.h"
-
 #include "OpenOS.hh"
-#include "PcsIncludes.hh"
+#include "PcsCIncludes.hh"
 
+//#include "Common/Aid.h"
 #include "LogicalInterfaces/asaac_pcs.hh"
+
+#include "PcsCIncludes.hh"
+#include "PcsObject.hh"
+
+#include <iostream>
+
+
+using namespace std;
+using namespace ASAAC::PCS;
+
 
 ASAAC_APPLICATION
 
-#include <iostream>
-using namespace std;
-
-#include <assert.h>
-
-using namespace ASAAC::PCS;
 
 PCS 				pcs;
 PCSConfiguration    pcsConfig;
-ASAAC::PCS::Server 	pcsServer;
- 
+ASAAC::PCS::Server 	pcsServer; 
 
 
 ASAAC_THREAD( TcListenThread )
@@ -28,7 +28,7 @@ ASAAC_THREAD( TcListenThread )
 	cout << "PCS: This is TcListenThread" << endl;
 #endif
 
-	pcs.tcListener();
+	pcs.loopTcListener();
     
     return 0;    
 };
@@ -39,7 +39,7 @@ ASAAC_THREAD( VcListenThread )
 	cout << "PCS: This is VcListenThread" << endl;
 #endif
 
-	pcs.vcListener();
+	pcs.loopVcListener();
 
     return 0;
 };
@@ -50,11 +50,16 @@ ASAAC_THREAD( RateLimiterThread )
 	cout << " PCS: This is RateLimiterThread" << endl;
 #endif
 
-	pcs.rateLimiter();
+	pcs.loopRateLimiter();
 	
 	return 0;
 }
 
+
+void initializePcs()
+{
+	pcs.initialize();
+}
 
 
 ASAAC_ReturnStatus handleConfigureInterface(ASAAC_PCS_MessageParameter &Parameter)
@@ -208,6 +213,12 @@ ASAAC_THREAD( MainThread )
 		cout << "PCS: initializePcsServer()" << endl;
 #endif
 
+		initializePcs();
+		
+#ifdef _DEBUG_       
+		cout << "PCS: initializePcsServer()" << endl;
+#endif
+
 		initializePcsServer();
 		
  		
@@ -226,9 +237,9 @@ ASAAC_THREAD( MainThread )
 			pcsServer.handleOneRequest();
 		}
 	}
-	catch ( PCSException &E )
+	catch ( PcsException &e )
 	{
-		cout << E.getFullMessage() << endl;
+		cerr << e.getFullMessage() << endl;
 	}
 	
 #ifdef _DEBUG_       

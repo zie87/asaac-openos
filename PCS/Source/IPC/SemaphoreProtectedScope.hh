@@ -1,7 +1,7 @@
 #ifndef SEMAPHOREPROTECTEDSCOPE_HH_
 #define SEMAPHOREPROTECTEDSCOPE_HH_
 
-#include "PcsIncludes.hh"
+#include "PcsHIncludes.hh"
 
 //! Scope-protecting Semaphore Object
 

@@ -1,6 +1,6 @@
 #include "TcPacker.hh"
 
-#include <string.h>
+#include "PcsCIncludes.hh"
 #include <arpa/inet.h>
 
 #include <iostream>
@@ -68,7 +68,7 @@ ASAAC_ReturnStatus TcPacker::processMessage( ASAAC_PublicId TcId, ASAAC_PublicId
 #endif	
 	if ( m_Consumer == 0 )
 	{
-		throw PCSException( TcId, GlobalVc, "No OutputConsumer set." );
+		throw PcsException( TcId, GlobalVc, "No OutputConsumer set." );
 		return ASAAC_ERROR;
 	}
 	
@@ -77,7 +77,7 @@ ASAAC_ReturnStatus TcPacker::processMessage( ASAAC_PublicId TcId, ASAAC_PublicId
 	
 	if ( m_Configuration->getVcDescription( GlobalVc, Description ) == ASAAC_ERROR ) 
 	{
-		throw PCSException( TcId, GlobalVc, "Could not get VcDescription" );
+		throw PcsException( TcId, GlobalVc, "Could not get VcDescription" );
 		return ASAAC_ERROR;
 	}
 

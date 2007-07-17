@@ -6,21 +6,11 @@
 
 #include "Common/NameGenerator.hh"
 
-#include "Exceptions/Exception.hh"
+#include "PcsCIncludes.hh"
 
 
 TcRateLimiter::TcRateLimiter()
 {
-	init();
-}
-
-
-
-TcRateLimiter::TcRateLimiter( TcMessageConsumer& Consumer, PCSConfiguration& Configuration )
-{
-	init();
-	setOutputConsumer( Consumer );
-	setConfiguration( Configuration );	
 }
 
 
@@ -28,8 +18,13 @@ TcRateLimiter::~TcRateLimiter()
 {
 }
 
-void TcRateLimiter::init()
+void TcRateLimiter::initialize()
 {
+	ASAAC_CharacterSequence ConfigurationChangedEventName = CharSeq("PCS_RateLimiter_ConfigurationChangedEvent").asaac_str();
+	
+	if (ASAAC_APOS_createEvent( &ConfigurationChangedEventName, &m_ConfigurationChangedEvent ) != ASAAC_RS_SUCCESS)
+		throw PcsException(0,0,"ConfigurationChangedEvent couldn't be created");
+	
 	ASAAC_Time zeroTime = {0,0};
 	
 	for ( unsigned long IDX = 0; IDX < PCS_MAX_NUMBER_OF_TCS;  ++IDX )
@@ -70,7 +65,7 @@ ASAAC_ReturnStatus TcRateLimiter::processTcMessage( ASAAC_PublicId TcId, ASAAC_A
 
 	if ( m_Consumer == 0 )
 	{
-		throw PCSException( TcId, 0, "No OutputConsumer set." );
+		throw PcsException( TcId, 0, "No OutputConsumer set." );
 		return ASAAC_ERROR;
 	}
 	
@@ -115,7 +110,25 @@ ASAAC_ReturnStatus TcRateLimiter::setNextMessageTime(unsigned long queue, ASAAC_
 		m_NextMessageTime[queue].sec += 1;
 	}
 	
+	ASAAC_APOS_setEvent( m_ConfigurationChangedEvent );
+	
 	return ASAAC_SUCCESS;
+}
+
+ASAAC_Time TcRateLimiter::getNextMessageTime()
+{
+	ASAAC_Time Result = TimeInfinity; 
+
+	for ( unsigned long IDX = 0; IDX < PCS_MAX_NUMBER_OF_TCS;  ++IDX )
+	{
+		if ( (m_TcQueueMap[IDX] != 0) &&
+			 (TimeStamp(m_NextMessageTime[IDX]) < TimeStamp(Result)) )
+		{
+			Result = m_NextMessageTime[IDX]; 
+		}		
+	}
+	
+	return Result;
 }
 
 ASAAC_ReturnStatus TcRateLimiter::setRateLimit( ASAAC_PublicId TcId, const ASAAC_TimeInterval& MessageRate )
@@ -218,6 +231,7 @@ ASAAC_ReturnStatus TcRateLimiter::processNextMessage()
 	}
 	
 	ASAAC_Time Now;
+	
 	ASAAC_ReturnStatus Result;
 	ASAAC_ReturnStatus ret = ASAAC_ERROR;
 	
@@ -225,19 +239,35 @@ ASAAC_ReturnStatus TcRateLimiter::processNextMessage()
 	{
 		if ( m_TcQueueMap[ q ] != 0 )
 		{
+			ASAAC_TimedReturnStatus ConfigurationChangedStatus = ASAAC_TM_SUCCESS;
+			
+			do
+			{
+				ASAAC_TimeInterval Interval = TimeStamp(getNextMessageTime()).asaac_Interval();
+				ConfigurationChangedStatus = ASAAC_APOS_waitForEvent( m_ConfigurationChangedEvent, &Interval );
+			}
+			while ( ConfigurationChangedStatus == ASAAC_TM_SUCCESS );
+			
+			if ( ConfigurationChangedStatus == ASAAC_TM_ERROR )
+				throw PcsException(0,0,"Error while waiting for next message");
+			
 			ASAAC_APOS_getAbsoluteLocalTime( &Now );
 			
-			if(Now > m_NextMessageTime[q] && m_NextFreeQueue[q] != m_NextMessage[q])
+			if ( m_NextFreeQueue[q] != m_NextMessage[q] )
 			{
 				Message* nextMessage = &m_QueuedMessages[q][ m_NextMessage[q]  ];
 				Result = m_Consumer->processTcMessage( m_TcQueueMap[ q ], nextMessage->Data, nextMessage->Length );
+				
 				if(Result == ASAAC_SUCCESS)
 				{
-					setNextMessageTime(q,Now);
-					m_NextMessage[q] = (m_NextMessage[q] + 1) % PCS_MAX_SIZE_OF_MESSAGEQUEUE;
+					setNextMessageTime( q, Now );
+					
+					m_NextMessage[q] = ( m_NextMessage[q] + 1 ) % PCS_MAX_SIZE_OF_MESSAGEQUEUE;
+					
 					#ifdef _DEBUG_       
 					cout << "TcRateLimiter::processNextMessage() processed enqueued message" << endl;fflush(stdout);
-					#endif	
+					#endif
+					
 					ret = ASAAC_SUCCESS;
 				}
 				else
@@ -248,6 +278,6 @@ ASAAC_ReturnStatus TcRateLimiter::processNextMessage()
 			
 		}
 	}
-	
+		
 	return ret;
 }

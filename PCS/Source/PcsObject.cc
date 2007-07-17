@@ -1,25 +1,10 @@
-#include "PcsClass.hh"
+#include "PcsObject.hh"
 #include "NII.hh"
+
+#include "PcsCIncludes.hh"
 
 PCS::PCS()
 {
-#ifdef _DEBUG_       
-	cout << "PCS::PCS() initialization "<< endl;
-#endif
-	initialize();
-	
-#ifdef _DEBUG_
-	short int word = 0x0001;
-  	char *byte = (char *) &word;
-  	if(byte[0] != 0)
-  	{
-  		cout << "PCS runs on LITTLE ENDIAN system" << endl;
-  	}
-  	else
-  	{
-   		cout << "PCS runs on BIG ENDIAN system" << endl;
-  	}
-#endif
 
 }
 
@@ -292,10 +277,33 @@ ASAAC_ReturnStatus PCS::returnPMData(ASAAC_PublicId vc_id, ASAAC_PublicId rec_vc
 
 
 
-bool PCS::initialize()
+void PCS::initialize()
 {	
+#ifdef _DEBUG_       
+	cout << "PCS::PCS() initialization "<< endl;
+#endif
+	
+#ifdef _DEBUG_
+	short int word = 0x0001;
+  	char *byte = (char *) &word;
+  	if(byte[0] != 0)
+  	{
+  		cout << "PCS runs on LITTLE ENDIAN system" << endl;
+  	}
+  	else
+  	{
+   		cout << "PCS runs on BIG ENDIAN system" << endl;
+  	}
+#endif
+  	
 	try	
-	{		
+	{	
+		m_PmQueue.initialize();
+		m_OutgoingPmFilter.initialize();
+		m_IncomingPmFilter.initialize();
+		
+		m_Limiter.initialize();
+		
 		m_Marshalling.setConfiguration( m_Configuration );
 		m_Marshalling.setOutputConsumer( m_OutgoingPmFilter );
 		
@@ -372,33 +380,41 @@ bool PCS::initialize()
 #endif
 
 	}
-	catch ( PCSException &E )
+	catch ( PcsException &e )
 	{
-		cout << E.getFullMessage() << endl;
-		return false;
+		cerr << e.getFullMessage() << endl;
 	}
-
-	return true;	
 }
 
+void PCS::deinitialize()
+{	
+}
 
-void PCS::vcListener()
+void PCS::loopVcListener()
 {
-	ASAAC_TimeInterval t = {1,0};
+	ASAAC_TimeInterval t = TimeIntervalInfinity;
+	
 	for(;;)
 	{
-#ifdef _DEBUG_       
-        //cout << "PCS::vcListener()" << endl; fflush(stdout);
-#endif
-		if(m_Listener.listen(t) == ASAAC_TM_ERROR)
+		try
 		{
-			cerr << "PCS::vcListener() cannot listen to local VCs. Break loop. Good Bye!" << endl;
-			return;
-		};	
+#ifdef _DEBUG_       
+	        //cout << "PCS::vcListener()" << endl; fflush(stdout);
+#endif
+			if(m_Listener.listen(t) == ASAAC_TM_ERROR)
+			{
+				cerr << "PCS::vcListener() cannot listen to local VCs. Break loop. Good Bye!" << endl;
+				return;
+			}
+		}
+		catch ( PcsException &e )
+		{
+			cerr << e.getFullMessage() << endl;
+		}
 	}
 };
 
-void PCS::tcListener()
+void PCS::loopTcListener()
 {
 	ASAAC_NetworkDescriptor* networks = 0;
 	unsigned long number = 0;
@@ -411,51 +427,63 @@ void PCS::tcListener()
 	
 	for(;;)
 	{
-		m_Configuration.getNetworks(networks, number);
-	
-		if(networks == 0)
+		try
 		{
-			#ifdef _DEBUG_       
-			//cerr << "PCS::tcListener() Invalid pointer to network array" << endl;
-			#endif
-			ASAAC_APOS_sleep(&unavailable);
-			continue;	
-		}
+			m_Configuration.getNetworks(networks, number);
 		
-		for(unsigned long n = 0; n < number; ++n)
-		{
-			if(networks[n].network == localNetwork)
+			if(networks == 0)
 			{
 				#ifdef _DEBUG_       
-	        	cout << "PCS::tcListener() on Network " << n << endl;
+				//cerr << "PCS::tcListener() Invalid pointer to network array" << endl;
 				#endif
-				
-				
-				if(m_NiiReceiver.listen(networks[n],number == 1 ? TimeIntervalInfinity : network_gap) == ASAAC_TM_SUCCESS)
+				ASAAC_APOS_sleep(&unavailable);
+				continue;	
+			}
+			
+			for(unsigned long n = 0; n < number; ++n)
+			{
+				if(networks[n].network == localNetwork)
 				{
 					#ifdef _DEBUG_       
-	        		cout << "PCS::tcListener() successfully processed incoming messages on netork " << n << endl;  fflush(stdout);
-					#endif			
+		        	cout << "PCS::tcListener() on Network " << n << endl;
+					#endif
+					
+					
+					if(m_NiiReceiver.listen(networks[n],number == 1 ? TimeIntervalInfinity : network_gap) == ASAAC_TM_SUCCESS)
+					{
+						#ifdef _DEBUG_       
+		        		cout << "PCS::tcListener() successfully processed incoming messages on netork " << n << endl;  fflush(stdout);
+						#endif			
+					}
+				
 				}
-			
 			}
+		}
+		catch ( PcsException &e )
+		{
+			cerr << e.getFullMessage() << endl;
 		}
 	}
 };
 
-void PCS::rateLimiter()
+void PCS::loopRateLimiter()
 {
 	ASAAC_ReturnStatus ret;
-	ASAAC_TimeInterval t = {0,500}; //CAUTION.SBS> causes a DELAY between processing of queued messages!!!!!!!
 	for(;;)
 	{
-		ret = m_Limiter.processNextMessage();
+		try
+		{
+			ret = m_Limiter.processNextMessage();
 #ifdef _DEBUG_
-		if(ret == ASAAC_SUCCESS)
-		{       
-    		cout << "PCS::rateLimiter() processed enqueued message " << endl; fflush(stdout);
-		}
+			if(ret == ASAAC_SUCCESS)
+			{       
+	    		cout << "PCS::rateLimiter() processed enqueued message " << endl; fflush(stdout);
+			}
 #endif
-		ASAAC_APOS_sleep(&t);
+		}
+		catch ( PcsException &e )
+		{
+			cerr << e.getFullMessage() << endl;
+		}
 	}
 };

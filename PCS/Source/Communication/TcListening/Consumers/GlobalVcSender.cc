@@ -1,5 +1,7 @@
 #include "GlobalVcSender.hh"
 
+#include "PcsCIncludes.hh"
+
 GlobalVcSender::GlobalVcSender() : m_Consumer(0), m_Configuration(0)
 {
 }
@@ -26,7 +28,7 @@ ASAAC_ReturnStatus GlobalVcSender::processVcMessage(ASAAC_PublicId GlobalVc, ASA
 	if ( m_Consumer == 0 )
 	{
 		cerr << "GlobalVcSender::processMessage() No OutputConsumer set" << endl;
-		throw PCSException( 0, GlobalVc, "No OutputConsumer set." );
+		throw PcsException( 0, GlobalVc, "No OutputConsumer set." );
 
 	}
 	
@@ -35,7 +37,7 @@ ASAAC_ReturnStatus GlobalVcSender::processVcMessage(ASAAC_PublicId GlobalVc, ASA
 	if ( LocalVc == 0 )
 	{
 		cerr << "GlobalVcSender::processMessage() No matching LocalVc found" << endl;
-		throw PCSException( 0, GlobalVc, "No matching LocalVc found" );
+		throw PcsException( 0, GlobalVc, "No matching LocalVc found" );
 	}
 	
 	return m_Consumer->processVcMessage( LocalVc, Data, Length );

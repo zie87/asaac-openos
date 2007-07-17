@@ -1,19 +1,20 @@
 #include "CDRDataBlock.hh"
 
 #include <arpa/inet.h>
-#include <iostream>
-
 #include <byteswap.h>
 
-using namespace std;
-
+#include "PcsCIncludes.hh"
 
 inline void swapBytes( char& Val1, char& Val2 ) { char Store = Val1; Val1 = Val2; Val2 = Store; }
 
 
-CDRDataBlock::CDRDataBlock() : m_Data(0), m_MaxLength(0), m_CurrentIndex(0)
+CDRDataBlock::CDRDataBlock( ASAAC_Address Data, unsigned long Size ) : m_CurrentIndex(0)
 {
-	union {
+	m_Data = (char*)Data;
+	m_Size = Size;
+	
+	union 
+	{
 		short Integer;
 		bool  Bool;
 	} IsLittleEndian;
@@ -23,10 +24,6 @@ CDRDataBlock::CDRDataBlock() : m_Data(0), m_MaxLength(0), m_CurrentIndex(0)
 	m_LittleEndian = IsLittleEndian.Bool;
 }
 
-
-CDRDataBlock::CDRDataBlock( ASAAC_Address Data, unsigned long MaxLength ) : m_Data(static_cast<char*>(Data)), m_MaxLength(MaxLength), m_CurrentIndex(0)
-{
-}
 
 CDRDataBlock::~CDRDataBlock()
 {
@@ -41,7 +38,8 @@ void CDRDataBlock::rewind()
 
 bool CDRDataBlock::seek( unsigned long Index )
 {
-	if ( Index >= m_MaxLength ) return false;
+	if ( Index >= m_Size ) 
+		return false;
 	
 	m_CurrentIndex = Index;
 	
@@ -60,7 +58,8 @@ bool CDRDataBlock::jumpToAlign( size_t Alignment )
 	m_CurrentIndex += (( Alignment - ( m_CurrentIndex % Alignment ) ) % Alignment );
 	
 	// in CDR, Alignment == Size. Use Alignment to check for overflows.
-	if ( m_CurrentIndex + Alignment > m_MaxLength ) throw MemoryOverflowException();
+	if ( m_CurrentIndex + Alignment > m_Size ) 
+		throw PcsMemoryOverflowException();
 	
 	return true;
 }

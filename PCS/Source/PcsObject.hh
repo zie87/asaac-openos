@@ -1,5 +1,5 @@
-#ifndef PCSCLASS_HH_
-#define PCSCLASS_HH_
+#ifndef PCSOBJECT_HH_
+#define PCSOBJECT_HH_
 
 
 #include "Interfaces/VcMessageConsumer.hh"
@@ -36,11 +36,12 @@ class PCS
 	public:
 		PCS();
 		
-		bool initialize();
+		void initialize();
+		void deinitialize();
 		
-		void vcListener();
-		void tcListener();
-		void rateLimiter();
+		void loopVcListener();
+		void loopTcListener();
+		void loopRateLimiter();
 		
 		ASAAC_ReturnStatus configureInterface( const ASAAC_InterfaceData& if_config );	
 		ASAAC_ReturnStatus createTransferConnection( const ASAAC_TcDescription& tc_description );
@@ -83,4 +84,4 @@ class PCS
 	
 };
 
-#endif /*PCSCLASS_HH_*/
+#endif /*PCSOBJECT_HH_*/

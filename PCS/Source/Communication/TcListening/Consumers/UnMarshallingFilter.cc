@@ -1,5 +1,7 @@
 #include "UnMarshallingFilter.hh"
 
+#include "PcsCIncludes.hh"
+
 #include <string.h>
 
 #include <iostream>
@@ -38,13 +40,13 @@ ASAAC_ReturnStatus UnMarshallingFilter::processVcMessage(ASAAC_PublicId GlobalVc
 
 	if ( m_Configuration->getVcDescription( GlobalVc, Description ) == ASAAC_ERROR )
 	{
-		throw PCSException( 0, GlobalVc, "No VcDescription found" );
+		throw PcsException( 0, GlobalVc, "No VcDescription found" );
 		return ASAAC_ERROR;
 	}
 
 	if ( m_OutputConsumer == 0 ) 
 	{
-		throw PCSException( 0, GlobalVc, "No OutputConsumer set." );
+		throw PcsException( 0, GlobalVc, "No OutputConsumer set." );
 		return ASAAC_ERROR;
 	}
 	
@@ -64,7 +66,7 @@ ASAAC_ReturnStatus UnMarshallingFilter::processVcMessage(ASAAC_PublicId GlobalVc
 	
 	if ( ! m_Processor.readFromCDR( Data, Length, Buffer, MaxLength, Description.data_representation_format, ActualSize ) )
 	{
-		throw PCSException( 0, GlobalVc, "Marshalling: Error converting into CDR." );
+		throw PcsException( 0, GlobalVc, "Marshalling: Error converting into CDR." );
 		return ASAAC_ERROR;
 	}
 	

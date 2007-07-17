@@ -6,7 +6,7 @@
 
 #include "Configuration/PCSConfiguration.hh"
 
-#include "Exceptions/Exception.hh"
+#include "PcsHIncludes.hh"
 
 class TcPacker : public MessageConsumer
 {
