@@ -11,13 +11,15 @@ TcDumper::TcDumper() : m_Consumer(0)
 }
 
 
-TcDumper::TcDumper( TcMessageConsumer& Consumer ) : m_Consumer(&Consumer)
+void TcDumper::initialize()
 {
+	
 }
 
 
-TcDumper::~TcDumper()
+void TcDumper::deinitialize()
 {
+	
 }
 
 

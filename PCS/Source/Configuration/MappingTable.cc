@@ -5,9 +5,18 @@ MappingTable::MappingTable()
 	m_NextFreeMapping = 0;
 }
 
-MappingTable::~MappingTable()
+
+void MappingTable::initialize()
 {
+	m_NextFreeMapping = 0;
 }
+
+
+void MappingTable::deinitialize()
+{
+	m_NextFreeMapping = 0;
+}
+
 
 
 ASAAC_ReturnStatus	MappingTable::addTcMapping( const ASAAC_VcToTcMappingDescription & Description )

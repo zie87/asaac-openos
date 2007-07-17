@@ -12,19 +12,16 @@ MarshallingFilter::MarshallingFilter() : m_OutputConsumer(0), m_Configuration(0)
 }
 
 
-MarshallingFilter::MarshallingFilter( VcMessageConsumer& OutputConsumer, PCSConfiguration& Configuration ) : 
-	m_OutputConsumer(&OutputConsumer),
-	m_Configuration(&Configuration)
+void MarshallingFilter::initialize()
 {
+
 }
 
 
-
-MarshallingFilter::~MarshallingFilter()
+void MarshallingFilter::deinitialize()
 {
+	
 }
-
-
 
 
 ASAAC_ReturnStatus MarshallingFilter::processVcMessage(ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length )
@@ -66,8 +63,10 @@ ASAAC_ReturnStatus MarshallingFilter::processVcMessage(ASAAC_PublicId GlobalVc, 
 	
 	char Buffer[ MaxLength ];
 	
+	CharacterSequence DataRepresentationFormat = Description.data_representation_format;
+	
 	if ( m_Processor.writeToCDR( Data, Length, Buffer, MaxLength, 
-			Description.data_representation_format, ActualSize ) == false )
+			DataRepresentationFormat.asaac_str(), ActualSize ) == false )
 	{
 		throw PcsException( 0, GlobalVc, "Marshalling: Error converting into CDR." );
 		return ASAAC_ERROR;

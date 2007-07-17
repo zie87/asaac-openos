@@ -12,9 +12,9 @@ class UnMarshallingFilter : public VcMessageConsumer
 {
 public:
 	UnMarshallingFilter();
-	UnMarshallingFilter( VcMessageConsumer& OutputConsumer, PCSConfiguration& Configuration );
-	
-	virtual ~UnMarshallingFilter();
+
+	void initialize();
+	void deinitialize();
 	
 	virtual ASAAC_ReturnStatus processVcMessage(ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length );
 	

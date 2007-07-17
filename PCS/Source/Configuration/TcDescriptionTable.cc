@@ -5,8 +5,16 @@ TcDescriptionTable::TcDescriptionTable()
 	m_NextFreeSlot = 0;
 }
 
-TcDescriptionTable::~TcDescriptionTable()
+
+void TcDescriptionTable::initialize()
 {
+	m_NextFreeSlot = 0;
+}
+
+
+void TcDescriptionTable::deinitialize()
+{
+	m_NextFreeSlot = 0;	
 }
 
 

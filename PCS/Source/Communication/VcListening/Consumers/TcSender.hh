@@ -14,8 +14,10 @@ class TcSender : public TcMessageConsumer
 {
 public:
 	TcSender();
-    TcSender(PCSConfiguration& Configuration );
-	virtual ~TcSender();
+
+	void initialize();
+	void deinitialize();
+
     virtual ASAAC_ReturnStatus processTcMessage( ASAAC_PublicId TcId, ASAAC_Address Data, unsigned long Length );
     
     void setConfiguration( PCSConfiguration& Configuration );

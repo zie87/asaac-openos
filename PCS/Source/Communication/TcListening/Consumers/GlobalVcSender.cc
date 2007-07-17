@@ -7,15 +7,15 @@ GlobalVcSender::GlobalVcSender() : m_Consumer(0), m_Configuration(0)
 }
 
 
-GlobalVcSender::GlobalVcSender( VcMessageConsumer& Consumer, PCSConfiguration& Configuration ) :
-		m_Consumer( &Consumer ), m_Configuration( &Configuration )
+void GlobalVcSender::initialize()
 {
+
 }
 
 
-
-GlobalVcSender::~GlobalVcSender()
+void GlobalVcSender::deinitialize()
 {
+	
 }
 
 

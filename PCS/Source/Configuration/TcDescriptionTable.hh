@@ -9,9 +9,11 @@ class TcDescriptionTable
 {
 public:
 	TcDescriptionTable();
-	virtual ~TcDescriptionTable();
+
+	void initialize();
+	void deinitialize();
 	
-	virtual ASAAC_ReturnStatus addTcDescription(const  ASAAC_TcDescription& Description );
+	ASAAC_ReturnStatus addTcDescription(const  ASAAC_TcDescription& Description );
 	/*!< add a TcDescription to the table
 	 * 
 	 * \param[in] Description TcDescription to add to the table
@@ -22,7 +24,7 @@ public:
 	 * 			ERROR otherwise.
 	 */
 	 
-	virtual ASAAC_ReturnStatus removeTcDescription( ASAAC_PublicId TcId );
+	ASAAC_ReturnStatus removeTcDescription( ASAAC_PublicId TcId );
 	/*!< remove TcDescription for a given TransferConnection
 	 * 
 	 * \param[in] TcId	PublicId of TransferConnection that shall have its description
@@ -32,7 +34,7 @@ public:
 	 *                  could successfully be removed. ERROR otherwise.
 	 */
 	
-	virtual ASAAC_ReturnStatus getTcDescription( ASAAC_PublicId TcId, ASAAC_TcDescription& Description );
+	ASAAC_ReturnStatus getTcDescription( ASAAC_PublicId TcId, ASAAC_TcDescription& Description );
 	/*!< retrieve TcDescription for a given TransferConnection
 	 * 
 	 * \param[in] TcId	PublicId of TransferConnection for which the description field

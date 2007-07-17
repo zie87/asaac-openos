@@ -2,8 +2,6 @@
 
 #include "PcsCIncludes.hh"
 
-#include <string.h>
-
 #include <iostream>
 
 using namespace std;
@@ -14,19 +12,16 @@ UnMarshallingFilter::UnMarshallingFilter() : m_OutputConsumer(0), m_Configuratio
 }
 
 
-UnMarshallingFilter::UnMarshallingFilter( VcMessageConsumer& OutputConsumer, PCSConfiguration& Configuration ) : 
-	m_OutputConsumer(&OutputConsumer),
-	m_Configuration(&Configuration)
+void UnMarshallingFilter::initialize()
 {
+
 }
 
 
-
-UnMarshallingFilter::~UnMarshallingFilter()
+void UnMarshallingFilter::deinitialize()
 {
+	
 }
-
-
 
 
 ASAAC_ReturnStatus UnMarshallingFilter::processVcMessage(ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length )
@@ -59,12 +54,13 @@ ASAAC_ReturnStatus UnMarshallingFilter::processVcMessage(ASAAC_PublicId GlobalVc
 	}
 		
 	// The CDR-Marshalled data can at most be 16/12 = 4/3 times the size of the unmarshalled data
-	unsigned long MaxLength = m_Processor.getSize( Description.data_representation_format );
+	CharacterSequence DataRepresentationFormat = Description.data_representation_format;
+	unsigned long MaxLength = m_Processor.getSize( DataRepresentationFormat.asaac_str() );
 	unsigned long ActualSize;
 	
 	char Buffer[ MaxLength ];
 	
-	if ( ! m_Processor.readFromCDR( Data, Length, Buffer, MaxLength, Description.data_representation_format, ActualSize ) )
+	if ( ! m_Processor.readFromCDR( Data, Length, Buffer, MaxLength, DataRepresentationFormat.asaac_str(), ActualSize ) )
 	{
 		throw PcsException( 0, GlobalVc, "Marshalling: Error converting into CDR." );
 		return ASAAC_ERROR;

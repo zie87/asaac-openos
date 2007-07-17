@@ -21,7 +21,9 @@ class VcListener
 {
 public:
 	VcListener();
-	virtual ~VcListener();
+
+	void initialize();
+	void deinitialize();
 	
 	ASAAC_ReturnStatus addListeningConsumer( ASAAC_PublicId LocalVc, VcMessageConsumer& Consumer );
 	/*!< set up VcListener to monitor a given LocalVc, relaying the data to the respective Consumer

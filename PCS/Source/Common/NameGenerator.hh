@@ -3,8 +3,6 @@
 
 #include "PcsHIncludes.hh"
 
-#include <string>
-
 using namespace std;
 
 
@@ -32,7 +30,7 @@ public:
 
 	virtual ~NameGenerator();
 	
-	ASAAC_CharacterSequence createUniqueName( const string& Prefix );
+	ASAAC_CharacterSequence createUniqueName( const ASAAC_CharacterSequence& Prefix );
 	/*!< create a unique name string
 	 * @param[in] Prefix shall, if possible, denote the requesting instance and the use of the object that shall be named
 	 * 

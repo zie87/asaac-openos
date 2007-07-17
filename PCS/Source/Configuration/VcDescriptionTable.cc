@@ -5,8 +5,16 @@ VcDescriptionTable::VcDescriptionTable()
 	m_NextFreeSlot = 0;
 }
 
-VcDescriptionTable::~VcDescriptionTable()
+
+void VcDescriptionTable::initialize()
 {
+	m_NextFreeSlot = 0;
+}
+
+
+void VcDescriptionTable::deinitialize()
+{
+	m_NextFreeSlot = 0;
 }
 
 

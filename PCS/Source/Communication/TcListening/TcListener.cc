@@ -4,11 +4,19 @@ TcListener::TcListener()
 {
     
 };
-    
-TcListener::~TcListener()
+
+
+void TcListener::initialize()
 {
-    
-};
+
+}
+
+
+void TcListener::deinitialize()
+{
+	
+}
+
     
 ASAAC_ReturnStatus TcListener::addListeningConsumer(TcMessageConsumer& Consumer )
 {

@@ -4,8 +4,6 @@
 
 #include "PcsCIncludes.hh"
 
-#include <iostream>
-
 
 MarshallingProcessor::MarshallingProcessor( bool AutoPadding ) : m_AutoPadding(AutoPadding)
 {
@@ -16,7 +14,7 @@ MarshallingProcessor::~MarshallingProcessor()
 }
 
 
-unsigned long MarshallingProcessor::getSize( const string& FormatDescription )
+unsigned long MarshallingProcessor::getSize( const ASAAC_CharacterSequence& FormatDescription )
 {
 	return getStructSize( FormatDescription );
 }
@@ -34,7 +32,7 @@ bool MarshallingProcessor::getAutoPaddingState()
 }
 
 
-bool MarshallingProcessor::readFromCDR( ASAAC_Address CDRData, unsigned long CDRSize, ASAAC_Address NativeData, unsigned long MaxNativeSize, const string& FormatDescription, unsigned long& ActualSize )
+bool MarshallingProcessor::readFromCDR( ASAAC_Address CDRData, unsigned long CDRSize, ASAAC_Address NativeData, unsigned long MaxNativeSize, const ASAAC_CharacterSequence& FormatDescription, unsigned long& ActualSize )
 {
 	try {
 		ActualSize = getSize( FormatDescription );
@@ -55,7 +53,7 @@ bool MarshallingProcessor::readFromCDR( ASAAC_Address CDRData, unsigned long CDR
 }	
 	
 
-bool MarshallingProcessor::writeToCDR( ASAAC_Address NativeData, unsigned long NativeSize, ASAAC_Address CDRData, unsigned long MaxCDRSize, const string& FormatDescription, unsigned long& ActualSize )
+bool MarshallingProcessor::writeToCDR( ASAAC_Address NativeData, unsigned long NativeSize, ASAAC_Address CDRData, unsigned long MaxCDRSize, const ASAAC_CharacterSequence& FormatDescription, unsigned long& ActualSize )
 {
 	try {
 		if ( getSize( FormatDescription ) > NativeSize ) 
@@ -86,7 +84,7 @@ bool MarshallingProcessor::writeToCDR( ASAAC_Address NativeData, unsigned long N
 
 
 
-unsigned long MarshallingProcessor::getElementSize( char Identifier, const string& Parameter )
+unsigned long MarshallingProcessor::getElementSize( char Identifier, const ASAAC_CharacterSequence& Parameter )
 {
 	switch ( Identifier ) {
 		
@@ -120,7 +118,7 @@ unsigned long MarshallingProcessor::getElementSize( char Identifier, const strin
 	}
 }
 
-unsigned long MarshallingProcessor::getElementAlign( char Identifier, const string& Parameter )
+unsigned long MarshallingProcessor::getElementAlign( char Identifier, const ASAAC_CharacterSequence& Parameter )
 {
 	if ( ! m_AutoPadding ) return 1;
 	
@@ -157,7 +155,7 @@ unsigned long MarshallingProcessor::getElementAlign( char Identifier, const stri
 }
 
 
-bool MarshallingProcessor::readElement( CDRDataBlock& CDR, char Identifier, const string& Parameter, ASAAC_Address NativeData, unsigned long StartingIndex )
+bool MarshallingProcessor::readElement( CDRDataBlock& CDR, char Identifier, const ASAAC_CharacterSequence& Parameter, ASAAC_Address NativeData, unsigned long StartingIndex )
 {
 	char* NativeCharBuffer = reinterpret_cast<char*>(NativeData);
 
@@ -204,7 +202,7 @@ bool MarshallingProcessor::readElement( CDRDataBlock& CDR, char Identifier, cons
 }
 
 
-bool MarshallingProcessor::writeElement( CDRDataBlock& CDR, char Identifier, const string& Parameter, ASAAC_Address NativeData, unsigned long StartingIndex )
+bool MarshallingProcessor::writeElement( CDRDataBlock& CDR, char Identifier, const ASAAC_CharacterSequence& Parameter, ASAAC_Address NativeData, unsigned long StartingIndex )
 {
 	char* NativeCharBuffer = reinterpret_cast<char*>(NativeData);
 
@@ -243,7 +241,7 @@ bool MarshallingProcessor::writeElement( CDRDataBlock& CDR, char Identifier, con
 
 
 
-unsigned long MarshallingProcessor::getStructSize( const string& DescriptionString )
+unsigned long MarshallingProcessor::getStructSize( const ASAAC_CharacterSequence& DescriptionString )
 {
 	unsigned long lCurrentAlignment = 0;
 	
@@ -251,7 +249,7 @@ unsigned long MarshallingProcessor::getStructSize( const string& DescriptionStri
 	
 	char Identifier;
 	unsigned short NumberOfElements;
-	string Parameters;
+	ASAAC_CharacterSequence Parameters;
 	
 	while ( Description.findNextElement( Identifier, NumberOfElements, Parameters ) )
 	{
@@ -270,7 +268,7 @@ unsigned long MarshallingProcessor::getStructSize( const string& DescriptionStri
 }
 			
 
-unsigned long MarshallingProcessor::getStructAlign( const string& DescriptionString )
+unsigned long MarshallingProcessor::getStructAlign( const ASAAC_CharacterSequence& DescriptionString )
 {
 	unsigned long lMaxAlignment = 1;
 	
@@ -278,7 +276,7 @@ unsigned long MarshallingProcessor::getStructAlign( const string& DescriptionStr
 	
 	char Identifier;
 	unsigned short NumberOfElements;
-	string Parameters;
+	ASAAC_CharacterSequence Parameters;
 	
 	while ( Description.findNextElement( Identifier, NumberOfElements, Parameters ) )
 	{
@@ -294,7 +292,7 @@ unsigned long MarshallingProcessor::getStructAlign( const string& DescriptionStr
 }
 			
 
-bool MarshallingProcessor::readStruct( CDRDataBlock& CDR, const string& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex )
+bool MarshallingProcessor::readStruct( CDRDataBlock& CDR, const ASAAC_CharacterSequence& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex )
 {
 	unsigned long lCurrentIndex = StartingIndex;
 	
@@ -302,7 +300,7 @@ bool MarshallingProcessor::readStruct( CDRDataBlock& CDR, const string& BlockDes
 	
 	char Identifier;
 	unsigned short NumberOfElements;
-	string Parameters;
+	ASAAC_CharacterSequence Parameters;
 	
 	while ( Description.findNextElement( Identifier, NumberOfElements, Parameters ) )
 	{
@@ -326,7 +324,7 @@ bool MarshallingProcessor::readStruct( CDRDataBlock& CDR, const string& BlockDes
 }
 
 
-bool MarshallingProcessor::writeStruct( CDRDataBlock& CDR, const string& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex )
+bool MarshallingProcessor::writeStruct( CDRDataBlock& CDR, const ASAAC_CharacterSequence& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex )
 {
 	unsigned long lCurrentIndex = StartingIndex;
 
@@ -334,7 +332,7 @@ bool MarshallingProcessor::writeStruct( CDRDataBlock& CDR, const string& BlockDe
 	
 	char Identifier;
 	unsigned short NumberOfElements;
-	string Parameters;
+	ASAAC_CharacterSequence Parameters;
 	
 	while ( Description.findNextElement( Identifier, NumberOfElements, Parameters ) )
 	{
@@ -359,13 +357,13 @@ bool MarshallingProcessor::writeStruct( CDRDataBlock& CDR, const string& BlockDe
 
 			
 			
-unsigned long MarshallingProcessor::getUnionSize( const string& DescriptionString )
+unsigned long MarshallingProcessor::getUnionSize( const ASAAC_CharacterSequence& DescriptionString )
 {
 	unsigned long LargestSize = 0;
 	
-	string RemainingString = DescriptionString;
+	CharacterSequence RemainingString = DescriptionString;
 	
-	while ( RemainingString.length() > 0 )
+	while ( RemainingString.size() > 0 )
 	{
 		long SeparatorPosition = RemainingString.find("|" );
 
@@ -376,7 +374,7 @@ unsigned long MarshallingProcessor::getUnionSize( const string& DescriptionStrin
 		}
 		
 		// get string between ||'s
-		string SubString = RemainingString.substr(0, SeparatorPosition );
+		CharacterSequence SubString = RemainingString.asaac_str(0, SeparatorPosition );
 	
 		// remove leading '<enum-Value>:' part
 		unsigned long ValueSepPosition = SubString.find( ":" );
@@ -384,8 +382,8 @@ unsigned long MarshallingProcessor::getUnionSize( const string& DescriptionStrin
 		
 		
 		// compute size INCLUDING the leading enumerator
-		unsigned long BranchSize = alignedOffset( sizeof( unsigned long ), getStructAlign( SubString ) ) + 
-								   getStructSize( SubString );
+		unsigned long BranchSize = alignedOffset( sizeof( unsigned long ), getStructAlign( SubString.asaac_str() ) ) + 
+								   getStructSize( SubString.asaac_str() );
 		
 		if ( BranchSize > LargestSize )
 		{
@@ -399,13 +397,14 @@ unsigned long MarshallingProcessor::getUnionSize( const string& DescriptionStrin
 }
 
 
-unsigned long MarshallingProcessor::getUnionAlign( const string& DescriptionString )
+unsigned long MarshallingProcessor::getUnionAlign( const ASAAC_CharacterSequence& DescriptionString )
 {
 	unsigned long LargestAlign = __alignof__(unsigned long);
 	
-	string RemainingString = DescriptionString + "|";
+	CharacterSequence RemainingString;
+	RemainingString << DescriptionString << "|";
 	
-	while ( RemainingString.length() > 0 )
+	while ( RemainingString.size() > 0 )
 	{
 		long SeparatorPosition = RemainingString.find("|" );
 
@@ -415,13 +414,13 @@ unsigned long MarshallingProcessor::getUnionAlign( const string& DescriptionStri
 			SeparatorPosition = RemainingString.length();
 		}
 		
-		string SubString = RemainingString.substr(0, SeparatorPosition );
+		CharacterSequence SubString = RemainingString.asaac_str(0, SeparatorPosition );
 		
 		// remove leading '<enum-Value>:' part
 		unsigned long ValueSepPosition = SubString.find( ":" );
 		SubString.erase( 0, ValueSepPosition + 1 );
 		
-		unsigned long BranchAlign = getStructAlign( SubString );
+		unsigned long BranchAlign = getStructAlign( SubString.asaac_str() );
 		
 		if ( BranchAlign > LargestAlign )
 		{
@@ -435,11 +434,11 @@ unsigned long MarshallingProcessor::getUnionAlign( const string& DescriptionStri
 }
 
 
-bool MarshallingProcessor::readUnion( CDRDataBlock& CDR, const string& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex )
+bool MarshallingProcessor::readUnion( CDRDataBlock& CDR, const ASAAC_CharacterSequence& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex )
 {
 	char* NativeCharData = reinterpret_cast<char*>(NativeData);
 	
-	string RemainingString = BlockDescription;
+	CharacterSequence RemainingString = BlockDescription;
 	
 	unsigned long BranchIdentifier = CDR.getNextEnum();
 	
@@ -457,13 +456,13 @@ bool MarshallingProcessor::readUnion( CDRDataBlock& CDR, const string& BlockDesc
 		}
 		
 		// get string between ||'s
-		string SubString = RemainingString.substr(0, SeparatorPosition );
+		CharacterSequence SubString = RemainingString.asaac_str(0, SeparatorPosition );
 		RemainingString.erase( 0, SeparatorPosition + 1 );
 	
 		// remove leading '<enum-Value>:' part
 		unsigned long ValueSepPosition = SubString.find( ":" );
 		
-		string BranchValueString = SubString.substr( 0, ValueSepPosition );
+		CharacterSequence BranchValueString = SubString.asaac_str( 0, ValueSepPosition );
 		
 		if ( CharSeq( BranchValueString ).c_ulong() != BranchIdentifier )
 		{
@@ -472,20 +471,20 @@ bool MarshallingProcessor::readUnion( CDRDataBlock& CDR, const string& BlockDesc
 		
 		SubString.erase( 0, ValueSepPosition + 1 );
 		
-		unsigned long StructIndex = alignedOffset( StartingIndex + sizeof( unsigned long ), getStructAlign( SubString ) );
+		unsigned long StructIndex = alignedOffset( StartingIndex + sizeof( unsigned long ), getStructAlign( SubString.asaac_str() ) );
 		
-		return readStruct( CDR, SubString, NativeData, StructIndex );
+		return readStruct( CDR, SubString.asaac_str(), NativeData, StructIndex );
 	}
 	
 	return false;
 }
 
 
-bool MarshallingProcessor::writeUnion( CDRDataBlock& CDR, const string& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex )
+bool MarshallingProcessor::writeUnion( CDRDataBlock& CDR, const ASAAC_CharacterSequence& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex )
 {
 	char* NativeCharData = reinterpret_cast<char*>(NativeData);
 	
-	string RemainingString = BlockDescription;
+	CharacterSequence RemainingString = BlockDescription;
 	
 	unsigned long BranchIdentifier = *(reinterpret_cast<unsigned long*>(NativeCharData + StartingIndex));
 	
@@ -502,13 +501,13 @@ bool MarshallingProcessor::writeUnion( CDRDataBlock& CDR, const string& BlockDes
 		}
 		
 		// get string between ||'s
-		string SubString = RemainingString.substr(0, SeparatorPosition );
+		CharacterSequence SubString = RemainingString.asaac_str(0, SeparatorPosition );
 		RemainingString.erase( 0, SeparatorPosition + 1 );
 	
 		// remove leading '<enum-Value>:' part
 		unsigned long ValueSepPosition = SubString.find( ":" );
 		
-		string BranchValueString = SubString.substr( 0, ValueSepPosition );
+		CharacterSequence BranchValueString = SubString.asaac_str( 0, ValueSepPosition );
 		
 		if ( CharSeq( BranchValueString ).c_ulong() != BranchIdentifier )
 		{
@@ -517,9 +516,9 @@ bool MarshallingProcessor::writeUnion( CDRDataBlock& CDR, const string& BlockDes
 		
 		SubString.erase( 0, ValueSepPosition + 1 );
 		
-		unsigned long StructIndex = alignedOffset( StartingIndex + sizeof( unsigned long ), getStructAlign( SubString ) );
+		unsigned long StructIndex = alignedOffset( StartingIndex + sizeof( unsigned long ), getStructAlign( SubString.asaac_str() ) );
 		
-		return writeStruct( CDR, SubString, NativeData, StructIndex );
+		return writeStruct( CDR, SubString.asaac_str(), NativeData, StructIndex );
 	}
 	
 	return false;

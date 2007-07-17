@@ -7,9 +7,9 @@ class TcDumper : public TcMessageConsumer
 {
 public:
 	TcDumper();
-	TcDumper( TcMessageConsumer& Consumer );
-	
-	virtual ~TcDumper();
+
+	void initialize();
+	void deinitialize();
 	
 	virtual ASAAC_ReturnStatus processTcMessage( ASAAC_PublicId TcId, ASAAC_Address Data, unsigned long Length );
 	

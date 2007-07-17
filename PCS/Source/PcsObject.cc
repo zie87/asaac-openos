@@ -298,11 +298,24 @@ void PCS::initialize()
   	
 	try	
 	{	
+		m_Configuration.initialize();
+
+		m_Listener.initialize();
 		m_PmQueue.initialize();
 		m_OutgoingPmFilter.initialize();
-		m_IncomingPmFilter.initialize();
-		
+		m_Marshalling.initialize();
+		m_Switch.initialize();
 		m_Limiter.initialize();
+		m_Packer.initialize();
+	    m_NiiSender.initialize();
+		
+		m_NiiReceiver.initialize();
+		m_UnPacker.initialize();
+		m_UnMarshalling.initialize();
+		m_IncomingPmFilter.initialize();
+		m_GlobalVcSend.initialize();
+		m_Sender.initialize();
+		
 		
 		m_Marshalling.setConfiguration( m_Configuration );
 		m_Marshalling.setOutputConsumer( m_OutgoingPmFilter );
@@ -388,6 +401,23 @@ void PCS::initialize()
 
 void PCS::deinitialize()
 {	
+	m_Configuration.deinitialize();
+
+	m_Listener.deinitialize();
+	m_PmQueue.deinitialize();
+	m_OutgoingPmFilter.deinitialize();
+	m_Marshalling.deinitialize();
+	m_Switch.deinitialize();
+	m_Limiter.deinitialize();
+	m_Packer.deinitialize();
+    m_NiiSender.deinitialize();
+	
+	m_NiiReceiver.deinitialize();
+	m_UnPacker.deinitialize();
+	m_UnMarshalling.deinitialize();
+	m_IncomingPmFilter.deinitialize();
+	m_GlobalVcSend.deinitialize();
+	m_Sender.deinitialize();
 }
 
 void PCS::loopVcListener()

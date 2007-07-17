@@ -40,14 +40,14 @@ public:
 	//!< get the state of the auto-padding setting
 	/*!< \returns state of auto-padding setting */
 	
-	unsigned long getSize( const string& BlockDescription );
+	unsigned long getSize( const ASAAC_CharacterSequence& BlockDescription );
 	//!< get the native size of a data structure described by a format string
 	/*!< \param[in] BlockDescription Data format description, as specified in the PCS design document.
 	 * 
 	 * \returns The size of a native data structure containing data with a format indicated at function call.
 	 */
 	
-	bool readFromCDR( ASAAC_Address CDRData, unsigned long CDRSize, ASAAC_Address NativeData, unsigned long MaxNativeSize, const string& FormatDescription, unsigned long& ActualSize );
+	bool readFromCDR( ASAAC_Address CDRData, unsigned long CDRSize, ASAAC_Address NativeData, unsigned long MaxNativeSize, const ASAAC_CharacterSequence& FormatDescription, unsigned long& ActualSize );
 	//!< translate data from CDR representation to native representation
 	/*!< \param[in] CDRData Memory location of CDR data block
 	 * \param[in] CDRSize Size of CDR data block, required to avoid overflows by misformatted format strings
@@ -59,7 +59,7 @@ public:
 	 * \returns true on successful reading of CDR data, false if an error occurred
 	 */
 	
-	bool writeToCDR( ASAAC_Address NativeData, unsigned long NativeSize, ASAAC_Address CDRData, unsigned long MaxCDRSize, const string& FormatDescription, unsigned long& ActualSize );
+	bool writeToCDR( ASAAC_Address NativeData, unsigned long NativeSize, ASAAC_Address CDRData, unsigned long MaxCDRSize, const ASAAC_CharacterSequence& FormatDescription, unsigned long& ActualSize );
 	//!< translate data from native representation to CDR representation
 	/*!< \param[in] NativeData Memory location of target native data buffer
 	 *   \param[in] NativeSize Size of native data block, required to avoid overflows by misformatted format strings
@@ -74,47 +74,47 @@ public:
 
 private:
 
-	bool          readElement( CDRDataBlock& CDR, char Identifier, const string& Parameter, ASAAC_Address NativeData, unsigned long StartingIndex );
+	bool          readElement( CDRDataBlock& CDR, char Identifier, const ASAAC_CharacterSequence& Parameter, ASAAC_Address NativeData, unsigned long StartingIndex );
 	//!< read a single datatype (primitive or compound) from the CDR block
 	
-	bool		  readStruct( CDRDataBlock& CDR, const string& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex );
+	bool		  readStruct( CDRDataBlock& CDR, const ASAAC_CharacterSequence& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex );
 	//!< read a structure datatype from the CDR block
 	
-	bool		  readUnion( CDRDataBlock& CDR, const string& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex );
+	bool		  readUnion( CDRDataBlock& CDR, const ASAAC_CharacterSequence& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex );
 	//!< read a union datatype from the CDR block
 	
 
-	bool          writeElement( CDRDataBlock& CDR, char Identifier, const string& Parameter, ASAAC_Address NativeData, unsigned long StartingIndex );
+	bool          writeElement( CDRDataBlock& CDR, char Identifier, const ASAAC_CharacterSequence& Parameter, ASAAC_Address NativeData, unsigned long StartingIndex );
 	//!< write a single datatype (primitive or compound) to the CDR block
 
-	bool		  writeStruct( CDRDataBlock& CDR, const string& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex );
+	bool		  writeStruct( CDRDataBlock& CDR, const ASAAC_CharacterSequence& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex );
 	//!< write a structure datatype to the CDR block
 
-	bool		  writeUnion( CDRDataBlock& CDR, const string& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex );
+	bool		  writeUnion( CDRDataBlock& CDR, const ASAAC_CharacterSequence& BlockDescription, ASAAC_Address NativeData, unsigned long StartingIndex );
 	//!< write a union datatype to the CDR block
 
 
 	unsigned long alignedOffset( unsigned long UnalignedOffset, unsigned long Alignment );
 	//!< compute offset after padding to required alignment
 
-	unsigned long getStructSize( const string& BlockDescription );
+	unsigned long getStructSize( const ASAAC_CharacterSequence& BlockDescription );
 	//!< get native size of a structure
 	
-	unsigned long getStructAlign( const string& BlockDescription );
+	unsigned long getStructAlign( const ASAAC_CharacterSequence& BlockDescription );
 	//!< get native alignment of a structure
 
 
-	unsigned long getUnionSize( const string& BlockDescription );
+	unsigned long getUnionSize( const ASAAC_CharacterSequence& BlockDescription );
 	//!< get native size of a union
 	
-	unsigned long getUnionAlign( const string& BlockDescription );
+	unsigned long getUnionAlign( const ASAAC_CharacterSequence& BlockDescription );
 	//!< get native alignment of a union
 
 
-	unsigned long getElementSize( char Identifier, const string& Parameter );
+	unsigned long getElementSize( char Identifier, const ASAAC_CharacterSequence& Parameter );
 	//!< get native size of any (primitive or compound) datatype
 	
-	unsigned long getElementAlign( char Identifier, const string& Parameter );
+	unsigned long getElementAlign( char Identifier, const ASAAC_CharacterSequence& Parameter );
 	//!< get native alignment of any (primitive or compound) datatype
 	
 	bool	m_AutoPadding;

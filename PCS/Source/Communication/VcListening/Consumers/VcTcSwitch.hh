@@ -11,9 +11,9 @@ class VcTcSwitch : public VcMessageConsumer
 {
 public:
 	VcTcSwitch();
-	VcTcSwitch( MessageConsumer& Consumer, PCSConfiguration& Configuration );
-	
-	virtual ~VcTcSwitch();
+
+	void initialize();
+	void deinitialize();
 	
 	virtual ASAAC_ReturnStatus processVcMessage( ASAAC_PublicId LocalVc, ASAAC_Address Data, unsigned long Length );
 	

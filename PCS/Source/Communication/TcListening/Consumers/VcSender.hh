@@ -9,8 +9,9 @@ class VcSender : public VcMessageConsumer
 {
 public:
 	VcSender();
-	VcSender( const ASAAC_TimeInterval& Timeout );
-	virtual ~VcSender();
+
+	void initialize();
+	void deinitialize();
 	
 	virtual ASAAC_ReturnStatus processVcMessage( ASAAC_PublicId LocalVc, ASAAC_Address Data, unsigned long Length );
 	

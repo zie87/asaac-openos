@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include <string.h>
 #include <arpa/inet.h>
 
 using namespace std;
@@ -11,14 +10,16 @@ VcTcSwitch::VcTcSwitch()
 {
 }
 
-VcTcSwitch::VcTcSwitch( MessageConsumer& Consumer, PCSConfiguration& Configuration ) :
-	m_OutputConsumer(&Consumer), m_Configuration(&Configuration)
+
+void VcTcSwitch::initialize()
 {
+
 }
 
 
-VcTcSwitch::~VcTcSwitch()
+void VcTcSwitch::deinitialize()
 {
+	
 }
 
 

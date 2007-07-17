@@ -9,9 +9,11 @@ class VcDescriptionTable
 {
 public:
 	VcDescriptionTable();
-	virtual ~VcDescriptionTable();
+
+	void initialize();
+	void deinitialize();
 	
-	virtual ASAAC_ReturnStatus addVcDescription(const  ASAAC_VcDescription& Description );
+	ASAAC_ReturnStatus addVcDescription(const  ASAAC_VcDescription& Description );
 	/*!< add a VcDescription to the table
 	 * 
 	 * \param[in] Description VcDescription to add to the table
@@ -22,7 +24,7 @@ public:
 	 * 			ERROR otherwise.
 	 */
 	
-	virtual ASAAC_ReturnStatus removeVcDescription( ASAAC_PublicId GlobalVcId );
+	ASAAC_ReturnStatus removeVcDescription( ASAAC_PublicId GlobalVcId );
 	/*!< remove VcDescription for a given GlobalVc
 	 * 
 	 * \param[in] GlobalVcId	PublicId of GlobalVc that shall have its description

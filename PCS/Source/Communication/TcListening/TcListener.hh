@@ -24,7 +24,9 @@ class TcListener
 {
 public:
     TcListener();
-    virtual ~TcListener();
+
+    void initialize();
+	void deinitialize();
     
     ASAAC_ReturnStatus addListeningConsumer(TcMessageConsumer& Consumer );
     /*!< set up VcListener to monitor a given LocalVc, relaying the data to the respective Consumer

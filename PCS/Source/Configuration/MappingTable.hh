@@ -14,9 +14,11 @@ class MappingTable
 {
 public:
 	MappingTable();
-	virtual ~MappingTable();
+
+	void initialize();
+	void deinitialize();
 	
-	virtual ASAAC_ReturnStatus	addTcMapping( const ASAAC_VcToTcMappingDescription& Description );
+	ASAAC_ReturnStatus	addTcMapping( const ASAAC_VcToTcMappingDescription& Description );
 	/*!< create a new entry for a Vc<->Tc mapping.
 	 *\param[in] Description Mapping description, indicating Vc, Tc and CDR filtering flag for
 	 * 					 the connection to be set up.
@@ -26,7 +28,7 @@ public:
 	 * 					 already exists.
 	 */
 	 
-	virtual ASAAC_ReturnStatus	removeTcMapping( ASAAC_PublicId VcId, ASAAC_PublicId TcId );
+	ASAAC_ReturnStatus	removeTcMapping( ASAAC_PublicId VcId, ASAAC_PublicId TcId );
 	/*!< remove an existing Vc<->Tc connection
 	 * \param[in] VcId		PublicId of GlobalVc to no longer be relayed from/to
 	 * \param[in] TcId		PublicId of TransferConnection to no longer be relayed from/to
@@ -35,7 +37,7 @@ public:
 	 * 				    ERROR otherwise.
 	 */
 	 
-	virtual ASAAC_ReturnStatus	getCDRFlag( ASAAC_PublicId VcId, ASAAC_PublicId TcId, ASAAC_Bool& Flag );
+	ASAAC_ReturnStatus	getCDRFlag( ASAAC_PublicId VcId, ASAAC_PublicId TcId, ASAAC_Bool& Flag );
 	/*!< get the CDR (Common Data Representation) flag for a channel mapping
 	 * 
 	 *	\param[in] VcId		PublicId of GlobalVc of the desired mapping
@@ -46,7 +48,7 @@ public:
 	 * 				ERROR otherwise.
 	 */
 	
-	virtual ASAAC_ReturnStatus	getTcMapping( ASAAC_PublicId VcId, ASAAC_PublicIdSet& TcMapping, unsigned long& Number );
+	ASAAC_ReturnStatus	getTcMapping( ASAAC_PublicId VcId, ASAAC_PublicIdSet& TcMapping, unsigned long& Number );
 	/*!< get a list of all TransferConnections mapped to a given GlobalVc
 	 * 
 	 * \param[in] VcId		PublicId of GlobalVc
@@ -57,7 +59,7 @@ public:
 	 * 						ERROR otherwise.
 	 */
 	
-	virtual ASAAC_ReturnStatus	getVcMapping( ASAAC_PublicId TcId, ASAAC_PublicIdSet& VcMapping, unsigned long& Number );
+	ASAAC_ReturnStatus	getVcMapping( ASAAC_PublicId TcId, ASAAC_PublicIdSet& VcMapping, unsigned long& Number );
 	/*!< get a list of all GlobalVcsmapped to a given TransferConnection
 	 * 
 	 * \param[in] TcId		PublicId of TransferConnection

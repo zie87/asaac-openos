@@ -11,7 +11,9 @@ class NetworkTable
 {
 public:
 	NetworkTable();
-	virtual ~NetworkTable();
+
+	void initialize();
+	void deinitialize();
 	
 	ASAAC_ReturnStatus	addNetworkDescriptor( const ASAAC_NetworkDescriptor& network);
 	/*!< create a new entry for a Network Descriptor

@@ -5,8 +5,16 @@ LocalVcTable::LocalVcTable()
 	m_NextFreeMapping = 0;
 }
 
-LocalVcTable::~LocalVcTable()
+
+void LocalVcTable::initialize()
 {
+	m_NextFreeMapping = 0;
+}
+
+
+void LocalVcTable::deinitialize()
+{
+	m_NextFreeMapping = 0;
 }
 
 

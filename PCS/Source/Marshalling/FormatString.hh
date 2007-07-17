@@ -1,9 +1,6 @@
 #ifndef FORMATSTRING_HH_
 #define FORMATSTRING_HH_
 
-#include <string>
-
-using namespace std;
 
 //! Class for obtaining format data from a string
 
@@ -12,16 +9,18 @@ using namespace std;
  * processing of data contained in the described structures.
  */
 
+#include "PcsHIncludes.hh"
+
 class FormatString
 {
 public:
 	FormatString();
-	FormatString( const string& String );
+	FormatString( const ASAAC_CharacterSequence& String );
 	
-	void setString( const string& String );
+	void setString( const ASAAC_CharacterSequence& String );
 	
 	void rewind();
-	bool findNextElement( char& Identifier, unsigned short& Number, string& Parameters );
+	bool findNextElement( char& Identifier, unsigned short& Number, ASAAC_CharacterSequence& Parameters );
 	//!< get the next foremost element from a format string
 	/*!< 
 	 * \param[out] Identifier one-character identifier of the data type described by the
@@ -44,8 +43,8 @@ private:
 	 * alignment of structures, unions and other compound types.
 	 */
 
-	string		   m_String;
-	unsigned short m_CurrentPosition;
+	ASAAC_CharacterSequence m_String;
+	unsigned short 			m_CurrentPosition;
 };
 
 #endif /*FORMATSTRING_HH_*/

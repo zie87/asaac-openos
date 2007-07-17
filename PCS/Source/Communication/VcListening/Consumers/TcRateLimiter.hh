@@ -15,7 +15,6 @@ class TcRateLimiter : public TcMessageConsumer
 public:
 	
 	TcRateLimiter();
-	virtual ~TcRateLimiter();
 
 	void initialize();
 	void deinitialize();

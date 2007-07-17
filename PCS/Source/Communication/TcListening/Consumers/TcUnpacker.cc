@@ -11,14 +11,15 @@ TcUnpacker::TcUnpacker()
 {
 }
 
-TcUnpacker::TcUnpacker( VcMessageConsumer& Consumer, PCSConfiguration& Configuration ) :
-	m_Consumer(&Consumer), m_Configuration(&Configuration)
+void TcUnpacker::initialize()
 {
+
 }
 
 
-TcUnpacker::~TcUnpacker()
+void TcUnpacker::deinitialize()
 {
+	
 }
 
 

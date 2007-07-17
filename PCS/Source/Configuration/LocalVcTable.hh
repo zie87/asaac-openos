@@ -18,9 +18,11 @@ class LocalVcTable
 {
 public:
 	LocalVcTable();
-	virtual ~LocalVcTable();
+
+	void initialize();
+	void deinitialize();
 	
-	virtual ASAAC_ReturnStatus	addLocalVc( ASAAC_PublicId LocalVc, ASAAC_PublicId GlobalVc );
+	ASAAC_ReturnStatus	addLocalVc( ASAAC_PublicId LocalVc, ASAAC_PublicId GlobalVc );
 	/*!< add a new LocalVc <-> GlobalVc mapping
 	 * 
 	 * @param[in] LocalVc	LocalVc PublicId corresponding to
@@ -31,7 +33,7 @@ public:
 	 * 						SUCCESS otherwise.
 	 */
 	 
-	virtual ASAAC_ReturnStatus	removeLocalVc( ASAAC_PublicId LocalVc );
+	ASAAC_ReturnStatus	removeLocalVc( ASAAC_PublicId LocalVc );
 	/*!< remove LocalVc <-> GlobalVc mapping
 	 * 
 	 * @param[in] LocalVc	LocalVc PublicId for which the mapping shall
@@ -42,7 +44,7 @@ public:
 	 * 						SUCCESS otherwise.
 	 */
 	
-	virtual ASAAC_PublicId		getLocalVc( ASAAC_PublicId GlobalVc );
+	ASAAC_PublicId		getLocalVc( ASAAC_PublicId GlobalVc );
 	/*!< get GlobalVc for given LocalVc from the registered mappings
 	 * 
 	 * @param[in] GlobalVc	PublicId of LocalVc
@@ -51,7 +53,7 @@ public:
 	 * 						If no matching mapping was found, a value of 0 is returned.
 	 */
 	 
-	virtual ASAAC_PublicId		getGlobalVc( ASAAC_PublicId LocalVc );
+	ASAAC_PublicId		getGlobalVc( ASAAC_PublicId LocalVc );
 	/*!< get LocalVc Id for given GlobalVc Id from the registered mappings
 	 * 
 	 * @param[in] LocalVc	PublicId of Global Virtual Channel
@@ -61,7 +63,7 @@ public:
 	 */
 
 	
-	virtual ASAAC_PublicId		getFreeLocalVc( ASAAC_PublicId MinValue );
+	ASAAC_PublicId		getFreeLocalVc( ASAAC_PublicId MinValue );
 	/*!< find a possible value for a LocalVc Id that is not contained within the mapping table
 	 * 
 	 * @param[in]	MinValue	Minimum Value of LocalVcId to be returned. LocalVc values below that threshold

@@ -12,9 +12,9 @@ class MarshallingFilter : public VcMessageConsumer
 {
 public:
 	MarshallingFilter();
-	MarshallingFilter( VcMessageConsumer& OutputConsumer, PCSConfiguration& Configuration );
-	
-	virtual ~MarshallingFilter();
+
+	void initialize();
+	void deinitialize();
 	
 	virtual ASAAC_ReturnStatus processVcMessage(ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length );
 	

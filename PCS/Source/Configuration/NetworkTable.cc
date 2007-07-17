@@ -5,10 +5,18 @@ NetworkTable::NetworkTable()
 	m_NextFreeNetwork = 0;
 };
 
-NetworkTable::~NetworkTable()
+
+void NetworkTable::initialize()
 {
 	m_NextFreeNetwork = 0;
-};
+}
+
+
+void NetworkTable::deinitialize()
+{
+	m_NextFreeNetwork = 0;
+}
+
 	
 ASAAC_ReturnStatus	NetworkTable::addNetworkDescriptor( const ASAAC_NetworkDescriptor& network)
 {

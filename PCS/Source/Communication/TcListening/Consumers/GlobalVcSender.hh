@@ -22,9 +22,9 @@ class GlobalVcSender : public VcMessageConsumer
 {
 public:
 	GlobalVcSender();
-	GlobalVcSender( VcMessageConsumer& Consumer, PCSConfiguration& Configuration );
-	
-	virtual ~GlobalVcSender();
+
+	void initialize();
+	void deinitialize();
 	
 	virtual ASAAC_ReturnStatus processVcMessage(ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length );
 	

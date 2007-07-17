@@ -3,7 +3,6 @@
 
 #include "Interfaces/MessageConsumer.hh"
 
-#include <string>
 #include <iostream>
 
 using namespace std;
@@ -19,8 +18,9 @@ class MessageDumper : public MessageConsumer {
 public:
 
 	MessageDumper();
-	MessageDumper( MessageConsumer& Consumer, const string& Name );
-	virtual ~MessageDumper();
+
+	void initialize();
+	void deinitialize();
 	
 	virtual ASAAC_ReturnStatus processMessage( ASAAC_PublicId TcId, ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length );
 	//!< dump contents of the message to configured output stream and, if applicable, forward message
@@ -31,7 +31,7 @@ public:
 	void setOutputConsumer( MessageConsumer& Consumer );
 	//!< set the MessageConsumer to forward messages to after dumping
 	
-	void setDumperName( const string& Name );
+	void setDumperName( const ASAAC_CharacterSequence& Name );
 	//!< set the name of the dump to be prepended to any dump
 	
 	void setOutputStream( ostream& Output );
@@ -39,7 +39,7 @@ public:
 	
 private:
 	MessageConsumer*		m_Consumer;
-	string					m_Name;
+	ASAAC_CharacterSequence	m_Name;
 	
 	ostream*				m_OutputStream;
 	

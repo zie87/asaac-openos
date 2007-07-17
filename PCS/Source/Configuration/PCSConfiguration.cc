@@ -4,16 +4,29 @@ PCSConfiguration::PCSConfiguration()
 {
 }
 
-PCSConfiguration::~PCSConfiguration()
+
+void PCSConfiguration::initialize()
 {
+	m_MappingTable.initialize();
+	m_VcDescriptionTable.initialize();
+	m_TcDescriptionTable.initialize();
+	m_LocalVcTable.initialize();
+	m_NetworkTable.initialize();
 }
 
+
+void PCSConfiguration::deinitialize()
+{
+	m_MappingTable.deinitialize();
+	m_VcDescriptionTable.deinitialize();
+	m_TcDescriptionTable.deinitialize();
+	m_LocalVcTable.deinitialize();
+	m_NetworkTable.deinitialize();
+}
 
 
 ASAAC_ReturnStatus	PCSConfiguration::addTcMapping( const ASAAC_VcToTcMappingDescription & Description )
 {
-
-    
 	return m_MappingTable.addTcMapping( Description );
 }
 

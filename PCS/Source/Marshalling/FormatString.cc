@@ -6,13 +6,15 @@
 
 using namespace std;
 
-FormatString::FormatString() : m_String(""), m_CurrentPosition(0)
+FormatString::FormatString() : m_CurrentPosition(0)
 {
+	m_String.size = 0;
 }
 
 
-FormatString::FormatString( const string& String ) : m_String( String ), m_CurrentPosition(0)
+FormatString::FormatString( const ASAAC_CharacterSequence& String ) : m_CurrentPosition(0)
 {
+	m_String = String;
 }
 
 
@@ -21,7 +23,7 @@ FormatString::~FormatString()
 }
 
 
-void FormatString::setString( const string& String )
+void FormatString::setString( const ASAAC_CharacterSequence& String )
 {
 	m_String = String;
 	rewind();
@@ -34,15 +36,13 @@ void FormatString::rewind()
 }
 
 
-bool FormatString::findNextElement( char& Identifier, unsigned short& Number, string& Parameters )
+bool FormatString::findNextElement( char& Identifier, unsigned short& Number, ASAAC_CharacterSequence& Parameters )
 {
-	const char* cString = m_String.c_str();
-	
 	Number = 0;
 	
 	for (;;)
 	{
-		char currentChar = cString[ m_CurrentPosition ];
+		char currentChar = m_String.data[ m_CurrentPosition ];
 
 		// skip blanks
 		if ( currentChar == ' ' )
@@ -71,7 +71,7 @@ bool FormatString::findNextElement( char& Identifier, unsigned short& Number, st
 			case 'D' :
 			case 'e' :
 						Identifier = currentChar;
-						Parameters = string("");
+						Parameters.size = 0;
 						
 						if ( Number == 0 ) Number = 1;
 						
@@ -87,7 +87,7 @@ bool FormatString::findNextElement( char& Identifier, unsigned short& Number, st
 						unsigned short ParameterEnd = findMatchingBracePosition( m_CurrentPosition + 1 );
 						if ( ParameterEnd == (m_CurrentPosition+1) ) return false;
 						
-						Parameters = m_String.substr( m_CurrentPosition+2, ( ParameterEnd - 1 ) - ( m_CurrentPosition + 2 ) + 1 );
+						Parameters = CharSeq(m_String).asaac_str( m_CurrentPosition+2, ( ParameterEnd - 1 ) - ( m_CurrentPosition + 2 ) + 1 );
 						m_CurrentPosition = ParameterEnd + 1;
 						
 						if ( Number == 0 ) Number = 1;
@@ -106,9 +106,7 @@ bool FormatString::findNextElement( char& Identifier, unsigned short& Number, st
 
 unsigned short FormatString::findMatchingBracePosition( unsigned short ThisBracePosition )
 {
-	const char* cString = m_String.c_str();
-	
-	char CurrentBrace = cString[ ThisBracePosition ];
+	char CurrentBrace = m_String.data[ ThisBracePosition ];
 	char MatchingBrace;
 	
 	switch ( CurrentBrace ) {
@@ -123,12 +121,17 @@ unsigned short FormatString::findMatchingBracePosition( unsigned short ThisBrace
 	
 	for (;;)
 	{
-		if ( cString[ CurrentPos ] == MatchingBrace ) BraceCount--;
-		if ( cString[ CurrentPos ] == CurrentBrace  ) BraceCount++;
+		if ( m_String.data[ CurrentPos ] == MatchingBrace ) 
+			BraceCount--;
 		
-		if ( cString[ CurrentPos ] == '\0'          ) return ThisBracePosition;
+		if ( m_String.data[ CurrentPos ] == CurrentBrace  ) 
+			BraceCount++;
+		
+		if ( m_String.data[ CurrentPos ] == '\0'          ) 
+			return ThisBracePosition;
 
-		if ( BraceCount == 0 ) return CurrentPos;
+		if ( BraceCount == 0 ) 
+			return CurrentPos;
 		
 		CurrentPos ++;
 	}

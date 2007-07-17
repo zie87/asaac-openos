@@ -12,10 +12,10 @@ class TcPacker : public MessageConsumer
 {
 public:
 	TcPacker();
-	TcPacker( TcMessageConsumer& Consumer, PCSConfiguration& Configuration );
 
-	virtual ~TcPacker();
-	
+	void initialize();
+	void deinitialize();	
+
 	virtual ASAAC_ReturnStatus processMessage( ASAAC_PublicId TcId, ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length );
 	
 	void setOutputConsumer( TcMessageConsumer& Consumer );

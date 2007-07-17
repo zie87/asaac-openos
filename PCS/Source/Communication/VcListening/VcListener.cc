@@ -14,8 +14,15 @@ VcListener::VcListener()
 }
 
 
-VcListener::~VcListener()
+void VcListener::initialize()
 {
+
+}
+
+
+void VcListener::deinitialize()
+{
+	
 }
 
 

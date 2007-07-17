@@ -12,13 +12,16 @@ VcSender::VcSender() : m_Timeout(TimeIntervalInfinity)
 {
 }
 
-VcSender::VcSender( const ASAAC_TimeInterval& Timeout ) : m_Timeout( Timeout )
+
+void VcSender::initialize()
 {
+
 }
 
 
-VcSender::~VcSender()
+void VcSender::deinitialize()
 {
+	
 }
 
 

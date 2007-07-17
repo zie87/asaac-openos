@@ -14,10 +14,6 @@ TcRateLimiter::TcRateLimiter()
 }
 
 
-TcRateLimiter::~TcRateLimiter()
-{
-}
-
 void TcRateLimiter::initialize()
 {
 	ASAAC_CharacterSequence ConfigurationChangedEventName = CharSeq("PCS_RateLimiter_ConfigurationChangedEvent").asaac_str();
@@ -42,6 +38,12 @@ void TcRateLimiter::initialize()
 
 	m_Consumer = 0;
 	m_Configuration = 0;
+}
+
+
+void TcRateLimiter::deinitialize()
+{
+
 }
 
 

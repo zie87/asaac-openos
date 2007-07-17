@@ -10,10 +10,9 @@ class TcUnpacker : public TcMessageConsumer
 {
 public:
 	TcUnpacker();
-	TcUnpacker( VcMessageConsumer& Consumer, PCSConfiguration& Configuration );
-	
-	
-	virtual ~TcUnpacker();
+
+	void initialize();
+	void deinitialize();
 	
 	virtual ASAAC_ReturnStatus processTcMessage( ASAAC_PublicId TcId, ASAAC_Address Data, unsigned long Length );
 	

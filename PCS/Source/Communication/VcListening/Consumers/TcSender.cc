@@ -7,16 +7,18 @@ TcSender::TcSender()
 {
 }
 
-TcSender::TcSender(PCSConfiguration& Configuration ) :
-    m_Configuration(&Configuration)
-{
-    
-    
-};
 
-TcSender::~TcSender()
+void TcSender::initialize()
 {
+
 }
+
+
+void TcSender::deinitialize()
+{
+	
+}
+
 
 ASAAC_ReturnStatus TcSender::processTcMessage( ASAAC_PublicId TcId, ASAAC_Address Data, unsigned long Length )
 {

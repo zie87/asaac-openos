@@ -5,24 +5,27 @@
 
 using namespace std;
 
-MessageDumper::MessageDumper() : m_Consumer(0), m_Name(""), m_OutputStream(&cout)
+MessageDumper::MessageDumper() : m_Consumer(0), m_OutputStream(&cout)
 {
+	m_Name.size = 0;
 }
 
 
-MessageDumper::MessageDumper( MessageConsumer& Consumer, const string& Name ) : m_Consumer(&Consumer), m_Name(Name), m_OutputStream(&cout)
+void MessageDumper::initialize()
 {
+	
 }
 
 
-MessageDumper::~MessageDumper()
+void MessageDumper::deinitialize()
 {
+	
 }
 
 
 ASAAC_ReturnStatus MessageDumper::processMessage( ASAAC_PublicId TcId, ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length )
 {
-	*m_OutputStream << "_______________________ DUMP " << m_Name << " (TC " << TcId << "/VC " << GlobalVc << ") " <<
+	*m_OutputStream << "_______________________ DUMP " << CharSeq(m_Name) << " (TC " << TcId << "/VC " << GlobalVc << ") " <<
 		    "_______________________" << endl;
 
 	     
@@ -86,7 +89,7 @@ void MessageDumper::setOutputConsumer( MessageConsumer& Consumer )
 }
 
 
-void MessageDumper::setDumperName( const string& Name )
+void MessageDumper::setDumperName( const ASAAC_CharacterSequence& Name )
 {
 	m_Name = Name;
 }
