@@ -55,7 +55,7 @@ typedef struct {
 } TcpIpConfiguration;
 
 
-typedef struct { ;
+typedef struct { 
 } UdpConfiguration;
 
 
@@ -65,9 +65,10 @@ typedef union {
 } TcNetworkSpecific ;
 
 
+// local vc for GSM instance specifies connection to Network Agent
 #define _ASAAC_TC_ConfigurationData_defined
 typedef struct  {
-	unsigned long     local_vc_id ;  // local vc for GSM instance specifies connection to Network Agent
+	unsigned long     local_vc_id ;  
 	NetworkType       network_type ;
 	TcNetworkSpecific conf_data ;
 } ASAAC_TC_ConfigurationData;
