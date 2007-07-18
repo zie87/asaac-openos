@@ -5,6 +5,8 @@
 #include "ProcessManagement/ProcessManager.hh"
 #include "ProcessManagement/ThreadManager.hh"
 
+#include "Managers/FileManager.hh"
+
 namespace ASAAC
 {
 
@@ -83,7 +85,7 @@ namespace ASAAC
 				CharacterSequence cs;
 				cs << "OLI-MessageSize(" << size;
 				cs << ") was too high (maximum is sizeof(ASAAC_OctetSequence) = ";
-				cs << sizeof(ASAAC_OctetSequence) << ")";
+				cs << (unsigned long)sizeof(ASAAC_OctetSequence) << ")";
 				throw OSException(cs.c_str(), LOCATION);
 			}			
 			m_Size = size;
@@ -96,7 +98,7 @@ namespace ASAAC
 		}
 
 
-		ASAAC_ReturnStatus Client::establishCommunication()
+		void Client::establishCommunication()
 		{
 			try
 			{
@@ -125,29 +127,27 @@ namespace ASAAC
 			catch (ASAAC_Exception &e)
 			{
 				e.addPath("Establishing communication channel to OLI server failed", LOCATION);
+				
 				throw;
 			}
-			
-			return ASAAC_SUCCESS;
 		}			
 		
 
-		ASAAC_TimedReturnStatus Client::receiveReply(
+		void Client::receiveReply(
             unsigned long TransferId, 
             ASAAC_OLI_ReplyFileReadPayload &Reply,
             ASAAC_Time Timeout)
 		{
-			establishCommunication();
-
 			Address Incoming;
 			unsigned long Size;
 
-			
 			try
 			{
                 CharacterSequence ErrorString;
                 
-                ASAAC_TimeInterval TimeoutInterval = TimeStamp(Timeout).asaac_Interval();
+    			establishCommunication();
+
+    			ASAAC_TimeInterval TimeoutInterval = TimeStamp(Timeout).asaac_Interval();
                 
 			    ASAAC_TimedReturnStatus ReceiveStatus = ASAAC_APOS_receiveBuffer( m_ReplyVc, &m_TimeOut, &Incoming, &Size );
 				
@@ -183,17 +183,15 @@ namespace ASAAC
 			catch ( ASAAC_Exception &e)
 			{
 				e.addPath("Error receiving an oli message", LOCATION);
-				e.raiseError();
+
 				ASAAC_APOS_unlockBuffer( m_ReplyVc, Incoming );
 				
-				return e.isTimeout() ? ASAAC_TM_TIMEOUT : ASAAC_TM_ERROR;
+				throw;
 			}					
-			
-			return ASAAC_TM_SUCCESS;
 		}		
 		
 
-		ASAAC_TimedReturnStatus Client::requestFile(
+		void Client::requestFile(
 				unsigned long transferId,
 				unsigned long size,
 				unsigned long offset,
@@ -223,12 +221,11 @@ namespace ASAAC
 			catch ( ASAAC_Exception &e )
 			{
 				e.addPath("Error requesting file", LOCATION);
+
 				ASAAC_APOS_unlockBuffer( m_RequestVc, Outgoing );
                 
 				throw;
 			}
-			
-			return ASAAC_TM_SUCCESS;
 		}
 		
 
@@ -238,7 +235,7 @@ namespace ASAAC
 		}
 		
 
-		ASAAC_TimedReturnStatus Client::storeCompleteFile(
+		void Client::storeCompleteFile(
 			ASAAC_CharacterSequence LocalPath, 
 			ASAAC_CharacterSequence OliPath)
 		{
@@ -252,6 +249,9 @@ namespace ASAAC
 			
 			try
 			{
+				FileManager *FM = FileManager::getInstance();
+				
+				
 				oal_remove( LocalPath.data );
 				long File = oal_creat( CharSeq(LocalPath).c_str(), O_WRONLY | O_CREAT | O_TRUNC | S_IRWXU | S_IRWXG | S_IRWXO );
 				
@@ -269,21 +269,9 @@ namespace ASAAC
 					
 					transferId = rand();
 					
-					if (requestFile(transferId, m_Size, offset, OliPath, Timeout.asaac_Time()) != ASAAC_TM_SUCCESS)
-						throw OSException("Error requesting file", LOCATION);
+					requestFile(transferId, m_Size, offset, OliPath, Timeout.asaac_Time());
 		
-					if (receiveReply(transferId, Incoming, Timeout.asaac_Time()) == ASAAC_TM_ERROR)
-                    {
-                        ASAAC_TimedReturnStatus ReceiveResult;
-                        do 
-                        {
-                            ReceiveResult = receiveReply(transferId, Incoming, TimeStamp::Instant().asaac_Time());
-                        }
-                        while ( ReceiveResult == ASAAC_TM_ERROR);
-                        
-                        if (ReceiveResult == ASAAC_TM_TIMEOUT)
-                            continue;
-                    }
+					receiveReply(transferId, Incoming, Timeout.asaac_Time());
                     					
  					if (Incoming.result == ASAAC_READ_FILE_ACK_FAILURE_NO_FILE)
 						throw OSException("OLI server answered 'ASAAC_READ_FILE_ACK_FAILURE_NO_FILE'", LOCATION);	
@@ -333,7 +321,6 @@ namespace ASAAC
 #ifdef DEBUG                    
                 cout << endl;
 #endif            			
-			return ASAAC_TM_SUCCESS;
 		}
 	}
 }

@@ -95,6 +95,8 @@ public:
 	 *   if the preconditions of the function are met.
 	 */
 	
+	void		update();
+	
 	//! start the thread
 	void		start();
 	/*!< This function starts a previously configured and assigned thread, i.e.

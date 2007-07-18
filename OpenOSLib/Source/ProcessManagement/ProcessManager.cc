@@ -43,9 +43,6 @@ ProcessManager::ProcessManager()
 	m_IsMaster = false;
 	m_IsInitialized = false;
 		
-	// register handler to catch SIGCHLD and fetch exit result of child processes
-	// to avoid zombies
-	SignalManager::getInstance()->registerSignalHandler( SIGCHLD, SigChildCallback );
 }
 
 
@@ -83,16 +80,19 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 	{
 		m_IsInitialized = true;	
 
-		if ( IsServer )
-			OpenOS::getInstance()->registerCpu(CurrentCpuId);
-		
 		m_CurrentCpuId = CurrentCpuId;			
 		
 		m_IsServer = IsServer;
 		m_IsMaster = IsMaster;
+
+		// register handler to catch SIGCHLD and fetch exit result of child processes
+		// to avoid zombies
+		SignalManager::getInstance()->registerSignalHandler( SIGCHLD, SigChildCallback );
+
+		if ( IsServer )
+			OpenOS::getInstance()->registerCpu(CurrentCpuId);
 		
 		Allocator* UsedAllocator;
-	
 		if ( Location == SHARED ) //Applications with special rights (GSM, SM, ...)
 		{
 			m_SharedMemoryAllocator.initialize( 
@@ -149,6 +149,8 @@ void ProcessManager::deinitialize()
 		
 	try
 	{		
+		SignalManager::getInstance()->unregisterSignalHandler( SIGCHLD );
+
 		if ( m_IsServer )
 		{
 			OpenOS::getInstance()->unregisterCpu(m_CurrentCpuId);
@@ -737,10 +739,10 @@ void ProcessManager::DestroyProcessHandler( CommandBuffer Buffer )
 		d->Return = ASAAC_TM_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
-	{
-		e.raiseError();
+	{		
+		d->Return = e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
 		
-		d->Return = ASAAC_TM_ERROR; 		
+		e.raiseError();
 	}
 }
 
@@ -756,9 +758,9 @@ void ProcessManager::DestroyEntityHandler( CommandBuffer Buffer )
 		d->Return = ASAAC_TM_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
-	{
+	{		
+		d->Return = e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+
 		e.raiseError();
-		
-		d->Return = ASAAC_TM_ERROR; 		
 	}
 }	

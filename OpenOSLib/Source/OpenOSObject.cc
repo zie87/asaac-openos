@@ -8,6 +8,7 @@
 #include "Managers/FileNameGenerator.hh"
 #include "Managers/EventManager.hh"
 #include "Managers/SemaphoreManager.hh"
+#include "Managers/SignalManager.hh"
 #include "ProcessManagement/ProcessManager.hh"
 #include "ProcessManagement/ThreadManager.hh"
 #include "Communication/CommunicationManager.hh"
@@ -210,9 +211,13 @@ void OpenOS::deinitializeThisObject()
 
 void OpenOS::initializeGlobalObjects( ASAAC_PublicId CpuId, ASAAC_PublicId ProcessId )
 {
-	ProcessManager *PM = ProcessManager::getInstance();
+    //Initialize SemaphoreManager and EventManager
+    SignalManager::getInstance()->initialize();
+    SemaphoreManager::getInstance()->initialize();
+    EventManager::getInstance()->initialize();
 
 	//Initialize ProcessManager with dedicated rights
+	ProcessManager *PM = ProcessManager::getInstance();
 	switch ( m_ActivityState )
 	{
 		case LAS_UNDEFINED:			break;
@@ -227,36 +232,33 @@ void OpenOS::initializeGlobalObjects( ASAAC_PublicId CpuId, ASAAC_PublicId Proce
 
 	//Initialize ThreadManager
 	ThreadManager::getInstance()->initialize();
-	
+
 	//Initialize CommunicatinManager
 	CommunicationManager::getInstance()->initialize( m_IsMaster, &m_Allocator );
-		
-	//Initialize FaultManager and Logging Manager
+
+    //Initialize FaultManager and Logging Manager
     FaultManager::getInstance()->initialize( m_IsMaster );
     LoggingManager::getInstance()->initialize( m_IsMaster );
     
     //Initialize ErrorHandler
     ErrorHandler::getInstance()->initialize();
-    
-    //Initialize SemaphoreManager and EventManager
-    SemaphoreManager::getInstance()->initialize();
-    EventManager::getInstance()->initialize();
 }
 
 
 void OpenOS::deinitializeGlobalObjects()
 {
-    EventManager::getInstance()->deinitialize();
-    SemaphoreManager::getInstance()->deinitialize();
-
-    CommunicationManager::getInstance()->deinitialize();
-	    
-	ThreadManager::getInstance()->deinitialize();
-	ProcessManager::getInstance()->deinitialize();
-
 	ErrorHandler::getInstance()->deinitialize();    
 	LoggingManager::getInstance()->deinitialize();
 	FaultManager::getInstance()->deinitialize();
+
+	CommunicationManager::getInstance()->deinitialize();
+	ThreadManager::getInstance()->deinitialize();
+
+	ProcessManager::getInstance()->deinitialize();
+
+	EventManager::getInstance()->deinitialize();
+    SemaphoreManager::getInstance()->deinitialize();
+    SignalManager::getInstance()->deinitialize();
 }
 
 

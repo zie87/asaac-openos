@@ -55,12 +55,13 @@
 #define OS_SCHEDULING_INFO_SIZE			 		 sizeof(sched_param)
 
 #define OS_SIZE_OF_SIMPLE_COMMANDBUFFER	 		 4096
-#define OS_SIZE_OF_COMPLEX_COMMANDBUFFER 		 4096
 #define OS_MAX_NUMBER_OF_COMMAND_HANDLERS		 32
 
 #define OS_SIZE_OF_OSSCOPE_COMMANDBUFFER 		 32
 
-/* Values for Thread Manager */
+/* Values for Threads, Processes and Vcs */
+#define OS_POLICY								 SCHED_RR
+#define OS_MAX_NUMBER_OF_SIGNALS 				 64
 #define OS_MAX_NUMBER_OF_PROCESSES		 		 32
 #define OS_MAX_NUMBER_OF_THREADS		 		 32
 #define OS_MAX_NUMBER_OF_ENTRYPOINTS	 		 32
@@ -71,9 +72,9 @@
 #define OS_MAX_NUMBER_OF_EXCEPTIONS		 		 16
 #define OS_MAX_NUMBER_OF_ALLOCATOR		 		 4096
 
-#define OS_NUMBER_OF_TC_BUFFERS		     		 10
+#define OS_MAX_NUMBER_OF_TC_BUFFERS		     	 10
 
-#define OS_MAX_ERROR_QUEUESIZE		     		 8
+#define OS_SIZE_OF_ERROR_QUEUE		     		 8
 
 #define OS_MAX_NUMBER_OF_VC_THREADS_ATTACHED	 32
 

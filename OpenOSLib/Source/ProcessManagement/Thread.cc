@@ -79,25 +79,7 @@ static ThreadResumeCallback		ResumeCallback;
 
 
 Thread::Thread() : m_ParentProcess(0), m_IsInitialized(false), m_SuspendPending(false)
-{
-	static bool SignalManagerInitialized = false;
-	m_ProtectedScopeStackSize = 0;
-
-	if ( SignalManagerInitialized == false )
-	{
-		// register signal for termination of threads
-		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_KILL,    KillCallback );
-		
-		// register signal for suspension of threads
-		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_SUSPEND, SuspendCallback );
-		
-		// register signal to catch superfluous 'resume' signals, to
-		// avoid program abortion
-		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_RESUME,  ResumeCallback );
-		
-		SignalManagerInitialized = true;
-	}
-	
+{	
 }
 
 
@@ -108,11 +90,31 @@ Thread::~Thread()
 
 void Thread::initialize( Allocator* ThisAllocator, bool IsMaster, Process* ParentProcess )
 {
-	assert( m_IsInitialized == false );
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException( LOCATION );
+
 	m_IsInitialized = true;
 
 	try
 	{		
+		static bool SignalManagerInitialized = false;
+
+		if ( SignalManagerInitialized == false )
+		{
+			// register signal for termination of threads
+			SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_KILL,    KillCallback );
+			
+			// register signal for suspension of threads
+			SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_SUSPEND, SuspendCallback );
+			
+			// register signal to catch superfluous 'resume' signals, to
+			// avoid program abortion
+			SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_RESUME,  ResumeCallback );
+			
+			SignalManagerInitialized = true;
+		}
+		
+		m_ProtectedScopeStackSize = 0;
 		m_ThreadData.initialize( ThisAllocator );
 	
 		if ( IsMaster )
@@ -248,17 +250,77 @@ void Thread::setSchedulingParameters( const ASAAC_ThreadSchedulingInfo& Scheduli
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
-	ProcessStatus ProcessState = m_ParentProcess->getState();
-	
-	if ( ProcessState == PROCESS_RUNNING )  
-        throw OSException("Process is in state PROCESS_RUNNING", LOCATION);
+    try
+    {
+		CharacterSequence ErrorString;
 
-	m_ThreadData->SchedulingInfo = SchedulingInfo;
+		ProcessStatus ProcessState = m_ParentProcess->getState();
 		
-	if (( ProcessState == PROCESS_STOPPED ) && ( m_ThreadData->Status != ASAAC_DORMANT ))
-	{
-		// TODO: Set scheduling parameters
-	}
+		if ( ProcessState == PROCESS_STOPPED )  
+	        throw OSException("Process shall be in state PROCESS_STOPPED", LOCATION);
+	
+		if ( m_ThreadData->Status == ASAAC_DORMANT )  
+	        throw OSException("Thread must not be in state ASAAC_DORMANT", LOCATION);
+
+		int Policy = SCHED_RR;
+	
+		if ( SchedulingInfo.scheduling_info.priority < sched_get_priority_min(Policy) )
+	        throw OSException( (ErrorString << "Priority is out of systems range (minimum is " << (long)sched_get_priority_min(Policy) << ")").c_str(), LOCATION);
+		
+		if ( SchedulingInfo.scheduling_info.priority > sched_get_priority_max(Policy) )
+	        throw OSException( (ErrorString << "Priority is out of systems range (maximum is " << (long)sched_get_priority_max(Policy) << ")").c_str(), LOCATION);
+		
+		m_ThreadData->SchedulingInfo = SchedulingInfo;	    
+    }
+    catch ( ASAAC_Exception &e )
+    {
+    	e.addPath("Error setting scheduling parameters", LOCATION);
+    	
+    	throw;
+    }
+}
+
+
+void Thread::update()
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+    try
+    {
+	    if (m_ParentProcess->isServer() == false)
+			throw OSException( "Cannot remote thread update", LOCATION);	
+	    
+	    int Policy = OS_POLICY;
+			
+		sched_param Parameter;
+		Parameter.__sched_priority = 1;
+		//Parameter.__sched_priority = m_ThreadData->SchedulingInfo.scheduling_info.priority;
+		
+#ifndef NO_SPORADIC_SERVER
+// Posix standard says, that the following ss parameters are available, 
+// if _POSIX_THREAD_SPORADIC_SERVER is defined	
+#ifdef _POSIX_THREAD_SPORADIC_SERVER
+		if (m_ThreadData->SchedulingInfo.scheduling_info.is_periodic == ASAAC_BOOL_TRUE)
+			Policy = SCHED_SPORADIC;
+	
+		Parameter.sched_ss_low_priority = m_ThreadData->SchedulingInfo.scheduling_info.priority;
+		Parameter.sched_ss_repl_period = TimeInterval(m_ThreadData->SchedulingInfo.scheduling_info.period).timespec_Interval();
+		Parameter.sched_ss_init_budget = TimeInterval(m_ThreadData->SchedulingInfo.scheduling_info.period).timespec_Interval();
+		Parameter.sched_ss_max_repl = m_ThreadData->SchedulingInfo.scheduling_info.max_repl;
+#endif
+#endif
+		
+		/*int Result = pthread_setschedparam( m_ThreadData->PosixThread, Policy, &Parameter );
+		if (Result != 0)
+			throw OSException( strerror(Result), LOCATION );*/
+    }
+    catch ( ASAAC_Exception &e )
+    {
+    	e.addPath("Error updating thread", LOCATION);
+    	
+    	throw;
+    }
 }
 
 
@@ -267,37 +329,59 @@ void Thread::start()
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
-	CharacterSequence ErrorString;
+    try
+    {
+		CharacterSequence ErrorString;
+		
+		if ( m_ThreadData->Status != ASAAC_DORMANT )
+			throw OSException("Process is in state: DORMANT", LOCATION);	
 	
-	if ( m_ThreadData->Status != ASAAC_DORMANT )
-		throw OSException("Process is in state: DORMANT", LOCATION);	
-
-	EntryPoint *ThisEntryPoint = m_ParentProcess->getEntryPoint( m_ThreadData->Description.entry_point );
-
-	if ( ThisEntryPoint == 0 ) 
-		throw OSException( (ErrorString << "EntryPoint not found: '" << m_ThreadData->Description.entry_point << "' ").c_str() , LOCATION);	
-
-	oal_thread_attr_init( &( m_ThreadData->PosixThreadAttributes ) );
+		EntryPoint *ThisEntryPoint = m_ParentProcess->getEntryPoint( m_ThreadData->Description.entry_point );
 	
-	oal_thread_attr_setstacksize( &( m_ThreadData->PosixThreadAttributes ),
-							      m_ThreadData->Description.stack_size );
-    
-    SchedulingData Scheduling = m_ParentProcess->getOSScopeSchedulingData();
-    Scheduling.Parameter.__sched_priority--;
-    
-    /*pthread_attr_setschedparam( &( m_ThreadData->PosixThreadAttributes ),
-                                &Scheduling.Parameter );                           
-
-    pthread_attr_setschedpolicy( &( m_ThreadData->PosixThreadAttributes ),
-                                Scheduling.Policy );                           
-    */
-	oal_thread_create( &( m_ThreadData->PosixThread ),
-					   &( m_ThreadData->PosixThreadAttributes ),
-					      Thread::ThreadStartWrapper,
-					    ( void* )( ThisEntryPoint->Address )
-				  );
+		if ( ThisEntryPoint == NULL ) 
+			throw OSException( (ErrorString << "EntryPoint not found: '" << m_ThreadData->Description.entry_point << "' ").c_str() , LOCATION);	
 	
-	m_ThreadData->Status = ASAAC_RUNNING;
+		int Result;
+
+		sched_param Parameter;
+		Parameter.__sched_priority = m_ThreadData->SchedulingInfo.scheduling_info.priority;
+	
+		Result = oal_thread_attr_init( &( m_ThreadData->PosixThreadAttributes ) );
+		if (Result != 0)
+			throw OSException( strerror(Result), LOCATION );
+			
+		Result = oal_thread_attr_setstacksize( &( m_ThreadData->PosixThreadAttributes ),
+				            				      m_ThreadData->Description.stack_size );
+		if (Result != 0)
+			throw OSException( strerror(Result), LOCATION );
+	    
+	    Result = pthread_attr_setschedpolicy( &( m_ThreadData->PosixThreadAttributes ),
+	                                          OS_POLICY );                           
+		if (Result != 0)
+			throw OSException( strerror(Result), LOCATION );
+
+		Result = pthread_attr_setschedparam( &( m_ThreadData->PosixThreadAttributes ),
+	                                         &Parameter );                           
+		if (Result != 0)
+			throw OSException( strerror(Result), LOCATION );
+	    
+		Result = oal_thread_create( &( m_ThreadData->PosixThread ),
+						            &( m_ThreadData->PosixThreadAttributes ),
+						            Thread::ThreadStartWrapper,
+						            ( void* )( ThisEntryPoint->Address ) );
+		if (Result != 0)
+			throw OSException( strerror(Result), LOCATION );
+		
+		m_ThreadData->Status = ASAAC_RUNNING;
+		sched_yield();
+		update();
+    }
+    catch ( ASAAC_Exception &e )
+    {
+    	e.addPath("Error starting thread", LOCATION);
+    	
+    	throw;
+    }
 }
 
 
@@ -324,21 +408,32 @@ void* Thread::ThreadStartWrapper( void* RealAddress )
 		}
 		
 		EntryPointAddr ThisEntryPoint = EntryPointAddr(RealAddress);
+		
+		try
+		{
+			Result = ThisEntryPoint( 0 );
+		}
+		catch ( ASAAC_Exception &e )
+		{
+			e.addPath("Error in main loop of thread", LOCATION);
+
+			ThisThread->setState(ASAAC_DORMANT);
 			
-		Result = ThisEntryPoint( 0 );
-
-		ThisThread = ThreadManager::getInstance()->getCurrentThread();
-
+			throw;
+		}
+	    catch ( ... )
+	    {
+			ThisThread->setState(ASAAC_DORMANT);
+			
+			throw FatalException("Unknown error in main loop of thread", LOCATION);
+	    }
+		
 		ThisThread->setState(ASAAC_DORMANT);
 	}
     catch ( ASAAC_Exception &e )
     {
-    	e.addPath("Caught exception in main loop of thread", LOCATION);
+    	e.addPath("Caught exception in wrapper method of thread", LOCATION);
     	e.raiseError();
-    }
-    catch ( ... )
-    {
-        OSException("Caught exception in main loop of thread", LOCATION).raiseError();
     }
 		
 	return Result;
@@ -354,10 +449,16 @@ void Thread::stop()
 	if ( m_ThreadData->Status == ASAAC_DORMANT ) 
 		throw OSException("Thread is in state ASAAC_DORMANT", LOCATION);
 	
-	oal_thread_cancel( m_ThreadData->PosixThread );
+	int Result;
+	
+	Result = oal_thread_cancel( m_ThreadData->PosixThread );
+	if (Result != 0)
+		throw OSException( strerror(Result), LOCATION );
 
 	// resume, so cancellation may be performed
-	oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_RESUME );
+	Result = oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_RESUME );
+	if (Result != 0)
+		throw OSException( strerror(Result), LOCATION );
 	
 	waitForTermination();
 		
@@ -373,7 +474,9 @@ void Thread::waitForTermination()
 	if ( isCurrentThread() ) 
 		throw OSException("A thread cannot wait for its own termination", LOCATION);
 	
-	oal_thread_join( m_ThreadData->PosixThread, 0 );
+	int Result = oal_thread_join( m_ThreadData->PosixThread, 0 );
+	if (Result != 0)
+		throw OSException( strerror(Result), LOCATION );
 }
 	
 
@@ -407,7 +510,10 @@ void Thread::suspend()
 		if ( m_ThreadData->SuspendLevel == 1 )
 		{
 			m_SuspendPending = true;
-	 		oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_SUSPEND );
+			
+	 		int Result = oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_SUSPEND );
+			if (Result != 0)
+				throw OSException( strerror(Result), LOCATION );
 	 		
 	 		while ( m_SuspendPending ) 
 	 		{ 
@@ -446,7 +552,9 @@ void Thread::resume()
 	{
 			m_SuspendPending = true;
 
-			oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_RESUME );
+			int Result = oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_RESUME );
+			if (Result != 0)
+				throw OSException( strerror(Result), LOCATION );
 	
 			while ( m_SuspendPending ) 
 			{
@@ -504,6 +612,8 @@ void Thread::terminateSelf()
 	m_ThreadData->Status = ASAAC_DORMANT;
 	
 	oal_thread_exit(0);
+
+	throw OSException( strerror(errno), LOCATION );	
 }
 
 
@@ -520,7 +630,9 @@ void Thread::terminate()
 		
 	m_ThreadData->Status = ASAAC_DORMANT;
 	
-	oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_KILL );
+	int Result = oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_KILL );
+	if (Result != 0)
+		throw OSException( strerror(Result), LOCATION );	
 }
 
 

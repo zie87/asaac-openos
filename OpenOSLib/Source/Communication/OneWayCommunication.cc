@@ -505,7 +505,7 @@ bool OneWayCommunication::isGlobalVcAdequate(ASAAC_VcDescription currentDescript
 			throw OSException( (ErrorString << "current max_number_of_TCs_attached:" << currentDescription.max_number_of_TCs_attached << " reference max_number_of_TCs_attached:" << referenceDescription.max_number_of_TCs_attached).c_str(), LOCATION);
     
 		if (currentDescription.vc_type != referenceDescription.vc_type)
-			throw OSException( (ErrorString << "current vc_type:" << currentDescription.vc_type << " reference vc_type:" << referenceDescription.vc_type).c_str(), LOCATION);
+			throw OSException( (ErrorString << "current vc_type:" << (long)currentDescription.vc_type << " reference vc_type:" << (long)referenceDescription.vc_type).c_str(), LOCATION);
     
  	}
 	catch ( ASAAC_Exception &e )
@@ -546,13 +546,13 @@ bool OneWayCommunication::isLocalVcAdequate(ASAAC_VcMappingDescription currentDe
 			throw OSException( (ErrorString << "current number_of_message_buffers:" << currentDescription.number_of_message_buffers << " reference number_of_message_buffers:" << referenceDescription.number_of_message_buffers).c_str(), LOCATION);
 			
 		if (currentDescription.is_reading != referenceDescription.is_reading)
-			throw OSException( (ErrorString << "current is_reading:" << currentDescription.is_reading << " reference is_reading:" << referenceDescription.is_reading).c_str(), LOCATION);
+			throw OSException( (ErrorString << "current is_reading:" << (long)currentDescription.is_reading << " reference is_reading:" << (long)referenceDescription.is_reading).c_str(), LOCATION);
 			
 		if (currentDescription.is_lifo_queue != referenceDescription.is_lifo_queue)
-			throw OSException( (ErrorString << "current is_lifo_queue:" << currentDescription.is_lifo_queue << " reference is_lifo_queue:" << referenceDescription.is_lifo_queue).c_str(), LOCATION);
+			throw OSException( (ErrorString << "current is_lifo_queue:" << (long)currentDescription.is_lifo_queue << " reference is_lifo_queue:" << (long)referenceDescription.is_lifo_queue).c_str(), LOCATION);
 			
 		if (currentDescription.is_refusing_queue != referenceDescription.is_refusing_queue)
-			throw OSException( (ErrorString << "current is_refusing_queue:" << currentDescription.is_refusing_queue << " reference is_refusing_queue:" << referenceDescription.is_refusing_queue).c_str(), LOCATION);
+			throw OSException( (ErrorString << "current is_refusing_queue:" << (long)currentDescription.is_refusing_queue << " reference is_refusing_queue:" << (long)referenceDescription.is_refusing_queue).c_str(), LOCATION);
 			
 		if (currentDescription.Priority != referenceDescription.Priority)
 			throw OSException( (ErrorString << "current Priority:" << currentDescription.Priority << " reference Priority:" << referenceDescription.Priority).c_str(), LOCATION);

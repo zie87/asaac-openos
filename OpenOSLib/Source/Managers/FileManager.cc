@@ -1089,10 +1089,10 @@ ASAAC_CharacterSequence FileManager::getFileInfoString( FileInfoData Data )
 	CharacterSequence Sequence;
 	
 	Sequence << Data.Name << ":";
-	Sequence << (unsigned int)Data.Type << ":";
-	Sequence << (unsigned int)Data.UseOption.use_access << ":";
-	Sequence << (unsigned int)Data.UseOption.use_concur << ":";
-	Sequence << Data.PosixHandle;
+	Sequence << (unsigned long)Data.Type << ":";
+	Sequence << (unsigned long)Data.UseOption.use_access << ":";
+	Sequence << (unsigned long)Data.UseOption.use_concur << ":";
+	Sequence << (long)Data.PosixHandle;
 	
 	return Sequence.asaac_str();
 }

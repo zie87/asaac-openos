@@ -22,6 +22,7 @@
 #include <semaphore.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sched.h>
 
 #include <sys/wait.h>
 #include <sys/types.h>

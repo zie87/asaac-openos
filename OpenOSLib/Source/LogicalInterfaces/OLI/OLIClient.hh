@@ -29,14 +29,14 @@ namespace ASAAC
 			TwoWayCommunication m_TwoWayCommunication;
 			
 		protected:			
-			ASAAC_ReturnStatus establishCommunication();
+			void establishCommunication();
 			
-			ASAAC_TimedReturnStatus receiveReply(
+			void receiveReply(
 				unsigned long TransferId, 
 				ASAAC_OLI_ReplyFileReadPayload &Reply,
                 ASAAC_Time Timeout);
 			
-			ASAAC_TimedReturnStatus requestFile(
+			void requestFile(
 				unsigned long transferId,
 				unsigned long size,
 				unsigned long offset,
@@ -63,7 +63,7 @@ namespace ASAAC
 				ASAAC_CfmDescription cfm_description);
 			
 			//additional functions
-			ASAAC_TimedReturnStatus storeCompleteFile(
+			void storeCompleteFile(
 				ASAAC_CharacterSequence LocalPath, 
 				ASAAC_CharacterSequence OliPath);
 		};

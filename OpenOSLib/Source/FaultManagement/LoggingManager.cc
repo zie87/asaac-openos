@@ -58,7 +58,7 @@ void LoggingManager::initialize(bool IsMaster)
 			FM->openFile( CharSeq(LogFileNames[ Index ]).asaac_str(), UseOption, m_LogFileDescriptors[Index]);
 		}
 		
-		m_LoggingQueue.initialize( IsMaster, OS_LOGGING_QUEUE, CLIENTS_RECEIVE, OS_MAX_ERROR_QUEUESIZE, sizeof( LogReportData ) );
+		m_LoggingQueue.initialize( IsMaster, OS_LOGGING_QUEUE, CLIENTS_RECEIVE, OS_SIZE_OF_ERROR_QUEUE, sizeof( LogReportData ) );
 	}
 	catch ( ASAAC_Exception& e )
 	{

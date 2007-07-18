@@ -4,35 +4,39 @@
 #include "OpenOSIncludes.hh"
 
 #include "AbstractInterfaces/Callback.hh"
-
-#include "Exceptions/Exceptions.hh"
-
-
-#define NUMBER_OF_SIGNALS 64
-
+#include "Allocator/LocalMemory.hh"
+#include "Common/Templates/SharedMap.hh"
 
 class SignalManager
 {
 public:
-	
 	static SignalManager* getInstance();
-	
 	virtual ~SignalManager();
 	
-	ASAAC_ReturnStatus registerSignalHandler( int Signal, Callback& Handler );
-	ASAAC_ReturnStatus unregisterSignalHandler( int Signal );
+	static size_t	predictSize();
 	
-	ASAAC_ReturnStatus raiseSignal( ASAAC_PublicId ProcessId, int Signal, int Value );
-	ASAAC_TimedReturnStatus waitForSignal( int Signal, int& Value, const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
+	void initialize();
+	void deinitialize();
+	
+	void registerSignalHandler( int Signal, Callback& Handler );
+	void unregisterSignalHandler( int Signal );
+	
+	void raiseSignal( ASAAC_PublicId ProcessId, int Signal, int Value );
+	void waitForSignal( int Signal, int& Value, const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
 
 private:
-
+	bool m_IsInitialized;
+	
 	SignalManager();
 	static void InternalSignalHandler( int Signal, siginfo_t* SignalInfo, void* Context );
 
-	Callback**			m_Handlers;
-	struct sigaction*	m_OldActions;
+	typedef struct {
+		Callback*			Handler;
+		struct sigaction	OldAction;
+	} SignalData;
 	
+	LocalMemory 				m_Allocator;
+	SharedMap<int, SignalData>  m_Signals;
 };
 
 #endif /*SIGNALMANAGER_HH_*/

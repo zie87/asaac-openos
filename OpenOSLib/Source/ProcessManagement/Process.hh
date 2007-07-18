@@ -82,6 +82,7 @@ class Process
 public:
 
 	bool 					isInitialized();
+	bool 					isServer();
 	
 	//! get Process' Global ASAAC_PublicId
 	ASAAC_PublicId			getId();
@@ -269,7 +270,6 @@ private:
 	void 					deinitialize();	
 
 	void 					setServer( bool IsServer );
-	bool 					isServer();
 
 	//! launch the ProcessStarter to initialize the process
 	void					launch();

@@ -104,6 +104,14 @@ TimeInterval & TimeInterval::addNanoSeconds(long nano_seconds)
 	return *this;
 }
 
+const timespec TimeInterval::timespec_Interval()
+{
+	timespec result;
+	result.tv_sec = m_Interval.sec;
+	result.tv_nsec = m_Interval.nsec;
+	return result;
+}
+
 const ASAAC_TimeInterval TimeInterval::asaac_Interval()
 {
 	return m_Interval;

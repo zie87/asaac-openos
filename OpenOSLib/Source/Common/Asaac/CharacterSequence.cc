@@ -200,7 +200,7 @@ CharacterSequence & CharacterSequence::assign( ASAAC_PublicId number, bool is_si
 CharacterSequence & CharacterSequence::assign( ASAAC_Time time)
 {	
 	tm t = TimeStamp(time).tm_Time();
-	*this << (t.tm_mon + 1) << "/" << t.tm_mday << "/" <<  (1900 + t.tm_year) << " " <<  t.tm_hour << ":" <<  t.tm_min << ":" <<  t.tm_sec << "." << div(time.nsec, (long)100000).quot;
+	*this << (long)(t.tm_mon + 1) << "/" << (long)t.tm_mday << "/" <<  (long)(1900 + t.tm_year) << " " <<  (long)t.tm_hour << ":" <<  (long)t.tm_min << ":" <<  (long)t.tm_sec << "." << (long)div(time.nsec, (long)100000).quot;
 	
 	return *this;
 }
@@ -579,6 +579,11 @@ CharacterSequence & CharacterSequence::operator=(const char *data)
 	return this->assign(data);
 }
 
+CharacterSequence & CharacterSequence::operator=(const char data)
+{
+	return this->assign(1,data);
+}
+
 CharacterSequence & CharacterSequence::operator=(const string &data)
 {
 	return this->assign(data);
@@ -594,9 +599,19 @@ CharacterSequence & CharacterSequence::operator=(long number)
 	return this->assign(number);
 }
 
-CharacterSequence & CharacterSequence::operator=(unsigned long number)
+CharacterSequence & CharacterSequence::operator=(ASAAC_PublicId number)
 {
 	return this->assign(number);
+}
+
+CharacterSequence & CharacterSequence::operator=(ASAAC_Time &time)
+{
+	return this->assign(time);
+}
+
+CharacterSequence & CharacterSequence::operator=(ASAAC_TimeInterval &interval)
+{
+	return this->assign(interval);
 }
 
 CharacterSequence & CharacterSequence::operator<<(const CharacterSequence &data)
@@ -607,6 +622,11 @@ CharacterSequence & CharacterSequence::operator<<(const CharacterSequence &data)
 CharacterSequence & CharacterSequence::operator<<(const char *data)
 {
 	return this->append(data);
+}
+
+CharacterSequence & CharacterSequence::operator<<(const char data)
+{
+	return this->append(1,data);
 }
 
 CharacterSequence & CharacterSequence::operator<<(const string &data)
@@ -620,6 +640,11 @@ CharacterSequence & CharacterSequence::operator<<(const ASAAC_CharacterSequence 
 }
 
 CharacterSequence & CharacterSequence::operator<<(long number)
+{
+	return this->append(number);
+}
+
+CharacterSequence & CharacterSequence::operator<<(ASAAC_PublicId number)
 {
 	return this->append(number);
 }
@@ -644,6 +669,11 @@ CharacterSequence & CharacterSequence::operator+=(const char *data)
 	return this->append(data);
 }
 
+CharacterSequence & CharacterSequence::operator+=(const char data)
+{
+	return this->append(1,data);
+}
+
 CharacterSequence & CharacterSequence::operator+=(const string &data)
 {
 	return this->append(data);
@@ -664,6 +694,16 @@ CharacterSequence & CharacterSequence::operator+=(ASAAC_PublicId number)
 	return this->append(number);
 }
 
+CharacterSequence & CharacterSequence::operator+=(ASAAC_Time &time)
+{
+	return this->append(time);
+}
+
+CharacterSequence & CharacterSequence::operator+=(ASAAC_TimeInterval &interval)
+{
+	return this->append(interval);
+}
+
 CharacterSequence  CharacterSequence::operator+(const CharacterSequence &data)
 {
 	CharacterSequence cs(*this);
@@ -674,6 +714,12 @@ CharacterSequence  CharacterSequence::operator+(const char *data)
 {
 	CharacterSequence cs(*this);
 	return cs.append(data);
+}
+
+CharacterSequence  CharacterSequence::operator+(const char data)
+{
+	CharacterSequence cs(*this);
+	return cs.append(1,data);
 }
 
 CharacterSequence  CharacterSequence::operator+(const string &data)
@@ -699,6 +745,18 @@ CharacterSequence  CharacterSequence::operator+(ASAAC_PublicId number)
 	CharacterSequence cs(*this);
 	return cs.append(number);
 }
+
+/*CharacterSequence & CharacterSequence::operator+(ASAAC_Time &time)
+{
+	CharacterSequence cs(*this);
+	return cs.append(time);
+}
+
+CharacterSequence & CharacterSequence::operator+(ASAAC_TimeInterval &interval)
+{
+	CharacterSequence cs(*this);
+	return cs.append(interval);
+}*/
 
 bool CharacterSequence::operator==(const CharacterSequence &data) const
 {

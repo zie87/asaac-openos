@@ -96,32 +96,43 @@ public:
 	
 	CharacterSequence & operator=(const CharacterSequence &data);
 	CharacterSequence & operator=(const char *data);
+	CharacterSequence & operator=(const char data);
 	CharacterSequence & operator=(const string &data);
 	CharacterSequence & operator=(const ASAAC_CharacterSequence &data);
 	CharacterSequence & operator=(long number);
-	CharacterSequence & operator=(unsigned long number);
+	CharacterSequence & operator=(ASAAC_PublicId number);
+	CharacterSequence & operator=(ASAAC_Time &time);
+	CharacterSequence & operator=(ASAAC_TimeInterval &interval);
 	
 	CharacterSequence & operator<<(const CharacterSequence &data);
 	CharacterSequence & operator<<(const char *data);
+	CharacterSequence & operator<<(const char data);
 	CharacterSequence & operator<<(const string &data);
 	CharacterSequence & operator<<(const ASAAC_CharacterSequence &data);
 	CharacterSequence & operator<<(long number);
+	CharacterSequence & operator<<(ASAAC_PublicId number);
 	CharacterSequence & operator<<(ASAAC_Time &time);
 	CharacterSequence & operator<<(ASAAC_TimeInterval &interval);
 	
 	CharacterSequence & operator+=(const CharacterSequence &data);
 	CharacterSequence & operator+=(const char *data);
+	CharacterSequence & operator+=(const char data);
 	CharacterSequence & operator+=(const string &data);
 	CharacterSequence & operator+=(const ASAAC_CharacterSequence &data);
 	CharacterSequence & operator+=(long number);
 	CharacterSequence & operator+=(ASAAC_PublicId number);
+	CharacterSequence & operator+=(ASAAC_Time &time);
+	CharacterSequence & operator+=(ASAAC_TimeInterval &interval);
 
 	CharacterSequence operator+(const CharacterSequence &data);
 	CharacterSequence operator+(const char *data);
+	CharacterSequence operator+(const char data);
 	CharacterSequence operator+(const string &data);
 	CharacterSequence operator+(const ASAAC_CharacterSequence &data);
 	CharacterSequence operator+(long number);
 	CharacterSequence operator+(ASAAC_PublicId number);
+	CharacterSequence operator+(ASAAC_Time &time);
+	CharacterSequence operator+(ASAAC_TimeInterval &interval);
 
 	bool operator==(const CharacterSequence &data) const;
 	bool operator==(const char *data) const;

@@ -240,7 +240,6 @@ void Process::launch()
 		throw UninitializedObjectException(LOCATION);
 
 	CharacterSequence ErrorString;
-	ASAAC_TimedReturnStatus Result = ASAAC_TM_SUCCESS;
 	
 	try
 	{
@@ -256,13 +255,7 @@ void Process::launch()
 			OliClient.setTimeOut( m_ProcessData->Description.timeout );
 			
 			//OLI service successful?
-			Result = OliClient.storeCompleteFile(ProcessPath, m_ProcessData->Description.programme_file_name);
-			
-			if (Result == ASAAC_TM_ERROR)
-				throw OSException("Error executing OLI protocol", LOCATION);
-	
-			if (Result == ASAAC_TM_TIMEOUT)
-				throw TimeoutException("Timeout executing OLI protocol", LOCATION);
+			OliClient.storeCompleteFile(ProcessPath, m_ProcessData->Description.programme_file_name);
 		}
 		else ProcessPath = FileNameGenerator::getAsaacPath(m_ProcessData->Description.programme_file_name);
 		
@@ -639,8 +632,9 @@ void Process::run()
 					//TODO: Is this call still needed?
 					if (m_IsMaster)
 						ProcessManager::getInstance()->destroyEntity();
-					
+
 					terminateAllThreads();
+
 					detachAndDestroyAllLocalVcs();
 				}
 				catch (ASAAC_Exception &e)
@@ -760,29 +754,24 @@ void Process::destroy()
 				
 		if (P->getId() != this->getId())
 		{
-			pid_t PosixPid = m_PosixPid;
-			int Dummy;
-			
-			ASAAC_TimedReturnStatus SignalStatus = SignalManager::getInstance()->waitForSignal( SIGCHLD, Dummy, OS_SIMPLE_COMMAND_TIMEOUT  );
-	
-			if ( SignalStatus == ASAAC_TM_ERROR )
-			{	
-				OSException("Signal to assume processes readyness could not be sent.", LOCATION).raiseError();
-			}
-
-			if ( SignalStatus == ASAAC_TM_TIMEOUT )
-			{	
-				if ( PosixPid != 0 ) 
-					oal_kill( PosixPid, SIGTERM );
-				else OSException("Kill Signal cannot be send, because pid is unknown (PID=0).", LOCATION).raiseError();
-			}
-			
-			if ( SignalStatus == ASAAC_TM_SUCCESS )
+			try
 			{
 				int Dummy;		
+				SignalManager::getInstance()->waitForSignal( SIGCHLD, Dummy, OS_SIMPLE_COMMAND_TIMEOUT  );
+
 				oal_waitpid( (pid_t)-1, &Dummy, 0 );
 			}
-			
+			catch ( ASAAC_Exception &e )
+			{
+				if (e.isTimeout())
+				{
+					if ( m_PosixPid != 0 ) 
+						oal_kill( m_PosixPid, SIGTERM );
+					else OSException("Kill Signal cannot be send, because pid is unknown (PID=0).", LOCATION).raiseError();
+				}
+				else throw;
+			}
+
 			//TODO: deinitialize here?
 			deinitialize();
 	

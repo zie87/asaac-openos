@@ -34,6 +34,7 @@ public:
 	TimeInterval & addMicroSeconds(long micro_seconds);
 	TimeInterval & addNanoSeconds(long nano_seconds);
 
+	const timespec timespec_Interval();
 	const ASAAC_TimeInterval asaac_Interval();
 	
 	bool isInstant();

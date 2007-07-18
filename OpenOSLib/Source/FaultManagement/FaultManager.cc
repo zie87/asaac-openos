@@ -33,7 +33,7 @@ void FaultManager::initialize(bool IsMaster)
 
 	try
 	{
-		m_ErrorMessageQueue.initialize( IsMaster, OS_ERROR_QUEUE, CLIENTS_RECEIVE, OS_MAX_ERROR_QUEUESIZE, sizeof( ASAAC_ErrorInfo ) );
+		m_ErrorMessageQueue.initialize( IsMaster, OS_ERROR_QUEUE, CLIENTS_RECEIVE, OS_SIZE_OF_ERROR_QUEUE, sizeof( ASAAC_ErrorInfo ) );
 	}
 	catch (ASAAC_Exception &e)
 	{

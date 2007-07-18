@@ -97,7 +97,6 @@ void SimpleCommandInterface::handleOneCommand( ASAAC_PublicId& CommandIdentifier
 #ifdef DEBUG_SCI
 			cout << "Process " << ProcessManager::getInstance()->getCurrentProcess()->getId() << " got Command: " << m_CommandData->Identifier << " (" << CharSeq(getCommandString(m_CommandData->Identifier)) << ")" << endl;
 #endif
-			
 			CommandHandlerMapping *ThisCommand = getCommandHandler( m_CommandData->Identifier );
 			
 			if ( ThisCommand == NULL )
@@ -230,8 +229,6 @@ void SimpleCommandInterface::addCommandHandler( ASAAC_PublicId CommandIdentifier
 
 void SimpleCommandInterface::removeCommandHandler( ASAAC_PublicId CommandIdentifier )
 {
-	cout << "##################" << endl;
-	
 	try
 	{
 		ProtectedScope Access( "Removing a command handler from SimpleCommandInterface", m_AdministrationSemaphore );
