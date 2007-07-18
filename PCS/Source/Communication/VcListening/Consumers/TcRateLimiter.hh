@@ -31,7 +31,8 @@ public:
 	
 private:
 	ASAAC_ReturnStatus setNextMessageTime(unsigned long queue, ASAAC_Time& now);
-	ASAAC_Time 		   getNextMessageTime();
+	
+	long			   getNextMessageIndex();
 	
 	ASAAC_ReturnStatus getRateLimit( ASAAC_PublicId TcId , ASAAC_TimeInterval& MessageRate );
 	ASAAC_ReturnStatus getQueue(ASAAC_PublicId TcId, unsigned long& index);

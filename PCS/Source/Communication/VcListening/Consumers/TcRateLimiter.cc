@@ -20,19 +20,19 @@ void TcRateLimiter::initialize()
 	
 	if (ASAAC_APOS_createEvent( &ConfigurationChangedEventName, &m_ConfigurationChangedEvent ) != ASAAC_RS_SUCCESS)
 		throw PcsException(0,0,"ConfigurationChangedEvent couldn't be created");
+
+	ASAAC_APOS_resetEvent( m_ConfigurationChangedEvent );
 	
-	ASAAC_Time zeroTime = {0,0};
-	
-	for ( unsigned long IDX = 0; IDX < PCS_MAX_NUMBER_OF_TCS;  ++IDX )
+	for ( unsigned long Index = 0; Index < PCS_MAX_NUMBER_OF_TCS;  ++Index )
 	{
-		m_NextFreeQueue[IDX] = 0;
-		m_NextMessage[IDX] = 0;
-		m_TcQueueMap[IDX] = 0; //no queue is assigned to a TC at startup
-		m_NextMessageTime[IDX] = zeroTime;
+		m_NextFreeQueue[Index] = 0;
+		m_NextMessage[Index] = 0;
+		m_TcQueueMap[Index] = 0; //no queue is assigned to a TC at startup
+		m_NextMessageTime[Index] = TimeZero;
 		
 		for ( unsigned long MSG = 0; MSG < PCS_MAX_SIZE_OF_MESSAGEQUEUE;  ++MSG )
 		{
-			m_QueuedMessages[IDX][ MSG ].Length = 0;
+			m_QueuedMessages[Index][ MSG ].Length = 0;
 		}
 	}
 
@@ -43,7 +43,8 @@ void TcRateLimiter::initialize()
 
 void TcRateLimiter::deinitialize()
 {
-
+	ASAAC_APOS_setEvent( m_ConfigurationChangedEvent );
+	ASAAC_APOS_deleteEvent( m_ConfigurationChangedEvent );
 }
 
 
@@ -117,16 +118,18 @@ ASAAC_ReturnStatus TcRateLimiter::setNextMessageTime(unsigned long queue, ASAAC_
 	return ASAAC_SUCCESS;
 }
 
-ASAAC_Time TcRateLimiter::getNextMessageTime()
+long TcRateLimiter::getNextMessageIndex()
 {
-	ASAAC_Time Result = TimeInfinity; 
-
-	for ( unsigned long IDX = 0; IDX < PCS_MAX_NUMBER_OF_TCS;  ++IDX )
+	ASAAC_Time ClosestTime = TimeInfinity; 
+	long Result = -1;
+	
+	for ( long Index = 0; Index < PCS_MAX_NUMBER_OF_TCS;  ++Index )
 	{
-		if ( (m_TcQueueMap[IDX] != 0) &&
-			 (TimeStamp(m_NextMessageTime[IDX]) < TimeStamp(Result)) )
+		if ( (m_TcQueueMap[Index] != 0) &&
+			 (TimeStamp(m_NextMessageTime[Index]) < TimeStamp(ClosestTime)) )
 		{
-			Result = m_NextMessageTime[IDX]; 
+			ClosestTime = m_NextMessageTime[Index];
+			Result = Index; 
 		}		
 	}
 	
@@ -210,13 +213,11 @@ ASAAC_ReturnStatus TcRateLimiter::enqueueMessage( ASAAC_PublicId TcId, ASAAC_Add
 	
 	
 	ASAAC_Time Now;
-	
 	ASAAC_APOS_getAbsoluteLocalTime( &Now );
 	
 	Message* ThisMessage = &m_QueuedMessages[q][ m_NextFreeQueue[q] ];
 		
 	ThisMessage->Length = Length;
-	
 	memcpy( ThisMessage->Data, Data, Length );
 	
 	m_NextFreeQueue[q] = (m_NextFreeQueue[q] + 1) % PCS_MAX_SIZE_OF_MESSAGEQUEUE;
@@ -225,61 +226,62 @@ ASAAC_ReturnStatus TcRateLimiter::enqueueMessage( ASAAC_PublicId TcId, ASAAC_Add
 }
 
 ASAAC_ReturnStatus TcRateLimiter::processNextMessage()
-{
-	
-	if ( m_Consumer == 0 )
-	{
-		return ASAAC_ERROR;
-	}
-	
+{		
 	ASAAC_Time Now;
+	ASAAC_TimeInterval WaitInterval;
 	
 	ASAAC_ReturnStatus Result;
 	ASAAC_ReturnStatus ret = ASAAC_ERROR;
 	
-	for ( unsigned long q = 0; q < PCS_MAX_NUMBER_OF_TCS; ++q)
+	long Index = -1;
+	
+	ASAAC_TimedReturnStatus ConfigurationChangedStatus = ASAAC_TM_SUCCESS;
+
+	do
 	{
-		if ( m_TcQueueMap[ q ] != 0 )
-		{
-			ASAAC_TimedReturnStatus ConfigurationChangedStatus = ASAAC_TM_SUCCESS;
-			
-			do
-			{
-				ASAAC_TimeInterval Interval = TimeStamp(getNextMessageTime()).asaac_Interval();
-				ConfigurationChangedStatus = ASAAC_APOS_waitForEvent( m_ConfigurationChangedEvent, &Interval );
-			}
-			while ( ConfigurationChangedStatus == ASAAC_TM_SUCCESS );
-			
-			if ( ConfigurationChangedStatus == ASAAC_TM_ERROR )
-				throw PcsException(0,0,"Error while waiting for next message");
-			
-			ASAAC_APOS_getAbsoluteLocalTime( &Now );
-			
-			if ( m_NextFreeQueue[q] != m_NextMessage[q] )
-			{
-				Message* nextMessage = &m_QueuedMessages[q][ m_NextMessage[q]  ];
-				Result = m_Consumer->processTcMessage( m_TcQueueMap[ q ], nextMessage->Data, nextMessage->Length );
+		Index = getNextMessageIndex();
+	
+		if (Index == -1)
+			WaitInterval = TimeIntervalInfinity;
+		else WaitInterval = TimeStamp(m_NextMessageTime[Index]).asaac_Interval();
 				
-				if(Result == ASAAC_SUCCESS)
-				{
-					setNextMessageTime( q, Now );
-					
-					m_NextMessage[q] = ( m_NextMessage[q] + 1 ) % PCS_MAX_SIZE_OF_MESSAGEQUEUE;
-					
-					#ifdef _DEBUG_       
-					cout << "TcRateLimiter::processNextMessage() processed enqueued message" << endl;fflush(stdout);
-					#endif
-					
-					ret = ASAAC_SUCCESS;
-				}
-				else
-				{
-					cerr << "TcRateLimiter::processNextMessage() unable to process enqueued message" << endl;fflush(stdout);
-				}
-			}
+		ConfigurationChangedStatus = ASAAC_APOS_waitForEvent( m_ConfigurationChangedEvent, &WaitInterval );
+		
+		ASAAC_APOS_resetEvent( m_ConfigurationChangedEvent );
+	}
+	while (( ConfigurationChangedStatus == ASAAC_TM_SUCCESS ) || ( Index == -1 ));
+	
+	if ( ConfigurationChangedStatus == ASAAC_TM_ERROR )
+		throw PcsException( m_TcQueueMap[ Index ], 0, "Error while waiting for next message" );
 			
+	ASAAC_APOS_getAbsoluteLocalTime( &Now );
+	
+	if ( m_NextFreeQueue[Index] != m_NextMessage[Index] ) //Queue is empty - however
+	{
+		if ( m_Consumer == NULL )
+			throw PcsException( m_TcQueueMap[ Index ], 0, "A consumer is not configured" );
+
+		Message* nextMessage = &m_QueuedMessages[Index][ m_NextMessage[Index]  ];
+		Result = m_Consumer->processTcMessage( m_TcQueueMap[ Index ], nextMessage->Data, nextMessage->Length );
+		
+		if(Result == ASAAC_SUCCESS)
+		{
+			setNextMessageTime( Index, Now );
+			
+			m_NextMessage[Index] = ( m_NextMessage[Index] + 1 ) % PCS_MAX_SIZE_OF_MESSAGEQUEUE;
+			
+			#ifdef _DEBUG_       
+			cout << "TcRateLimiter::processNextMessage() processed enqueued message" << endl;fflush(stdout);
+			#endif
+			
+			ret = ASAAC_SUCCESS;
+		}
+		else
+		{
+			cerr << "TcRateLimiter::processNextMessage() unable to process enqueued message" << endl;fflush(stdout);
 		}
 	}
+			
 		
 	return ret;
 }
