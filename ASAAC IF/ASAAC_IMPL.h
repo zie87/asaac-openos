@@ -8,6 +8,20 @@ typedef enum {
     ASAAC_BOOL_TRUE
 } ASAAC_Bool;
 
+//This type has been redifined here to avoid 
+//implicit conversion from TimeInterval to Time or vice versa.
+#define _ASAAC_Time_defined
+typedef struct {
+	long sec;
+	long nsec;
+} ASAAC_Time;
+
+#define _ASAAC_TimeInterval_defined
+typedef struct {
+	long sec;
+	long nsec;
+} ASAAC_TimeInterval;
+
 #define _ASAAC_Address_defined
 typedef void* ASAAC_Address ;
 
@@ -34,13 +48,13 @@ typedef struct {
 
 #define _ASAAC_SchedulingInfo_defined
 typedef struct {
-	int   priority ;
-	ASAAC_Bool is_vc_attached ;
-	int   MAX_NR_OF_TRIGGER_VC ;
-	int   act_nr_of_trigger_vc ;
-	ASAAC_Bool is_periodic ;
-	struct timespec  start_time ;
-	struct timespec  period ;
+	long				priority ;
+	ASAAC_Bool 			is_vc_attached ;
+	unsigned long		MAX_NR_OF_TRIGGER_VC ;
+	unsigned long		act_nr_of_trigger_vc ;
+	ASAAC_Bool 			is_periodic ;
+	ASAAC_Time  		start_time ;
+	ASAAC_TimeInterval  period ;
 } ASAAC_SchedulingInfo;
 
 
@@ -88,29 +102,9 @@ char data[ASAAC_OS_MAX_STRING_SIZE];
 #endif
 
 
-//This type has been redifined here to avoid 
-//implicit conversion from TimeInterval to Time or vice versa.
-#define _ASAAC_TimeInterval_defined
-typedef struct {
-	long sec;
-	long nsec;
-} ASAAC_TimeInterval;
-
 //SMS.31.10.06> Sequence is the inproper type: char* defined instead
 //#define _ASAAC_DataRepresentation_defined
 //typedef ASAAC_CharacterSequence ASAAC_DataRepresentation;
-
-typedef enum {
-  ASAAC_SCHEDULING_DISCIPLINE_FIFO,
-  ASAAC_SCHEDULING_DISCIPLINE_RR
-} ASAAC_SchedulingDiscipline;
-
-#define _ASAAC_SchedulingInfo_defined 1
-typedef struct
-{
-	unsigned long 		 	   priority;
-	ASAAC_SchedulingDiscipline discipline;
-} ASAAC_SchedulingInfo;
 
 
 #endif //_ASAAC_IMPL_H_
