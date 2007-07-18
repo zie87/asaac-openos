@@ -73,7 +73,7 @@ typedef struct  {
 } ASAAC_TC_ConfigurationData;
 
 
-#define ASAAC_OS_MAX_STRING_SIZE 1024U
+#define ASAAC_OS_MAX_STRING_SIZE 1200U
 
 // Character Sequence type copied from ASAAC.h
 // it is required for the ASAAC_DataRepresenation
@@ -98,5 +98,18 @@ typedef struct {
 //SMS.31.10.06> Sequence is the inproper type: char* defined instead
 //#define _ASAAC_DataRepresentation_defined
 //typedef ASAAC_CharacterSequence ASAAC_DataRepresentation;
+
+typedef enum {
+  ASAAC_SCHEDULING_DISCIPLINE_FIFO,
+  ASAAC_SCHEDULING_DISCIPLINE_RR
+} ASAAC_SchedulingDiscipline;
+
+#define _ASAAC_SchedulingInfo_defined 1
+typedef struct
+{
+	unsigned long 		 	   priority;
+	ASAAC_SchedulingDiscipline discipline;
+} ASAAC_SchedulingInfo;
+
 
 #endif //_ASAAC_IMPL_H_
