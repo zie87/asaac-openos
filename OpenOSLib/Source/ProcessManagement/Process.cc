@@ -80,8 +80,7 @@ void Process::initialize( bool IsServer, bool IsMaster, const ASAAC_ProcessDescr
 		m_IsInitialized = true;
 
 		m_IsMaster = IsMaster;
-		m_IsServer = IsServer;
-		
+
 		if (CommandInterface == NULL)
 			m_CommandInterface = &m_InternalCommandInterface;
 		else m_CommandInterface = CommandInterface;
@@ -176,7 +175,11 @@ void Process::deinitialize()
 		m_LocalAllocator.deinitialize();
 		m_SharedAllocator.deinitialize();
 		
+		m_IsMaster = false;
+		m_IsServer = false;
+		
 		m_PosixPid = 0;
+		m_ActiveMainLoop = false;
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -624,7 +627,7 @@ void Process::run()
 					for(;;)
 					{
 						handleOneCommand( CommandId );
-		
+
 						if ( CommandId == CMD_TERM_PROCESS ) break;
 						if ( CommandId == CMD_TERM_ENTITY ) break;
 					} 

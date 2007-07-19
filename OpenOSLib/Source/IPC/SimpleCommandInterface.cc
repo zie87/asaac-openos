@@ -285,12 +285,12 @@ void SimpleCommandInterface::sendCommandNonblocking( ASAAC_PublicId CommandIdent
 
 void SimpleCommandInterface::sendCommand( ASAAC_PublicId CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
 {
-	CharacterSequence ErrorString;
-	
 	try
 	{
 		ProtectedScope Access( "Sending a command with SimpleCommandInterface", m_CommandSemaphore, Timeout, Cancelable );
 
+		CharacterSequence ErrorString;
+		
 		m_SendReceiveEvent.waitForEventReset( Timeout );
 		
 		m_CommandData->Identifier = CommandIdentifier;
@@ -315,7 +315,9 @@ void SimpleCommandInterface::sendCommand( ASAAC_PublicId CommandIdentifier, Comm
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.addPath("Error sending a command with SimpleCommandInterface", LOCATION);
+		CharacterSequence ErrorString;
+		
+		e.addPath( (ErrorString << "Error sending a command with SimpleCommandInterface: " << getCommandString(CommandIdentifier)).c_str(), LOCATION);
 		
 		throw;
 	}

@@ -174,14 +174,6 @@ void OpenOS::initializeThisObject()
 		
 		throw;		
 	}
-	catch ( ... )
-	{
-		m_IsInitialized = true;
-		
-		deinitialize();
-		
-		throw OSException("Initializing of OpenOS object failed", LOCATION);
-	}	
 }
 
 
@@ -443,70 +435,85 @@ void OpenOS::flushSession()
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	if ( m_IsMaster )
+	try
 	{
+		if ( m_IsMaster )
+		{
+			for (long Index = 0; Index < OS_MAX_NUMBER_OF_CPU; Index++)
+			{
+				m_CpuId[Index] = OS_UNUSED_ID;
+			}
+		}
+		
+		//generate a new session id
+		SessionId NewSessionId;
+		
+		// be sure to get a new session id
+		do 
+		{
+			NewSessionId = rand();
+		} 
+		while (NewSessionId == m_Allocator.getSessionId());
+		 
+		bool EntityFound = false; 
+		 
 		for (long Index = 0; Index < OS_MAX_NUMBER_OF_CPU; Index++)
 		{
-			m_CpuId[Index] = OS_UNUSED_ID;
-		}
-	}
-	
-	//generate a new session id
-	SessionId NewSessionId;
-	
-	// be sure to get a new session id
-	do 
-	{
-		NewSessionId = rand();
-	} 
-	while (NewSessionId == m_Allocator.getSessionId());
-	 
-	bool EntityFound = false; 
-	 
-	for (long Index = 0; Index < OS_MAX_NUMBER_OF_CPU; Index++)
-	{
-		if (m_CpuId[Index] == OS_UNUSED_ID)
-			continue;
-		
-		CommandData d;		
-		
-		//First we just send a simple command to determine the processes liveliness
-		try
-		{
-			sendCommand(m_CpuId[Index], CMD_GET_PID, d.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time(), false);
-		}
-		catch ( ASAAC_Exception &e )
-		{
-			m_CpuId[Index] = OS_UNUSED_ID;
-			continue;
-		}
-
-		//If succeeded, we send our real approach
-		try
-		{
-			d.NewSessionId = NewSessionId;
-			sendCommand(m_CpuId[Index], CMD_FLUSH_SESSION, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false);
-		}
-		catch ( ASAAC_Exception &e )
-		{
-			m_CpuId[Index] = OS_UNUSED_ID;
-			continue;
-		}
+			if (m_CpuId[Index] == OS_UNUSED_ID)
+				continue;
 			
-		if (d.Return == ASAAC_ERROR)
-		{
-			m_CpuId[Index] = OS_UNUSED_ID;
+			CommandData d;		
+			
+			//First we just send a simple command to determine the processes liveliness
+			try
+			{
+				sendCommand(m_CpuId[Index], CMD_GET_PID, d.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time(), false);
+			}
+			catch ( ASAAC_Exception &e )
+			{
+				if (e.isTimeout() == false)
+					throw;
+	
+				m_CpuId[Index] = OS_UNUSED_ID;
+				continue;
+			}
+	
+			//If succeeded, we send our real approach
+			try
+			{
+				d.NewSessionId = NewSessionId;
+				sendCommand(m_CpuId[Index], CMD_FLUSH_SESSION, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false);
+			}
+			catch ( ASAAC_Exception &e )
+			{
+				if (e.isTimeout() == false)
+					throw;
+	
+				m_CpuId[Index] = OS_UNUSED_ID;
+				continue;
+			}
+				
+			if (d.Return == ASAAC_ERROR)
+			{
+				m_CpuId[Index] = OS_UNUSED_ID;
+			}
+			else EntityFound = true;
 		}
-		else EntityFound = true;
+		
+		// The found SharedMemory was an undeleted one from a former session
+		if (( m_IsMaster == false ) && ( EntityFound == false ))
+			m_IsMaster = true;
+		
+		initializeMutex();
+		
+		flushLocalSession( NewSessionId );
 	}
-	
-	// The found SharedMemory was an undeleted one from a former session
-	if (( m_IsMaster == false ) && ( EntityFound == false ))
-		m_IsMaster = true;
-	
-	initializeMutex();
-	
-	flushLocalSession( NewSessionId );
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error flushing the session", LOCATION);
+		
+		throw;
+	}
 }
 
 
