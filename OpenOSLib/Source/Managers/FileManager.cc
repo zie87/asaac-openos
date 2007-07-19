@@ -614,7 +614,6 @@ void FileManager::seekFile(const ASAAC_PrivateId filehandle, const ASAAC_SeekMod
 
 void FileManager::readFile(const ASAAC_PrivateId filehandle, ASAAC_Address buffer_address, const long read_count, long &count_read, const ASAAC_TimeInterval timeout)
 {
-	CharSeq ErrorString;
     try 
     {
     	BlockingScope TimeoutScope();
@@ -667,8 +666,7 @@ void FileManager::readFile(const ASAAC_PrivateId filehandle, ASAAC_Address buffe
     }
     catch ( ASAAC_Exception &e )
     {
-        //e.addPath("Error reading file", LOCATION);
-        e.addPath(ErrorString.c_str(), LOCATION);
+        e.addPath("Error reading file", LOCATION);
 
 		throw;
     }
