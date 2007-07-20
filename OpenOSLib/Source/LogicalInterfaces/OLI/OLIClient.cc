@@ -29,11 +29,16 @@ namespace ASAAC
 							 
 			m_TwoWayCommunication.setRequestGlobalVc(
 				OS_OLI_GLOBAL_VC_REQUEST, 		//vc_id
-				sizeof(ASAAC_OLI_OliMessage));	//msg_length
+				sizeof(ASAAC_OLI_OliMessage),	//msg_length
+				16,
+				ASAAC_OLI_VC);
 				
 			m_TwoWayCommunication.setReplyGlobalVc(
 				OS_OLI_GLOBAL_VC_REPLY, 		//vc_id
-				sizeof(ASAAC_OLI_OliMessage));	//msg_length			
+				sizeof(ASAAC_OLI_OliMessage),	//msg_length
+				16,
+				ASAAC_OLI_VC);
+
 		}
 		
 
@@ -240,6 +245,7 @@ namespace ASAAC
 			ASAAC_CharacterSequence OliPath)
 		{
 			TimeStamp Timeout(m_TimeOut);
+			ASAAC_TimeInterval TimeoutInterval;
 			
 			unsigned long transferId;
 			unsigned long offset = 0;
@@ -247,21 +253,26 @@ namespace ASAAC
 			
 			ASAAC_OLI_ReplyFileReadPayload Incoming;
 			
+			ASAAC_PrivateId FileHandle;
+			
 			try
 			{
 				FileManager *FM = FileManager::getInstance();
 				
-				
-				oal_remove( LocalPath.data );
-				long File = oal_creat( CharSeq(LocalPath).c_str(), O_WRONLY | O_CREAT | O_TRUNC | S_IRWXU | S_IRWXG | S_IRWXO );
-				
-				if (File <= 0) 
-					throw OSException("Error creating local file", LOCATION);
+				FM->createFile( LocalPath, ASAAC_RWD, 0 );
+
+				const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
+				FM->openFile( LocalPath, UseOption, FileHandle );
 				
 				while ( ready == false ) 
 				{	
 #ifdef DEBUG                    
-                    cout << "."; fflush(stdout);
+					static unsigned long counter = 1;
+                    cout << ".";
+                    if (div(counter, 80).rem == 0)
+                        cout << endl; 
+                    fflush(stdout);
+                    counter++;
 #endif            
                     
 					if ( TimeStamp::Now() >= Timeout )
@@ -281,9 +292,10 @@ namespace ASAAC
 						
 					if (Incoming.size > 0)
 					{						
-						unsigned long BytesWritten = oal_write( File, 
-											    Incoming.filedata,
-											    Incoming.size );
+						unsigned long BytesWritten = 0;
+						
+						TimeoutInterval = Timeout.asaac_Interval();
+						FM->writeFile( FileHandle, Incoming.filedata, Incoming.size, BytesWritten, TimeoutInterval );
 											    
 						if (BytesWritten != Incoming.size)
 							throw OSException("Error while writing data to local device", LOCATION);
@@ -294,28 +306,19 @@ namespace ASAAC
 					else offset = offset + Incoming.size;
 				}
 	
-				close(File);
+				FM->closeFile(FileHandle);
 				
 				if (ready == false)
 				{
-					//TODO: delete created file 
+					TimeoutInterval = Timeout.asaac_Interval();
+					FM->deleteFile(LocalPath, ASAAC_IMMEDIATELY, TimeoutInterval);
 				}
 			}
 			catch ( ASAAC_Exception &e )
 			{
-#ifdef DEBUG                    
-                cout << endl;
-#endif            
 				e.addPath("Error storing complete file", LOCATION);
 				
 				throw;			
-			}
-			catch ( ... )
-			{
-#ifdef DEBUG                    
-                cout << endl;
-#endif            
-				throw FatalException("Unknown exception while executing OLI protocol", LOCATION);
 			}
 
 #ifdef DEBUG                    

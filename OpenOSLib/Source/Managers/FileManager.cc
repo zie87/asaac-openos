@@ -833,13 +833,13 @@ mode_t FileManager::AccessRightsToMode( ASAAC_AccessRights AccessRights ) const
     
     switch (AccessRights)
     {
-        case ASAAC_R:   Result = S_IRUSR; break;
-        case ASAAC_W:   Result = S_IWUSR; break;
-        case ASAAC_D:   Result = S_IXUSR; break;
-        case ASAAC_RW:  Result = S_IRUSR | S_IWUSR; break;
-        case ASAAC_WD:  Result = S_IWUSR | S_IXUSR; break;
-        case ASAAC_RWD: Result = S_IRWXU; break;
-        case ASAAC_F:   Result = S_IRWXU; break;
+        case ASAAC_R:   Result = S_IRUSR | S_IRGRP | S_IROTH; break;
+        case ASAAC_W:   Result = S_IWUSR | S_IWGRP | S_IWOTH; break;
+        case ASAAC_D:   Result = S_IXUSR | S_IXGRP | S_IXOTH; break;
+        case ASAAC_RW:  Result = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH; break;
+        case ASAAC_WD:  Result = S_IWUSR | S_IXUSR | S_IWGRP | S_IXGRP | S_IWOTH | S_IXOTH; break;
+        case ASAAC_RWD: Result = S_IRWXU | S_IRWXG | S_IRWXO; break;
+        case ASAAC_F:   Result = S_IRWXU | S_IRWXG | S_IRWXO; break;
         default: Result = 0;
     };
     

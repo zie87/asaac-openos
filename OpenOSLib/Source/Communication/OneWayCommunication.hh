@@ -47,12 +47,12 @@ public:
 	void setConfiguration(const OneWayConfiguration config);
 	void setSenderConfiguration(const ASAAC_PublicId process_id, const ASAAC_PublicId thread_id, const ASAAC_PublicId local_vc_id); 
 	void setReceiverConfiguration(const ASAAC_PublicId process_id, const ASAAC_PublicId thread_id, const ASAAC_PublicId local_vc_id); 
-	void setGlobalVcConfiguration(const ASAAC_PublicId global_vc_id, const unsigned long msg_length, const unsigned long number_of_buffers = 16);
+	void setGlobalVcConfiguration(const ASAAC_PublicId global_vc_id, const unsigned long msg_length, const unsigned long number_of_buffers = 16, ASAAC_VirtualChannelType vc_type = ASAAC_Application_Raw_VC);
 	
 	OneWayConfiguration getConfiguration() const;
 	void getSenderConfiguration(ASAAC_PublicId &process_id, ASAAC_PublicId &thread_id, ASAAC_PublicId &local_vc_id) const; 
 	void getReceiverConfiguration(ASAAC_PublicId &process_id, ASAAC_PublicId &thread_id, ASAAC_PublicId &local_vc_id) const; 
-	void getGlobalVcConfiguration(ASAAC_PublicId &global_vc_id, unsigned long &msg_length, unsigned long &number_of_buffers) const;
+	void getGlobalVcConfiguration(ASAAC_PublicId &global_vc_id, unsigned long &msg_length, unsigned long &number_of_buffers, ASAAC_VirtualChannelType &vc_type) const;
 	
 private:
 	OneWayConfiguration m_Configuration;

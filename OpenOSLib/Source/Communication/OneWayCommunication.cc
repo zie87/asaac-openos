@@ -375,11 +375,12 @@ void OneWayCommunication::setReceiverConfiguration(const ASAAC_PublicId process_
 
 
 
-void OneWayCommunication::setGlobalVcConfiguration(const ASAAC_PublicId global_vc_id, const unsigned long msg_length, const unsigned long number_of_buffers)
+void OneWayCommunication::setGlobalVcConfiguration(const ASAAC_PublicId global_vc_id, const unsigned long msg_length, const unsigned long number_of_buffers, ASAAC_VirtualChannelType vc_type)
 {
 	m_Configuration.global_vc_id = global_vc_id;
 	m_Configuration.msg_length = msg_length;
 	m_Configuration.number_of_buffers = number_of_buffers;
+	m_Configuration.vc_type = vc_type;
 }
 
 
@@ -409,11 +410,12 @@ void OneWayCommunication::getReceiverConfiguration(ASAAC_PublicId &process_id, A
 
 
 
-void OneWayCommunication::getGlobalVcConfiguration(ASAAC_PublicId &global_vc_id, unsigned long &msg_length, unsigned long &number_of_buffers) const
+void OneWayCommunication::getGlobalVcConfiguration(ASAAC_PublicId &global_vc_id, unsigned long &msg_length, unsigned long &number_of_buffers, ASAAC_VirtualChannelType &vc_type) const
 {
 	global_vc_id = m_Configuration.global_vc_id;
 	msg_length = m_Configuration.msg_length;
 	number_of_buffers = m_Configuration.number_of_buffers;
+	vc_type = m_Configuration.vc_type;
 }
 
 
@@ -458,7 +460,7 @@ ASAAC_VcMappingDescription OneWayCommunication::getReferenceSenderVcDescription(
 	description.number_of_message_buffers 	= div(m_Configuration.number_of_buffers, (long)m_Configuration.number_of_threads).quot;
 	description.is_reading 					= ASAAC_BOOL_FALSE;
 	description.is_lifo_queue 				= ASAAC_BOOL_FALSE;
-	description.is_refusing_queue 			= ASAAC_BOOL_FALSE;
+	description.is_refusing_queue 			= ASAAC_BOOL_TRUE;
 	description.Priority 					= m_Configuration.priority;
 	
 	return description;

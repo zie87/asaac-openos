@@ -68,16 +68,16 @@ void TwoWayCommunication::setServerConfiguration(const ASAAC_PublicId process_id
 
 
 
-void TwoWayCommunication::setRequestGlobalVc(const ASAAC_PublicId vc_id, const unsigned long msg_length, const unsigned long number_of_buffers)
+void TwoWayCommunication::setRequestGlobalVc(const ASAAC_PublicId vc_id, const unsigned long msg_length, const unsigned long number_of_buffers, ASAAC_VirtualChannelType vc_type)
 {
-	m_RequestChannel.setGlobalVcConfiguration(vc_id, msg_length, number_of_buffers);
+	m_RequestChannel.setGlobalVcConfiguration(vc_id, msg_length, number_of_buffers, vc_type);
 }
 
 
 
-void TwoWayCommunication::setReplyGlobalVc(const ASAAC_PublicId vc_id, const unsigned long msg_length, const unsigned long number_of_buffers)
+void TwoWayCommunication::setReplyGlobalVc(const ASAAC_PublicId vc_id, const unsigned long msg_length, const unsigned long number_of_buffers, ASAAC_VirtualChannelType vc_type)
 {
-	m_ReplyChannel.setGlobalVcConfiguration(vc_id, msg_length, number_of_buffers);
+	m_ReplyChannel.setGlobalVcConfiguration(vc_id, msg_length, number_of_buffers, vc_type);
 }
 
  
@@ -98,16 +98,16 @@ void TwoWayCommunication::getServerConfiguration(ASAAC_PublicId &process_id, ASA
 
 
  
-void TwoWayCommunication::getRequestGlobalVc(ASAAC_PublicId &vc_id, unsigned long &msg_length, unsigned long &number_of_buffers) const
+void TwoWayCommunication::getRequestGlobalVc(ASAAC_PublicId &vc_id, unsigned long &msg_length, unsigned long &number_of_buffers, ASAAC_VirtualChannelType &vc_type) const
 {
-	m_RequestChannel.getGlobalVcConfiguration(vc_id, msg_length, number_of_buffers);
+	m_RequestChannel.getGlobalVcConfiguration(vc_id, msg_length, number_of_buffers, vc_type);
 }
 
 
 
-void TwoWayCommunication::getReplyGlobalVc(ASAAC_PublicId &vc_id, unsigned long &msg_length, unsigned long &number_of_buffers) const
+void TwoWayCommunication::getReplyGlobalVc(ASAAC_PublicId &vc_id, unsigned long &msg_length, unsigned long &number_of_buffers, ASAAC_VirtualChannelType &vc_type) const
 {
-	m_ReplyChannel.getGlobalVcConfiguration(vc_id, msg_length, number_of_buffers);
+	m_ReplyChannel.getGlobalVcConfiguration(vc_id, msg_length, number_of_buffers, vc_type);
 }
 
 

@@ -23,16 +23,16 @@ ASAAC_ReturnStatus stopProcess(ASAAC_PublicId pid);
 ASAAC_ReturnStatus createVirtualChannel(
 	ASAAC_PublicId global_vc_id,
 	ASAAC_VirtualChannelType vc_type = ASAAC_Application_Header_VC,
-	unsigned long max_msg_length = 1024,
+	unsigned long max_msg_length = 4096,
 	unsigned long max_number_of_buffers = 40,
-	unsigned long max_number_of_threads_attached = 4);
+	unsigned long max_number_of_threads_attached = 8);
         
 ASAAC_ReturnStatus createVcMapping(
 	ASAAC_PublicId global_pid,
 	ASAAC_PublicId local_vc_id,
 	ASAAC_PublicId global_vc_id,
 	ASAAC_Bool is_reading,
-	unsigned long buffer_size = 1024,
+	unsigned long buffer_size = 4096,
     unsigned long number_of_message_buffers = 10);
 
 

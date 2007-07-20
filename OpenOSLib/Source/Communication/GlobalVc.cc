@@ -462,10 +462,12 @@ long GlobalVc::getBufferNumber( ASAAC_Address BufferLocation ) const
 
 	if ( BufferLocation != 0 )
 	{
-		unsigned long iGuessedNumber = ((unsigned long*)BufferLocation)[-1];
-	
+		//unsigned long iGuessedNumber = ((unsigned long*)BufferLocation)[-1];
+		//TODO: check if this works, then delete the old stored addresstable 
+		long BufferUnit = m_Description->max_msg_length + sizeof(unsigned long ); 
+		unsigned long iGuessedNumber = div((long)BufferLocation - (long)m_BufferData.getLocation(), BufferUnit).quot;
+
 		// now verify the number;
-	
 		if ( getBufferArea( iGuessedNumber ) == BufferLocation )
 		{
 			return iGuessedNumber;
