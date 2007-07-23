@@ -19,6 +19,42 @@ GlobalVc::GlobalVc() : m_IsInitialized(false)
 }
 
 
+size_t GlobalVc::predictSize( const ASAAC_VcDescription& Description )
+{
+	size_t CumulativeSize = 0;
+	
+	// m_Description
+	CumulativeSize += Shared<ASAAC_VcDescription>::predictSize();  
+	
+	// m_Status
+	CumulativeSize += Shared<GlobalVcStatus>::predictSize(); 
+	
+	// m_AccessSemaphore, m_SendSemaphore
+	CumulativeSize += 2 * Semaphore::predictSize();          
+
+	unsigned long TotalNumberOfBuffers = Description.max_number_of_buffers *
+										Description.max_number_of_threads_attached;
+
+	// m_BufferInfo
+	CumulativeSize += Shared<BufferInfo>::predictSize( TotalNumberOfBuffers ); 
+						
+	// Shared Buffer Info fields
+	unsigned long TotalBufferSize = TotalNumberOfBuffers * ( Description.max_msg_length );
+
+	// m_BufferData
+	CumulativeSize += Shared<char>::predictSize( TotalBufferSize );
+
+	// m_FreeBuffersQueue
+	CumulativeSize += SharedCyclicQueue<unsigned long>::predictSize( TotalNumberOfBuffers ); 
+
+	// m_LocalVcs
+	CumulativeSize += OS_MAX_NUMBER_OF_LOCALVCS * LocalVc::predictSize( Description.max_number_of_buffers );
+
+
+	return CumulativeSize;
+}
+
+
 void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_VcDescription& Data, SessionId p_SessionId )
 {
 	// Avoid duplicate initalization
@@ -98,21 +134,9 @@ void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_Vc
 		m_BufferInfo.initialize( &m_Allocator, TotalNumberOfBuffers );
 		
 		// Allocate shared memory for buffer data
-		unsigned long TotalBufferSize = TotalNumberOfBuffers * ( m_Description->max_msg_length + sizeof(unsigned long) );
+		unsigned long TotalBufferSize = TotalNumberOfBuffers * ( m_Description->max_msg_length );
 		
 		m_BufferData.initialize( &m_Allocator, TotalBufferSize );
-	
-		if ( m_IsMaster )
-		{
-			// Set buffer to Zeros
-			memset( &(*m_BufferData), 0, TotalBufferSize );
-	
-			for ( unsigned long i = 0; i < TotalNumberOfBuffers; i++ )
-			{
-				// Write Buffer number longo the memory cell just in front of the actual buffer area
-				((unsigned long*)getBufferArea( i ))[ -1 ] = i;
-			}
-		}
 	
 		// Initialize FreeBuffers queue, inserting all buffers initially.
 		// Buffer is FIFO and will throw an exception on over- and underrun.
@@ -449,9 +473,9 @@ ASAAC_Address GlobalVc::getBufferArea( unsigned long Buffer ) const
 	if ( Buffer >= m_Description->max_number_of_buffers ) 
 		return 0;
 	
-	unsigned long BufferUnit = m_Description->max_msg_length + sizeof(unsigned long ); 
+	unsigned long BufferUnit = m_Description->max_msg_length; 
 	
-	return static_cast<ASAAC_Address>( &(m_BufferData[ BufferUnit * Buffer + sizeof(unsigned long)]) );
+	return static_cast<ASAAC_Address>( &(m_BufferData[ BufferUnit * Buffer ]) );
 }
 
 
@@ -464,7 +488,7 @@ long GlobalVc::getBufferNumber( ASAAC_Address BufferLocation ) const
 	{
 		//unsigned long iGuessedNumber = ((unsigned long*)BufferLocation)[-1];
 		//TODO: check if this works, then delete the old stored addresstable 
-		long BufferUnit = m_Description->max_msg_length + sizeof(unsigned long ); 
+		long BufferUnit = m_Description->max_msg_length; 
 		unsigned long iGuessedNumber = div((long)BufferLocation - (long)m_BufferData.getLocation(), BufferUnit).quot;
 
 		// now verify the number;
@@ -791,40 +815,6 @@ LocalVc* GlobalVc::getLocalVcByIndex( long Index )
 
 
 
-size_t GlobalVc::predictSize( const ASAAC_VcDescription& Description )
-{
-	size_t CumulativeSize = 0;
-	
-	// m_Description
-	CumulativeSize += Shared<ASAAC_VcDescription>::predictSize();  
-	
-	// m_Status
-	CumulativeSize += Shared<GlobalVcStatus>::predictSize(); 
-	
-	// m_AccessSemaphore, m_SendSemaphore
-	CumulativeSize += 2 * Semaphore::predictSize();          
-
-	unsigned long TotalNumberOfBuffers = Description.max_number_of_buffers *
-										Description.max_number_of_threads_attached;
-
-	// m_BufferInfo
-	CumulativeSize += Shared<BufferInfo>::predictSize( TotalNumberOfBuffers ); 
-						
-	// Shared Buffer Info fields
-	unsigned long TotalBufferSize = TotalNumberOfBuffers * ( Description.max_msg_length + sizeof(unsigned long) );
-
-	// m_BufferData
-	CumulativeSize += Shared<char>::predictSize( TotalBufferSize );
-
-	// m_FreeBuffersQueue
-	CumulativeSize += SharedCyclicQueue<unsigned long>::predictSize( TotalNumberOfBuffers ); 
-
-	// m_LocalVcs
-	CumulativeSize += OS_MAX_NUMBER_OF_LOCALVCS * LocalVc::predictSize( Description.max_number_of_buffers );
-
-
-	return CumulativeSize;
-}
 					  
 
 
