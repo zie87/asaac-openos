@@ -119,7 +119,6 @@ protected:
 	Shared<GlobalCyclicQueueData>  m_GlobalData;	// Interprocess Global Queue Data
 	Shared<T> 					   m_Buffer;		// Interprocess Global Queue Buffer
 	bool						   m_IsInitialized;
-	bool 						   m_forceRelease;
 	
 	Semaphore					   m_WriteSemaphore;  // Counts writeable cells
 	Semaphore					   m_ReadSemaphore;   // Counts readable cells
@@ -150,7 +149,7 @@ template <class T> SharedCyclicQueue<T>::SharedCyclicQueue(  Allocator* ThisAllo
 }
 
 
-template <class T> SharedCyclicQueue<T>::SharedCyclicQueue() : m_IsInitialized( false ),  m_OverwriteCallback( 0 ), m_UpdateCallback( 0 )
+template <class T> SharedCyclicQueue<T>::SharedCyclicQueue() : m_IsInitialized( false ),  m_OverwriteCallback( NULL ), m_UpdateCallback( NULL )
 {
 }
 
@@ -171,7 +170,6 @@ template <class T> void SharedCyclicQueue<T>::initialize( Allocator* ThisAllocat
 		throw DoubleInitializationException(LOCATION);
 
 	m_IsInitialized = true;
-	m_forceRelease = false;
 	
 	try {
 		// Initialize Global Data and Buffer.
@@ -254,8 +252,8 @@ template <class T> void SharedCyclicQueue<T>::deinitialize()
 	// release queue buffer
 	m_Buffer.deinitialize();
 
-	m_OverwriteCallback = 0;
-	m_UpdateCallback    = 0;
+	m_OverwriteCallback = NULL;
+	m_UpdateCallback    = NULL;
 
 	// release semaphores
 	m_AccessSemaphore.deinitialize();
@@ -278,12 +276,6 @@ template <class T> void SharedCyclicQueue<T>::push( const T Value, const ASAAC_T
 	if ( m_GlobalData->Blocking == BLOCKING )
 	{
 		m_WriteSemaphore.wait( Timeout );
-		
-		if ( m_forceRelease == true )
-		{
-			throw ResourceException("SharedCyclicQueue is in state 'forceRelease'", LOCATION);
-		}
-		
 	}
 
 	// Get exclusive Queue access before doing anything
@@ -292,7 +284,7 @@ template <class T> void SharedCyclicQueue<T>::push( const T Value, const ASAAC_T
 	ProtectedScope Access( "Pushing an element in SharedCyclicQueue", m_AccessSemaphore );
 
 	// This cell will now be overwritten. Call Overwrite Callback if applicable.
-	if (( m_GlobalData->Free == 0 ) && ( m_OverwriteCallback != 0 ))
+	if (( m_GlobalData->Free == 0 ) && ( m_OverwriteCallback != NULL ))
 	{
 		m_OverwriteCallback->call( static_cast<void*>(&(m_Buffer[ m_GlobalData->NextWriteCell ])) );
 	}
@@ -372,7 +364,7 @@ template <class T> void SharedCyclicQueue<T>::push( const T Value, const ASAAC_T
 	}
 
 
-	if ( m_UpdateCallback != 0 )
+	if ( m_UpdateCallback != NULL )
 	{
 		m_UpdateCallback->call( static_cast<void*>( &(*m_GlobalData) ));
 	}
@@ -387,11 +379,6 @@ template <class T> T SharedCyclicQueue<T>::pop( const ASAAC_Time& Timeout )
 	// wait for data to be available or for timeout
 	m_ReadSemaphore.wait( Timeout );
 
-	if ( m_forceRelease == true )
-	{
-		throw ResourceException("SharedCyclicQueue is in state 'forceRelease'", LOCATION);
-	}
-	
 	// get exclusive queue access
 	// This will only be blocked for VERY VERY SHORT TIME,
 	// so don't use a timeout with this.
@@ -423,7 +410,7 @@ template <class T> T SharedCyclicQueue<T>::pop( const ASAAC_Time& Timeout )
 	}
 	
 
-	if ( m_UpdateCallback != 0 )
+	if ( m_UpdateCallback != NULL )
 	{
 		m_UpdateCallback->call( static_cast<void*>( &(*m_GlobalData) ));
 	}
@@ -518,29 +505,6 @@ template <class T> bool SharedCyclicQueue<T>::isEmpty() const
 	return ( m_GlobalData->Free == m_GlobalData->Size );
 }
 
-
-template <class T> void SharedCyclicQueue<T>::forceRelease()
-{
-	if ( m_IsInitialized == false ) 
-		throw UninitializedObjectException( LOCATION );
-
-	//Another thread is currently releasing the queue, 
-	//nothing to do...
-	if (m_forceRelease == true)
-		return; 
-		
-	m_forceRelease = true;
-	
-	long c = m_WriteSemaphore.getWaitingThreads();
-	for (long i=0; i < c; i++ )
-		m_WriteSemaphore.post();
-
-	c = m_ReadSemaphore.getWaitingThreads();
-	for (long i=0; i < c; i++ )
-		m_ReadSemaphore.post();
-
-	m_forceRelease = false;	
-}
 
 template <class T> size_t SharedCyclicQueue<T>::predictSize( unsigned long Size )
 {

@@ -89,6 +89,6 @@ ASAAC_ReturnStatus createVcMapping(
     RequestMapping.is_lifo_queue			 = ASAAC_BOOL_FALSE;
     RequestMapping.is_refusing_queue		 = ASAAC_BOOL_TRUE;
     RequestMapping.local_thread_id           = 1;
-    RequestMapping.Priority					 = 0;
+    RequestMapping.Priority					 = 1;
     return ASAAC_SMOS_attachChannelToProcessOrThread( &RequestMapping );
 }

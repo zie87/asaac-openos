@@ -176,10 +176,11 @@ void LocalVc::unassign()
 			
 		try 
 		{
-			m_Queue.forceRelease();
-			
 			for (;;)
 			{
+				//TODO: SharedCyclicQueue shall offer a mode, to block all other operations
+				//and return all contents in queue
+				
 				unsigned long Buffer = m_Queue.pop( TimeStamp::Instant().asaac_Time() );
 				
 				m_ParentGlobalVc->releaseBuffer( Buffer );
