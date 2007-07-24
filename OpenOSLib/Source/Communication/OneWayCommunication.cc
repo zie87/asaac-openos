@@ -600,10 +600,14 @@ void OneWayCommunication::invokeOSScope( const ASAAC_PublicId process_id, const 
 //OSScope Functions:
 void OneWayCommunication::attachLocalVc(OSScopeCommandBuffer param)
 {
+	ProcessStatus p_state = PROCESS_DORMANT;
+	Process *P = NULL;
+	
 	try
 	{
 		OSScopeData *data = (OSScopeData *)param;
 		
+		CommunicationManager *CM = CommunicationManager::getInstance();	
 		ProcessManager *PM = ProcessManager::getInstance();	
 		Process *P = PM->getProcess( data->mapping.global_pid );
 			
@@ -613,29 +617,21 @@ void OneWayCommunication::attachLocalVc(OSScopeCommandBuffer param)
 		ProcessStatus p_state = P->getState(); 
 		
 		if (p_state == PROCESS_RUNNING)
-		{				
-			if (ASAAC_SMOS_stopProcess(data->mapping.global_pid) == ASAAC_ERROR)
-				throw OSException("target process could not be stopped", LOCATION);	
-		}
+			P->stop();	
 		
-		try
-		{	
-			if (ASAAC_SMOS_attachChannelToProcessOrThread(&(data->mapping)) == ASAAC_ERROR)
-				throw OSException("channel could not be attached", LOCATION);
-		}
-		catch (ASAAC_Exception &e)
-		{
-			e.raiseError();
-		}
-		
+		CM->attachChannelToProcessOrThread(data->mapping);
+
 		if (p_state == PROCESS_RUNNING)
-		{ 	
-			if (ASAAC_SMOS_runProcess(data->mapping.global_pid) == ASAAC_ERROR)
-				throw OSException("target process could not be restarted", LOCATION);
-		}
+			P->run();	
 	}
 	catch (ASAAC_Exception &e)
 	{
+		if ( P != NULL )
+		{
+			if (p_state == PROCESS_RUNNING)
+				P->run();	
+		}
+		
 		throw;
 	}
 }
@@ -644,39 +640,38 @@ void OneWayCommunication::attachLocalVc(OSScopeCommandBuffer param)
 
 void OneWayCommunication::detachLocalVc(OSScopeCommandBuffer param)
 {
+	ProcessStatus p_state = PROCESS_DORMANT;
+	Process *P = NULL;
+	
 	try
 	{
 		OSScopeData *data = (OSScopeData *)param;
 		
+		CommunicationManager *CM = CommunicationManager::getInstance();	
 		ProcessManager *PM = ProcessManager::getInstance();	
-		Process *P = PM->getProcess( data->mapping.global_pid );
+		P = PM->getProcess( data->mapping.global_pid );
 			
 		if (P == NULL)
 			throw OSException("process is not available", LOCATION);
 	
 		ProcessStatus p_state = P->getState(); 
 						
-		if (ASAAC_SMOS_stopProcess(data->mapping.global_pid) == ASAAC_ERROR)
-			throw OSException("target process could not be stopped", LOCATION);	
+		if (p_state == PROCESS_RUNNING)
+			P->stop();	
 		
-		try
-		{	
-			if (ASAAC_SMOS_detachAllThreadsOfProcessFromVc(data->mapping.global_vc_id, data->mapping.global_pid) == ASAAC_ERROR)
-				throw OSException("channel could not be detached", LOCATION);
-		}
-		catch (ASAAC_Exception &e)
-		{
-			e.raiseError();
-		}
+		CM->detachAllThreadsOfProcessFromVc( data->mapping.global_vc_id, data->mapping.global_pid);
 		
 		if (p_state == PROCESS_RUNNING)
-		{ 	
-			if (ASAAC_SMOS_runProcess(data->mapping.global_pid) == ASAAC_ERROR)
-				throw OSException("target process could not be restarted", LOCATION);
-		}
+			P->run();	
 	}
 	catch (ASAAC_Exception &e)
 	{
+		if ( P != NULL )
+		{
+			if (p_state == PROCESS_RUNNING)
+				P->run();	
+		}
+		
 		throw;
 	}
 }

@@ -479,6 +479,8 @@ void Process::resumeAllThreads()
 			
 			m_Threads[ Index ].resume();
 		}		
+
+		m_ProcessData->Status = PROCESS_RUNNING;
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -521,14 +523,13 @@ void Process::suspendAllThreads()
 				ThisThread = &(m_Threads[ Index ]); 
 				continue;
 			}
-			
 			m_Threads[ Index ].suspend();
 		}
 		
+		m_ProcessData->Status = PROCESS_STOPPED;
+
 		if (ThisThread != NULL)
 			ThisThread->suspendSelf();
-		
-		m_ProcessData->Status = PROCESS_STOPPED;
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -575,10 +576,10 @@ void Process::terminateAllThreads()
 			m_Threads[ Index ].terminate();
 		}
 
+		m_ProcessData->Status = PROCESS_STOPPED; 			
+
 		if (ThisThread != NULL)
 			ThisThread->terminateSelf();
-		
-		m_ProcessData->Status = PROCESS_STOPPED; 			
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -706,7 +707,6 @@ void Process::stop()
 		else
 		{
 			CommandData Data;
-			
 			sendCommand( CMD_STOP_PROCESS, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );
 
 			if (Data.Return == ASAAC_ERROR)
@@ -1397,7 +1397,6 @@ void Process::StopHandler( CommandBuffer Buffer )
 			throw OSException("'Current process' is not available.", LOCATION);
 			
 		ThisInstance->stop();
-		
 		*Return = ASAAC_SUCCESS;
 			
 	}

@@ -27,7 +27,7 @@ public:
 			oal_thread_setcancelstate( iDummy, 0 );
 			if ( iDummy == PTHREAD_CANCEL_DISABLE )
 			{
-				// ProtectedScope will take care of calling this longerrupt
+				// ProtectedScope will take care of calling this interrupt
 				// again once the thread cancellation has been reset
 				return;
 			}
@@ -36,11 +36,12 @@ public:
 
 			if ( ThisThread != NULL ) 
 				ThisThread->setSuspendPending( false );
-			
+
+			/* TODO: Find out, if this is necessary. Problems occured, while suspending a thread a second time.
 			SignalManager::getInstance()->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
 	
 			if ( ThisThread != NULL ) 
-				ThisThread->setSuspendPending( false );
+				ThisThread->setSuspendPending( false );*/
 		}
 		
 		virtual ~ThreadSuspendCallback() { };
@@ -499,7 +500,7 @@ void Thread::suspend()
 		
 		if ( isCurrentThread() ) 
 			throw OSException("A thread cannot suspend itself by calling 'suspend'. Use 'suspendSelf' instead.", LOCATION);
-		
+
 		ProtectedScope Access( "Suspending a thread", *(m_ParentProcess->getSemaphore()) );
 	
 		m_ThreadData->SuspendLevel ++;
@@ -514,7 +515,7 @@ void Thread::suspend()
 	 		int Result = oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_SUSPEND );
 			if (Result != 0)
 				throw OSException( strerror(Result), LOCATION );
-	 		
+
 	 		while ( m_SuspendPending ) 
 	 		{ 
 	 			sched_yield(); 

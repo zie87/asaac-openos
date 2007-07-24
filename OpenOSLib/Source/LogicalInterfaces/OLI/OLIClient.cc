@@ -2,6 +2,7 @@
 
 #include "OpenOSObject.hh"
 
+#include "Communication/CommunicationManager.hh"
 #include "ProcessManagement/ProcessManager.hh"
 #include "ProcessManagement/ThreadManager.hh"
 
@@ -152,16 +153,8 @@ namespace ASAAC
                 
     			establishCommunication();
 
-    			ASAAC_TimeInterval TimeoutInterval = TimeStamp(Timeout).asaac_Interval();
-                
-			    ASAAC_TimedReturnStatus ReceiveStatus = ASAAC_APOS_receiveBuffer( m_ReplyVc, &m_TimeOut, &Incoming, &Size );
+			    CommunicationManager::getInstance()->receiveBuffer( getReplyVc(), TimeStamp(Timeout).asaac_Interval(), Incoming, Size );
 				
-				if (ReceiveStatus == ASAAC_TM_ERROR)
-					throw OSException("Error receiving a buffer", LOCATION);
-				 
-				if (ReceiveStatus == ASAAC_TM_TIMEOUT)
-					throw TimeoutException("Timeout receiving a buffer", LOCATION);
-				 
 				ASAAC_OLI_OliMessage* IncomingMessage = (ASAAC_OLI_OliMessage*)Incoming;
 
 #ifdef DEBUG_OLI
@@ -183,13 +176,13 @@ namespace ASAAC
 					
 				Reply = IncomingMessage->message_parameter._u.reply_read_file;
 
-                ASAAC_APOS_unlockBuffer( m_ReplyVc, Incoming );
+				CommunicationManager::getInstance()->unlockBuffer( getReplyVc(), Incoming );
 			}
 			catch ( ASAAC_Exception &e)
 			{
 				e.addPath("Error receiving an oli message", LOCATION);
 
-				ASAAC_APOS_unlockBuffer( m_ReplyVc, Incoming );
+				try { CommunicationManager::getInstance()->unlockBuffer( getReplyVc(), Incoming ); } catch ( ... ) {}
 				
 				throw;
 			}					
@@ -209,8 +202,7 @@ namespace ASAAC
 			{
 				establishCommunication();
 				
-				if (ASAAC_APOS_lockBuffer( m_RequestVc, &TimeIntervalInstant, &Outgoing, sizeof(ASAAC_OLI_OliMessage) ) != ASAAC_TM_SUCCESS )
-					throw OSException("Error locking a buffer", LOCATION);
+				CommunicationManager::getInstance()->lockBuffer( getRequestVc(), TimeStamp(Timeout).asaac_Interval(), Outgoing, sizeof(ASAAC_OLI_OliMessage) );
 					
 				ASAAC_OLI_OliMessage* OutgoingMessage = (ASAAC_OLI_OliMessage*)Outgoing;
 				
@@ -220,14 +212,13 @@ namespace ASAAC
 				OutgoingMessage->message_parameter._u.request_read_file.offset = offset;
 				OutgoingMessage->message_parameter._u.request_read_file.filename = filename;
 				
-				if (ASAAC_APOS_sendBuffer( getRequestVc(), OutgoingMessage, sizeof(ASAAC_OLI_OliMessage) ) == ASAAC_ERROR)
-					throw OSException("Error sending a buffer", LOCATION);
+				CommunicationManager::getInstance()->sendBuffer( getRequestVc(), OutgoingMessage, sizeof(ASAAC_OLI_OliMessage) );
 			}
 			catch ( ASAAC_Exception &e )
 			{
 				e.addPath("Error requesting file", LOCATION);
 
-				ASAAC_APOS_unlockBuffer( m_RequestVc, Outgoing );
+				try { CommunicationManager::getInstance()->unlockBuffer( getRequestVc(), Outgoing ); } catch ( ... ) {}
                 
 				throw;
 			}

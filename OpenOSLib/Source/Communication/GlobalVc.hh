@@ -25,9 +25,6 @@ struct BufferInfo {
 		
 };
 
-const long MAX_USAGE_COUNT = 32767;
-const long UNDEF_USAGE_COUNT = -1;
-
 //! object handling a number of local vc ports and the exchange of data between them
 
 /*! Every GlobalVc comprises a number of local vc slots that will be assigned to
@@ -200,7 +197,7 @@ public:
 	// Buffer Allocation/Information Methods
 	
 	//! get the next index from the free buffer list
-	unsigned long getFreeBuffer();
+	unsigned long claimFreeBuffer();
 	/*!< this method fetches one element from the free buffers list and returns it to the caller.
 	 *   If no free buffer is instantly available, it blocks execution until one buffer becomes 
 	 *   available.

@@ -152,7 +152,7 @@ void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_Vc
 				// Adjust Buffer Info to reflect the right values
 				m_BufferInfo[ i ].BufferLength  = m_Description->max_msg_length;
 				m_BufferInfo[ i ].ContentLength = 0;
-				m_BufferInfo[ i ].UsageCount    = UNDEF_USAGE_COUNT;
+				m_BufferInfo[ i ].UsageCount    = 0;
 			}
 		}
 		
@@ -317,16 +317,7 @@ void GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& Description )
 			TargetProcess->attachLocalVc( m_Description->global_vc_id, Description.local_vc_id );
 	
 			if ( Description.is_reading == false )
-			{
 				m_Status->SenderVcIndex = NewLocalVcIndex;
-		
-				for ( unsigned Count = 0; Count < Description.number_of_message_buffers; Count ++ )
-				{
-					unsigned long FreeBuffer = getFreeBuffer();
-		
-					NewLocalVc->queueBuffer( FreeBuffer );
-				}
-			}
 			
 			m_Status->NumberOfConnectedVCs ++;
 			m_Status->NumberOfBuffers += Description.number_of_message_buffers;
@@ -486,15 +477,15 @@ long GlobalVc::getBufferNumber( ASAAC_Address BufferLocation ) const
 
 	if ( BufferLocation != 0 )
 	{
-		//unsigned long iGuessedNumber = ((unsigned long*)BufferLocation)[-1];
-		//TODO: check if this works, then delete the old stored addresstable 
-		long BufferUnit = m_Description->max_msg_length; 
-		unsigned long iGuessedNumber = div((long)BufferLocation - (long)m_BufferData.getLocation(), BufferUnit).quot;
-
+		ldiv_t DivResult = div((long)BufferLocation - (long)m_BufferData.getLocation(), (long)m_Description->max_msg_length);
+		
+		if (DivResult.rem != 0)
+			throw OSException("BufferLocation is not valid", LOCATION);
+		
 		// now verify the number;
-		if ( getBufferArea( iGuessedNumber ) == BufferLocation )
+		if ( getBufferArea( DivResult.quot ) == BufferLocation )
 		{
-			return iGuessedNumber;
+			return DivResult.quot;
 		}
 	}
 	
@@ -526,7 +517,7 @@ void GlobalVc::sendBuffer( unsigned long SourceBuffer, const ASAAC_Time& Timeout
 		if ( SourceInfo->ContentLength > m_Description->max_msg_length ) 
             throw OSException( "Content length is illegally high ( > max_msg_length )", LOCATION );
 		
-		// Now, we're working on longernal VC tables. Protect that from mayhem
+		// Now, we're working on internal VC tables. Protect that from mayhem
 		// by use of the access semaphore!
 		
 		// Only one sending should occur at a time.
@@ -562,7 +553,7 @@ void GlobalVc::sendBuffer( unsigned long SourceBuffer, const ASAAC_Time& Timeout
 			// only act for receiving VC's
             
 			if (( ThisVcId != OS_UNUSED_ID ) && ( iVC != m_Status->SenderVcIndex ))
-				m_LocalVc[ iVC ].queueBuffer( SourceBuffer );
+				m_LocalVc[ iVC ].pushBuffer( SourceBuffer );
 				// We don't need to respect timeouts here any more. We've
 				// already made sure all buffers should be available for writing.
 		}
@@ -578,16 +569,6 @@ void GlobalVc::sendBuffer( unsigned long SourceBuffer, const ASAAC_Time& Timeout
 		// now it is linked n times where n is the number of receivers linked.
 		releaseBuffer( SourceBuffer );
 		
-		LocalVc* SenderLocalVc = &m_LocalVc[ m_Status->SenderVcIndex ];
-		
-		if ( SenderLocalVc != 0 )
-		{
-			// push more free buffer longo sender queue
-			unsigned long NextFreeBuffer = getFreeBuffer();
-	
-			SenderLocalVc->queueBuffer( NextFreeBuffer, TimeInfinity );
-		}
-	
 		// Signal the VcUpdateSignal
 		VcUpdateSignal::getInstance()->trigger();
 	
@@ -626,7 +607,7 @@ void GlobalVc::printMessageQueue()
 #endif
 
 
-unsigned long GlobalVc::getFreeBuffer()
+unsigned long GlobalVc::claimFreeBuffer()
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
@@ -649,10 +630,10 @@ unsigned long GlobalVc::getFreeBuffer()
 		printMessageQueue();
 		#endif		
 
-		assert( m_BufferInfo[BufferNumber].UsageCount == UNDEF_USAGE_COUNT );
+		assert( m_BufferInfo[BufferNumber].UsageCount == 0 );
 		// a freshly gotten Buffer HAS to have a undefined count and shall
-		// be set to 0. 
-		m_BufferInfo[BufferNumber].UsageCount = 0;
+		// be set to 1. 
+		m_BufferInfo[BufferNumber].UsageCount = 1;
 	}
 	catch ( ResourceException& e )
 	{
@@ -682,8 +663,8 @@ void GlobalVc::claimBuffer( unsigned long BufferNumber )
 		cout << "GVC-Id: " << getId() << ": claimBuffer(): m_BufferInfo[" << BufferNumber << "].UsageCount = " << m_BufferInfo[ BufferNumber ].UsageCount << endl;		
 		#endif
 	
-		if (m_BufferInfo[BufferNumber].UsageCount == UNDEF_USAGE_COUNT)
-			throw ASAAC_Exception("Try to claim a buffer without calling getFreeBuffer()", LOCATION);
+		if (m_BufferInfo[BufferNumber].UsageCount == 0)
+			throw ASAAC_Exception("A free buffer can only be claimed using claimFreeBuffer()", LOCATION);
 	
 		m_BufferInfo[BufferNumber].UsageCount ++;
 	
@@ -721,7 +702,7 @@ void GlobalVc::releaseBuffer( unsigned long BufferNumber )
 	
 		//if constrained is fulfilled, buffer is already released
 		//return without doing anything
-		if (m_BufferInfo[BufferNumber].UsageCount != UNDEF_USAGE_COUNT)
+		if (m_BufferInfo[BufferNumber].UsageCount != 0)
         {		
 			//assert( m_BufferInfo[BufferNumber].UsageCount > 0 );
 			//if UsageCount is 0, this buffer was not used any time.
@@ -735,12 +716,7 @@ void GlobalVc::releaseBuffer( unsigned long BufferNumber )
 		
 			//Buffer is free		
 			if ( m_BufferInfo[BufferNumber].UsageCount == 0 )
-			{
-				// For security reasons, clear every released buffer
-				memset( (void*)getBufferArea( BufferNumber ), 0, m_Description->max_msg_length );
 				m_FreeBuffersQueue.push( BufferNumber, TimeInfinity );
-				m_BufferInfo[BufferNumber].UsageCount = UNDEF_USAGE_COUNT;
-			}
         }
     }
     catch (ASAAC_Exception &e)
@@ -793,8 +769,11 @@ long	GlobalVc::getSendingLocalVcIndex()
 
 	for ( unsigned long Index = 0; Index < m_Description->max_number_of_threads_attached; Index ++ )
 	{
-		if ( !m_LocalVc[ Index ].isInitialized() ) continue;
-		if ( !m_LocalVc[ Index ].getDescription()->is_reading ) return Index;
+		if ( !m_LocalVc[ Index ].isInitialized() ) 
+			continue;
+		
+		if ( !m_LocalVc[ Index ].getDescription()->is_reading ) 
+			return Index;
 	}
 
 	return -1;	

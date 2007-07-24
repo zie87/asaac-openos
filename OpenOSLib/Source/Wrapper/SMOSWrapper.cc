@@ -18,7 +18,7 @@ ASAAC_ReturnStatus createProcess(
     Description.access_info._u.oli_channel.vc_sending = vc_sending;
     Description.access_info._u.oli_channel.vc_receiving = vc_receiving;
     Description.access_info._u.oli_channel.fragment_size = sizeof(ASAAC_OctetSequence);
-    Description.timeout = TimeInterval(5, Minutes).asaac_Interval();
+    Description.timeout = TimeInterval(1, Minutes).asaac_Interval();
 
     ASAAC_TimedReturnStatus Status = ASAAC_SMOS_createProcess( &Description );
 
@@ -89,5 +89,6 @@ ASAAC_ReturnStatus createVcMapping(
     RequestMapping.is_lifo_queue			 = ASAAC_BOOL_FALSE;
     RequestMapping.is_refusing_queue		 = ASAAC_BOOL_TRUE;
     RequestMapping.local_thread_id           = 1;
+    RequestMapping.Priority					 = 0;
     return ASAAC_SMOS_attachChannelToProcessOrThread( &RequestMapping );
 }

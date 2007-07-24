@@ -21,13 +21,6 @@ public:
 	//! non-initializing constructor
     LocalVc();
     
-    //! initializing constructor (see initialize())
-    LocalVc( GlobalVc* ParentGlobalVc,
-			 Allocator* ThisAllocator,
-			 bool IsMaster,
-	 		 unsigned long MaximumSize,
-	 		 Callback* OverwriteCallback );
-    
     
     virtual ~LocalVc();
 
@@ -337,7 +330,7 @@ public:
 
 
 	//! push one buffer index number longo the receiver queue of this local vc
-	void queueBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout = TimeInfinity );
+	void pushBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout = TimeInfinity );
 	/*!< Interface used by GlobalVc to provide the LocalVc with data. The function waits for
 	 *  a free slot to be available in the LocalVc's queue, or for the timeout to elapse, whatever
 	 *  happens first.
@@ -349,11 +342,12 @@ public:
 	 * \param[in] Timeout      maximum time to wait for free slot to be available in the LocalVc's
 	 *                         queue before returning with ASAAC_TM_TIMEOUT
 	 * 
-	 * \returns   ASAAC_TM_SUCCESS if free slot has become available.
-	 * 			  ASAAC_TM_TIMEOUT if the timeout has elapsed
-	 *            ASAAC_TM_ERROR if an error has occurred during the waiting.
 	 */
 
+	
+	unsigned long popBuffer( const ASAAC_Time& Timeout = TimeInfinity );
+
+	
 	//! get reference to ASAAC_VcMappingDescription of this LocalVc
 	ASAAC_VcMappingDescription* getDescription();
 	/*!< \returns	reference to the mapping description of this LocalVc instance. 

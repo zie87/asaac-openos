@@ -16,22 +16,8 @@ LocalVc::LocalVc() : m_IsInitialized(false)
 
 
 
-LocalVc::LocalVc( GlobalVc* ParentGlobalVc,
-				  Allocator* ThisAllocator,
-				  bool IsMaster,
-				  unsigned long MaximumSize,
-				  Callback* OverwriteCallback ) :
-				  
-				  m_IsInitialized(false)
-{
-	initialize( ParentGlobalVc, ThisAllocator, IsMaster, MaximumSize, OverwriteCallback );
-}
-
-
-
 LocalVc::~LocalVc()
 {
-	deinitialize();
 }
 
 
@@ -45,33 +31,43 @@ void LocalVc::initialize( GlobalVc* ParentGlobalVc,
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException(LOCATION);
 		
-	m_ParentGlobalVc 	= ParentGlobalVc;
-	m_IsMaster 			= IsMaster;
-	m_OverwriteCallback = OverwriteCallback;
-
-	m_Description.initialize( ThisAllocator );
-	
-	if ( IsMaster )
+	try
 	{
-		m_Description->local_vc_id 					= OS_UNUSED_ID;
-		m_Description->global_pid 					= OS_UNUSED_ID;
-		m_Description->global_vc_id 				= OS_UNUSED_ID;
-		m_Description->local_thread_id 				= OS_UNUSED_ID;
-		m_Description->buffer_size 					= 0;
-		m_Description->number_of_message_buffers 	= 0;
-		m_Description->is_reading 					= ASAAC_BOOL_FALSE;
-		m_Description->is_lifo_queue 				= ASAAC_BOOL_FALSE;
-		m_Description->is_refusing_queue 			= ASAAC_BOOL_FALSE;
-		m_Description->Priority 					= 0;
-	}	
+		m_IsInitialized = true;
 
-	m_QueueAllocator.initialize( ThisAllocator, predictSize( MaximumSize ) );
+		m_ParentGlobalVc 	= ParentGlobalVc;
+		m_IsMaster 			= IsMaster;
+		m_OverwriteCallback = OverwriteCallback;
 	
-	m_Queue.initialize( &m_QueueAllocator, m_IsMaster, MaximumSize );
+		m_Description.initialize( ThisAllocator );
+		
+		if ( IsMaster )
+		{
+			m_Description->local_vc_id 					= OS_UNUSED_ID;
+			m_Description->global_pid 					= OS_UNUSED_ID;
+			m_Description->global_vc_id 				= OS_UNUSED_ID;
+			m_Description->local_thread_id 				= OS_UNUSED_ID;
+			m_Description->buffer_size 					= 0;
+			m_Description->number_of_message_buffers 	= 0;
+			m_Description->is_reading 					= ASAAC_BOOL_FALSE;
+			m_Description->is_lifo_queue 				= ASAAC_BOOL_FALSE;
+			m_Description->is_refusing_queue 			= ASAAC_BOOL_FALSE;
+			m_Description->Priority 					= 0;
+		}	
 	
-	m_Queue.setOverwriteCallback( m_OverwriteCallback );
+		m_QueueAllocator.initialize( ThisAllocator, SharedCyclicQueue<unsigned long>::predictSize( MaximumSize ) );		
+		m_Queue.initialize( &m_QueueAllocator, m_IsMaster, MaximumSize );		
+		m_Queue.setOverwriteCallback( m_OverwriteCallback );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error initializing local vc", LOCATION);
+		
+		deinitialize();
+		
+		throw;
+	}
 	
-	m_IsInitialized = true;
 }
 
 
@@ -148,12 +144,13 @@ void LocalVc::assign( const ASAAC_VcMappingDescription& Description )
 		
 		// Allocate and initialize BufferQueue in shared memory.
 		m_Queue.initialize( &m_QueueAllocator, // Memory allocator to determine position
-						    m_IsMaster,		 	         // This function creates the object, so is the master.
-						    ThisQueueSize, 				 // Size of the queue in cells
+						    m_IsMaster,		   // This function creates the object, so is the master.
+						    ThisQueueSize, 	   // Size of the queue in cells
 							ThisQueueDirection, 			 
 							ThisQueueBlocking );
 	
 		m_Queue.setOverwriteCallback( m_OverwriteCallback );
+
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -192,8 +189,6 @@ void LocalVc::unassign()
 		{
 			
 		}
-		
-		m_Queue.deinitialize();
 		
 		m_Description->local_vc_id 					= OS_UNUSED_ID;
 		m_Description->global_pid 					= OS_UNUSED_ID;
@@ -345,26 +340,14 @@ void LocalVc::lockBuffer( ASAAC_Address& BufferReference,
 	{
 		CharacterSequence ErrorString;
 		
-		if ( m_Description->is_reading ) 
-			throw OSException("This is a reading local vc", LOCATION);
-		
 		// return error if Size of buffer requested is too large
 		if ( Size > m_Description->buffer_size ) 
 			throw OSException( (ErrorString << "Chosen size (" << CharSeq(Size) << ") is bigger than global vcs buffer (" << CharSeq(m_Description->buffer_size) << ")").c_str(), LOCATION);
 		
-		unsigned long ClaimedBuffer;
-		
-		try 
-		{
-			// get Buffer from the 
-			ClaimedBuffer = m_Queue.pop( Timeout );
-	
-			BufferReference = m_ParentGlobalVc->getBufferArea( ClaimedBuffer );
-		}
-		catch ( ResourceException& Exception )
-		{
-			throw TimeoutException(LOCATION);
-		}
+		// get Buffer from the 
+		unsigned long BufferId = m_ParentGlobalVc->claimFreeBuffer();
+
+		BufferReference = m_ParentGlobalVc->getBufferArea( BufferId );
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -424,8 +407,7 @@ void LocalVc::receiveBuffer( ASAAC_Address& BufferReference,
 		if ( m_Description->is_reading == false ) 
 			throw OSException("This is a sending local vc", LOCATION);
 
-		unsigned long BufferId = m_Queue.pop( Timeout );
-		
+		unsigned long BufferId = popBuffer( Timeout );
 		BufferInfo* ThisBufferInfo = m_ParentGlobalVc->getBufferInfo( BufferId );
 		
 		Size = ThisBufferInfo->ContentLength;
@@ -448,14 +430,13 @@ void LocalVc::unlockBuffer( ASAAC_Address BufferReference )
 
     try
     {
-		if ( m_Description->is_reading == false ) 
-			throw OSException("This is a sending local vc", LOCATION);
-	
-		unsigned long BufferId      = m_ParentGlobalVc->getBufferNumber( BufferReference );
+		CharacterSequence ErrorString;
+
+		unsigned long BufferId     = m_ParentGlobalVc->getBufferNumber( BufferReference );
 		BufferInfo* ThisBufferInfo = m_ParentGlobalVc->getBufferInfo( BufferId );
 		
 		if(ThisBufferInfo->UsageCount <= 0)
-			throw OSException("Buffer is not locked", LOCATION);
+			throw OSException( (ErrorString << "Buffer is not locked: " << BufferId).c_str(), LOCATION);
 		
 #ifdef DEBUG_BUFFER
 		cout << "GVC-Id: " << m_ParentGlobalVc->getId() << " : LocalVc::unlockBuffer()-> releaseBuffer(" << BufferId << ")" << endl;
@@ -482,7 +463,7 @@ void LocalVc::waitForAvailableData( const ASAAC_Time& Timeout )
 
 
 
-void LocalVc::queueBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout )
+void LocalVc::pushBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout )
 {
     if ( m_IsInitialized == false ) 
         throw UninitializedObjectException(LOCATION);
@@ -494,7 +475,7 @@ void LocalVc::queueBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout
         
 		m_Queue.push( BufferNumber, Timeout );
 	}
-	catch ( ResourceException& e )
+	catch ( ASAAC_Exception& e )
 	{
         e.addPath("Error queueing a buffer", LOCATION);
         
@@ -506,7 +487,15 @@ void LocalVc::queueBuffer( unsigned long BufferNumber, const ASAAC_Time& Timeout
 }
 	
 
-	
+unsigned long LocalVc::popBuffer( const ASAAC_Time& Timeout )
+{
+    if ( m_IsInitialized == false ) 
+        throw UninitializedObjectException(LOCATION);
+
+    return m_Queue.pop( Timeout );
+}
+
+
 void LocalVc::waitForFreeCells( const ASAAC_Time& Timeout )
 {
     if ( m_IsInitialized == false ) 
