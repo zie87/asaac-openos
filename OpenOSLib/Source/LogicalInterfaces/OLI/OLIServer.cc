@@ -57,7 +57,7 @@ namespace ASAAC
 			ASAAC_OLI_OliMessage* IncomingMessage, 
 			ASAAC_OLI_OliMessage* OutgoingMessage)
 		{
-			long File = 0;
+			ASAAC_PrivateId FileHandle = 0;
 
 			try {
 				OutgoingMessage->transfer_id = IncomingMessage->transfer_id;
@@ -71,20 +71,23 @@ namespace ASAAC
 				cout << "size: " << IncomingMessage->message_parameter._u.request_read_file.size << endl;
 #endif
 
-				CharacterSequence filename = FileNameGenerator::getAsaacPath(IncomingMessage->message_parameter._u.request_read_file.filename);				
-				File = oal_open( filename.c_str(), O_RDONLY, 0 );
-
-					if ( File < 0 ) 
-						throw ASAAC_READ_FILE_ACK_FAILURE_NO_READ_ACCESS;
+				ASAAC_CharacterSequence FileName = FileNameGenerator::getAsaacPath(IncomingMessage->message_parameter._u.request_read_file.filename);
+				ASAAC_UseOption UseOption = {ASAAC_READ, ASAAC_SHARE};
 				
-					oal_lseek( File, IncomingMessage->message_parameter._u.request_read_file.offset, SEEK_SET );
+				if ( ASAAC_APOS_openFile( &FileName, &UseOption, &FileHandle) == ASAAC_ERROR )
+				{
+					FileHandle = 0;
+					throw ASAAC_READ_FILE_ACK_FAILURE_NO_READ_ACCESS;
+				}
 				
-					if (Size > sizeof(ASAAC_OctetSequence))
-						throw ASAAC_READ_FILE_ACK_FAILURE_NO_READ_ACCESS;
+				unsigned long Position = 0;
+				ASAAC_APOS_seekFile( FileHandle, ASAAC_START_OF_FILE, IncomingMessage->message_parameter._u.request_read_file.offset, &Position );
 				
-					long ReadBytes = oal_read( File, 
-										  OutgoingMessage->message_parameter._u.reply_read_file.filedata,
-										  Size );
+				if (Size > sizeof(ASAAC_OctetSequence))
+					throw ASAAC_READ_FILE_ACK_FAILURE_NO_READ_ACCESS;
+				
+				long ReadBytes = 0;
+				ASAAC_APOS_readFile( FileHandle, (ASAAC_Address*)&(OutgoingMessage->message_parameter._u.reply_read_file.filedata), Size, &ReadBytes, &TimeIntervalInstant );
 
 				OutgoingMessage->message_parameter._u.reply_read_file.size = ReadBytes;
 				
@@ -94,9 +97,11 @@ namespace ASAAC
 			}
 			catch( ASAAC_ReadFileResult Result )
 			{
-				if ( File > 0 ) oal_close( File );
+				if ( FileHandle > 0 ) 
+					ASAAC_APOS_closeFile( FileHandle );
 				
 				OutgoingMessage->message_parameter._u.reply_read_file.result = Result;
+				
 				if (Result == ASAAC_READ_FILE_ACK_OK)
 					return ASAAC_SUCCESS;
 			}

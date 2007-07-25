@@ -81,7 +81,7 @@ void OneWayCommunication::assureGlobalVc() const
                     if (LVc == NULL)
                         continue;
 
-                    if (LVc->isInitialized() == false)
+                    if (LVc->isAssigned() == false)
                         continue;
 
                     OSScopeData param_LVc;

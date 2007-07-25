@@ -22,6 +22,14 @@ LocalVc::~LocalVc()
 
 
 
+size_t LocalVc::predictSize( unsigned long MaximumBuffers )
+{
+	return ( Shared<ASAAC_VcMappingDescription>::predictSize() +
+			 SharedCyclicQueue<unsigned long>::predictSize( MaximumBuffers ) ) ;
+}
+
+
+
 void LocalVc::initialize( GlobalVc* ParentGlobalVc,
 						  Allocator* ThisAllocator,
 						  bool IsMaster,
@@ -105,6 +113,16 @@ bool LocalVc::isInitialized()
 	}
 	
 	return false;
+}
+
+
+
+bool LocalVc::isAssigned()
+{
+    if ( m_IsInitialized == false ) 
+        throw UninitializedObjectException(LOCATION);
+
+    return (getDescription()->global_pid != OS_UNUSED_ID);
 }
 
 
@@ -515,10 +533,4 @@ ASAAC_VcMappingDescription* LocalVc::getDescription()
 }
 
 
-
-size_t LocalVc::predictSize( unsigned long MaximumBuffers )
-{
-	return ( Shared<ASAAC_VcMappingDescription>::predictSize() +
-			 SharedCyclicQueue<unsigned long>::predictSize( MaximumBuffers ) ) ;
-}
 

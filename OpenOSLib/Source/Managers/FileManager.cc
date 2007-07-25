@@ -596,7 +596,7 @@ void FileManager::seekFile(const ASAAC_PrivateId filehandle, const ASAAC_SeekMod
 		    default: throw OSException("SeekMode is out of range", LOCATION);
     	}
 		
-		ssize_t result = oal_lseek( Data.PosixHandle, new_pos, whence ); 
+		ssize_t result = oal_lseek( Data.PosixHandle, set_pos, whence ); 
 
         if ( result == -1)
              throw OSException( strerror(errno), LOCATION );

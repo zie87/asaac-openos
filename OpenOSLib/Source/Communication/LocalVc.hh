@@ -52,6 +52,8 @@ public:
 	void deinitialize();
     
     bool isInitialized();
+
+    bool isAssigned();
     
 	//! assign LocalVc instance to a distinct mapping
     void assign( const ASAAC_VcMappingDescription& Description );
