@@ -47,7 +47,10 @@ size_t GlobalVc::predictSize( const ASAAC_VcDescription& Description )
 	// m_FreeBuffersQueue
 	CumulativeSize += SharedCyclicQueue<unsigned long>::predictSize( TotalNumberOfBuffers ); 
 
-	// m_LocalVcs
+	// m_LocalVcIds
+	CumulativeSize += Shared<LocalVcIndex>::predictSize( OS_MAX_NUMBER_OF_LOCALVCS );
+
+	// m_LocalVcObjects
 	CumulativeSize += OS_MAX_NUMBER_OF_LOCALVCS * LocalVc::predictSize( Description.max_number_of_buffers );
 
 
@@ -107,8 +110,6 @@ void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_Vc
 				throw FatalException("SharedMemory object is currupted", LOCATION); 	
 		}
 		
-        m_DescriptionBackup = *m_Description;
-            
 		// Initialize GlobalVC Status object
 		m_Status.initialize( &m_Allocator );
         
@@ -159,10 +160,23 @@ void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_Vc
 		// Initialize Queues Callback (to be used for the LocalVc queues)
 		m_GlobalVcQueueCallback.initialize( this );
 	
+		
 		for ( unsigned long i = 0; i < m_Description->max_number_of_threads_attached; i++ )
 		{	
-			// Initialize LocalVc Objects		
-			m_LocalVc[ i ].initialize( this, &m_Allocator, m_IsMaster, m_Description->max_number_of_buffers, &m_GlobalVcQueueCallback );
+			// Initialize LocalVc Allocator		
+			m_LocalVcAllocator[ i ].initialize( &m_Allocator, LocalVc::predictSize(m_Description->max_number_of_buffers) );
+		}
+
+		m_LocalVcIndex.initialize( &m_Allocator, OS_MAX_NUMBER_OF_LOCALVCS );
+		
+		if ( m_IsMaster )
+		{
+			for ( unsigned long i = 0; i < m_Description->max_number_of_threads_attached; i++ )
+			{	
+				// Initialize LocalVc Ids		
+				m_LocalVcIndex[ i ].ProcessId = OS_UNUSED_ID;
+				m_LocalVcIndex[ i ].LocalVcId = OS_UNUSED_ID;
+			}			
 		}
         
         m_SessionId = p_SessionId;
@@ -185,21 +199,21 @@ GlobalVc::~GlobalVc()
 
 void GlobalVc::deinitialize()
 {
-	if (m_IsInitialized == false ) return;
+	if (m_IsInitialized == false ) 
+		return;
 
 	try
 	{
 		// Unlink all connected LocalVc's.
-		for ( unsigned long i = 0; i < m_DescriptionBackup.max_number_of_threads_attached; i++ )
+		for ( unsigned long i = 0; i < OS_MAX_NUMBER_OF_LOCALVCS; i++ )
 		{
-			if ((m_LocalVc[ i ].getId() != OS_UNUSED_ID) && (m_Allocator.getAllocationCounter() == 1))
-				m_LocalVc[ i ].unassign();
-				
-			m_LocalVc[ i ].deinitialize();
+			m_LocalVcObject[ i ].deinitialize();
 		}
 
 		m_IsInitialized = false;	
-	
+		
+		m_LocalVcIndex.deinitialize();
+		
 		m_FreeBuffersQueue.deinitialize();
 	
 		m_BufferData.deinitialize();
@@ -298,7 +312,7 @@ void GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& Description )
 	
 		if ( NewLocalVcIndex == -1 ) 
 			throw OSException("Maximum number of local vcs is reached.", LOCATION);
-		LocalVc* NewLocalVc = &m_LocalVc[ NewLocalVcIndex ];
+		LocalVc* NewLocalVc = &m_LocalVcObject[ NewLocalVcIndex ];
 	
 		// Find target Process. On failure, abort with ASAAC_ERROR
 		Process* TargetProcess = ProcessManager::getInstance()->getProcess( Description.global_pid );
@@ -310,7 +324,11 @@ void GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& Description )
 			throw OSException("Process has to be in state 'STOPPED' or 'INITIALIZED'.", LOCATION);
 		
 		// Assign Local Vc to empty LocalVc Slot determined above	
-		NewLocalVc->assign( Description );
+		m_LocalVcAllocator[ NewLocalVcIndex ].reset();
+		NewLocalVc->initialize( true, Description, this, &(m_LocalVcAllocator[ NewLocalVcIndex ]), &m_GlobalVcQueueCallback );
+
+		m_LocalVcIndex[ NewLocalVcIndex ].ProcessId = Description.global_pid;
+		m_LocalVcIndex[ NewLocalVcIndex ].LocalVcId = Description.local_vc_id;
 
 		try
 		{
@@ -324,9 +342,14 @@ void GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& Description )
 		}
 		catch ( ASAAC_Exception &e )
 		{
-			NewLocalVc->unassign();
+			NewLocalVc->deinitialize();
+
+			m_LocalVcIndex[ NewLocalVcIndex ].ProcessId = OS_UNUSED_ID;
+			m_LocalVcIndex[ NewLocalVcIndex ].LocalVcId = OS_UNUSED_ID;
+
 			throw;
 		}
+		
 	}	
 	catch(ASAAC_Exception &e)
 	{
@@ -361,10 +384,14 @@ void GlobalVc::removeLocalVc( ASAAC_PublicId ProcessId, ASAAC_PublicId LocalVcId
 		ProtectedScope Access( "Removing a local vc", m_ActionSemaphore );
 		
 		long ThisLocalVcIndex = getLocalVcIndex( ProcessId, LocalVcId );
+		
 		if ( ThisLocalVcIndex == -1 ) 
 			throw OSException("LocalVc index not valid." ,LOCATION);		
 		
-		LocalVc* ThisLocalVc = &m_LocalVc[ ThisLocalVcIndex ];
+		m_LocalVcIndex[ ThisLocalVcIndex ].ProcessId = OS_UNUSED_ID;
+		m_LocalVcIndex[ ThisLocalVcIndex ].LocalVcId = OS_UNUSED_ID;
+
+		LocalVc* ThisLocalVc = &m_LocalVcObject[ ThisLocalVcIndex ];
 
 		Process* LocalVcProcess = ProcessManager::getInstance()->getProcess( ProcessId );					
 		LocalVcProcess->detachLocalVc( LocalVcId ); 
@@ -372,7 +399,7 @@ void GlobalVc::removeLocalVc( ASAAC_PublicId ProcessId, ASAAC_PublicId LocalVcId
 		m_Status->NumberOfBuffers -= ThisLocalVc->getDescription()->number_of_message_buffers;
 		m_Status->NumberOfConnectedVCs --;
 		
-		ThisLocalVc->unassign();
+		ThisLocalVc->deinitialize();
 		
 		if ( ThisLocalVcIndex == m_Status->SenderVcIndex )
 		{
@@ -398,9 +425,11 @@ void GlobalVc::removeLocalVcsFromProcess( ASAAC_PublicId ProcessId )
 	{
 		for ( unsigned long Index = 0; Index < m_Description->max_number_of_threads_attached; Index++ )
 		{
-			if ( ( m_LocalVc[ Index ].getId() != 0 ) && 
-				 ( m_LocalVc[ Index ].getDescription()->global_pid == ProcessId ) )
-				removeLocalVc( ProcessId, m_LocalVc[ Index ].getId() ); 
+			if (m_LocalVcObject[ Index ].isInitialized() == false )
+				continue;
+
+			if ( m_LocalVcObject[ Index ].getDescription()->global_pid == ProcessId )
+				removeLocalVc( ProcessId, m_LocalVcObject[ Index ].getId() ); 
 		}
 	}
 	catch (ASAAC_Exception &e)
@@ -422,11 +451,10 @@ void GlobalVc::removeAllLocalVcs( )
 	{
 		for ( unsigned long Index = 0; Index < m_Description->max_number_of_threads_attached; Index++ )
 		{
-			if (m_LocalVc[ Index ].isInitialized() == false )
+			if (m_LocalVcObject[ Index ].isInitialized() == false )
 				continue;
 			
-			if ( m_LocalVc[ Index ].getId() != OS_UNUSED_ID )
-				removeLocalVc( m_LocalVc[ Index ].getDescription()->global_pid, m_LocalVc[ Index ].getId() ); 
+			removeLocalVc( m_LocalVcObject[ Index ].getDescription()->global_pid, m_LocalVcObject[ Index ].getId() ); 
 		}
 	}
 	catch (ASAAC_Exception &e)
@@ -536,10 +564,10 @@ void GlobalVc::sendBuffer( unsigned long SourceBuffer, const ASAAC_Time& Timeout
 		
 		for ( long iVC = 0; iVC < (long)m_Description->max_number_of_threads_attached; iVC++ )
 		{
-			ASAAC_PublicId ThisVcId = m_LocalVc[ iVC ].getId();
+			LocalVc* LocalVcObject = getLocalVcByIndex(iVC);
 			
-			if (( ThisVcId != OS_UNUSED_ID ) && ( iVC != m_Status->SenderVcIndex ))
-				m_LocalVc[ iVC ].waitForFreeCells( Timeout );
+			if (( LocalVcObject->isInitialized() ) && ( iVC != m_Status->SenderVcIndex ))
+				LocalVcObject->waitForFreeCells( Timeout );
 		}
 	
 #ifdef DEBUG_BUFFER
@@ -549,11 +577,10 @@ void GlobalVc::sendBuffer( unsigned long SourceBuffer, const ASAAC_Time& Timeout
 		// Loop over all connected VC's
 		for ( long iVC = 0; iVC < (long)m_Description->max_number_of_threads_attached; iVC++ )
 		{
-			ASAAC_PublicId ThisVcId = m_LocalVc[ iVC ].getId();
-			// only act for receiving VC's
-            
-			if (( ThisVcId != OS_UNUSED_ID ) && ( iVC != m_Status->SenderVcIndex ))
-				m_LocalVc[ iVC ].pushBuffer( SourceBuffer );
+			LocalVc* LocalVcObject = getLocalVcByIndex(iVC);
+			
+			if ((LocalVcObject->isInitialized()) && ( iVC != m_Status->SenderVcIndex ))
+				LocalVcObject->pushBuffer( SourceBuffer );
 				// We don't need to respect timeouts here any more. We've
 				// already made sure all buffers should be available for writing.
 		}
@@ -740,7 +767,16 @@ LocalVc* GlobalVc::getLocalVc( ASAAC_PublicId ProcessId, ASAAC_PublicId LocalVcI
 	if ( Index < 0 ) 
 		return NULL;
 	
-	return &(m_LocalVc[ Index ]);
+	LocalVc* LocalVcObject = &m_LocalVcObject[ Index ];
+	
+	if (LocalVcObject->isInitialized() == false)
+	{
+		ASAAC_VcMappingDescription Description;
+		m_LocalVcAllocator[Index].reset();
+		LocalVcObject->initialize( false, Description, this, &m_LocalVcAllocator[Index], &m_GlobalVcQueueCallback );
+	}
+	
+	return LocalVcObject;
 }
 
 
@@ -751,10 +787,10 @@ long	GlobalVc::getLocalVcIndex( ASAAC_PublicId ProcessId, ASAAC_PublicId LocalVc
 
 	for ( unsigned long Index = 0; Index < m_Description->max_number_of_threads_attached; Index ++ )
 	{
-		if ( m_LocalVc[ Index ].getDescription()->global_pid != ProcessId ) 
+		if ( m_LocalVcIndex[ Index ].ProcessId != ProcessId ) 
 			continue;
 		
-		if ( m_LocalVc[ Index ].getId() == LocalVcId ) 
+		if ( m_LocalVcIndex[ Index ].LocalVcId == LocalVcId ) 
 			return Index;
 	}
 
@@ -767,16 +803,7 @@ long	GlobalVc::getSendingLocalVcIndex()
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException(LOCATION);
 
-	for ( unsigned long Index = 0; Index < m_Description->max_number_of_threads_attached; Index ++ )
-	{
-		if ( !m_LocalVc[ Index ].isInitialized() ) 
-			continue;
-		
-		if ( !m_LocalVc[ Index ].getDescription()->is_reading ) 
-			return Index;
-	}
-
-	return -1;	
+	return m_Status->SenderVcIndex;	
 }
 
 
@@ -787,9 +814,18 @@ LocalVc* GlobalVc::getLocalVcByIndex( long Index )
 
 	if ( (  Index < 0 ) || 
          ( (unsigned long)Index > m_Description->max_number_of_threads_attached ) ) 
-		return 0;
+		return NULL;
 	
-	return &m_LocalVc[ Index ];
+	LocalVc* LocalVcObject = &m_LocalVcObject[ Index ];
+	
+	if ((LocalVcObject->isInitialized() == false) && (m_LocalVcIndex[ Index ].ProcessId != OS_UNUSED_ID))
+	{
+		ASAAC_VcMappingDescription Description;
+		m_LocalVcAllocator[Index].reset();
+		LocalVcObject->initialize( false, Description, this, &m_LocalVcAllocator[Index], &m_GlobalVcQueueCallback );
+	}
+	
+	return LocalVcObject;
 }
 
 

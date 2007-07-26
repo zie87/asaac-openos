@@ -6,8 +6,6 @@
 #include "Common/Templates/Shared.hh"
 #include "Common/Templates/SharedCyclicQueue.hh"
 
-#include "Allocator/AllocatedArea.hh"
-
 #include "AbstractInterfaces/MessageInterface.hh"
 
 class GlobalVc;
@@ -26,11 +24,11 @@ public:
 
 
 	//! initializaiton method
-    void initialize( GlobalVc* ParentGlobalVc,
-    				 Allocator* ThisAllocator,
-    				 bool IsMaster,
-			 		 unsigned long MaximumSize,
-			 		 Callback* OverwriteCallback );
+    void initialize( bool IsMaster,
+        			 const ASAAC_VcMappingDescription& Description,
+    		         GlobalVc* ParentGlobalVc,
+    		         Allocator* ThisAllocator,
+    		         Callback* OverwriteCallback );
 	/*!< \param[in] ParentGlobalVc Reference to the GlobalVc instance that contains this LocalVc instance
 	 *   \param[in] ThisAllocator  Reference to the Allocator that shall be used for the longernal data structures
 	 *                             of the LocalVc
@@ -52,36 +50,7 @@ public:
 	void deinitialize();
     
     bool isInitialized();
-
-    bool isAssigned();
     
-	//! assign LocalVc instance to a distinct mapping
-    void assign( const ASAAC_VcMappingDescription& Description );
-    /*!< With the assign call, the LocalVc instance is set up to control a specified
-     *   local vc port. Due to the way the data of the LocalVc is stored in memory,
-     *   the assignment only needs to be carried out on one copy of this LocalVc,
-     *   and will, by shared-memory mechanisms, be valid for all existing copies
-     *   of the same LocalVc on this and other processes.
-     * 
-     * \param[in] Description ASAAC_VcMappingDescription containing the mapping information
-     *                        provided by the corresponding
-     *                        attachChannelToProcessOrThread() call.
-     * 
-     * \returns   ASAAC_SUCCESS on successful operation. ASAAC_ERROR if an error occurred during the assignment,
-     *            or if the LocalVc was already assigned to another mapping.
-     */
-     
-    //! unassign mapping of the LocalVc instance
-    void unassign();
-    /*!< this function is called by the GlobalVc to remove 
-     *   the assignment of a local vc mapping from this instance of
-     *   LocalVc and all its (remote) copies. The queue will be emptied and messages queued
-     *   therein will be released. Until the LocalVc is re-assign()'ed, it cannot be used
-     *   for communications any longer
-     * 
-     * 	\returns ASAAC_SUCCESS on successful operation. ASAAC_ERROR if an error occurred during the unassignment,
-     *                   or if the LocalVc instance was not yet assigned to a mapping
-     */
     
     //! hand over request to remove this LocalVc to its parent GlobalVc. Used by Process::destroy()
     void remove();
@@ -366,7 +335,6 @@ public:
 
     Shared<ASAAC_VcMappingDescription>	m_Description;
     
-	AllocatedArea						m_QueueAllocator;
     SharedCyclicQueue<unsigned long>  	m_Queue;
     Callback*							m_OverwriteCallback;
 

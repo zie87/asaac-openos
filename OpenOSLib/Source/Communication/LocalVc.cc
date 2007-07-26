@@ -30,11 +30,11 @@ size_t LocalVc::predictSize( unsigned long MaximumBuffers )
 
 
 
-void LocalVc::initialize( GlobalVc* ParentGlobalVc,
-						  Allocator* ThisAllocator,
-						  bool IsMaster,
-						  unsigned long MaximumSize,
-						  Callback* OverwriteCallback )
+void LocalVc::initialize( bool IsMaster,
+						  const ASAAC_VcMappingDescription& Description,
+		                  GlobalVc* ParentGlobalVc,
+		                  Allocator* ThisAllocator,
+		                  Callback* OverwriteCallback  )
 {
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException(LOCATION);
@@ -48,24 +48,26 @@ void LocalVc::initialize( GlobalVc* ParentGlobalVc,
 		m_OverwriteCallback = OverwriteCallback;
 	
 		m_Description.initialize( ThisAllocator );
+
+		if (m_IsMaster)			
+			*m_Description = Description;
 		
-		if ( IsMaster )
-		{
-			m_Description->local_vc_id 					= OS_UNUSED_ID;
-			m_Description->global_pid 					= OS_UNUSED_ID;
-			m_Description->global_vc_id 				= OS_UNUSED_ID;
-			m_Description->local_thread_id 				= OS_UNUSED_ID;
-			m_Description->buffer_size 					= 0;
-			m_Description->number_of_message_buffers 	= 0;
-			m_Description->is_reading 					= ASAAC_BOOL_FALSE;
-			m_Description->is_lifo_queue 				= ASAAC_BOOL_FALSE;
-			m_Description->is_refusing_queue 			= ASAAC_BOOL_FALSE;
-			m_Description->Priority 					= 0;
-		}	
+		// Get number of Buffers for queue
+		unsigned long ThisQueueSize = m_Description->number_of_message_buffers;
 	
-		m_QueueAllocator.initialize( ThisAllocator, SharedCyclicQueue<unsigned long>::predictSize( MaximumSize ) );		
-		m_Queue.initialize( &m_QueueAllocator, m_IsMaster, MaximumSize );		
+		// Evaluate BlockingType and Direction
+		DirectionType ThisQueueDirection = m_Description->is_lifo_queue ? LIFO : FIFO;
+		BlockingType  ThisQueueBlocking  = m_Description->is_refusing_queue ? BLOCKING : OVERWRITE_OLDEST;
+		
+		// Allocate and initialize BufferQueue in shared memory.
+		m_Queue.initialize( ThisAllocator, // Memory allocator to determine position
+						    m_IsMaster,		   // This function creates the object, so is the master.
+						    ThisQueueSize, 	   // Size of the queue in cells
+							ThisQueueDirection, 			 
+							ThisQueueBlocking );
+	
 		m_Queue.setOverwriteCallback( m_OverwriteCallback );
+	
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -75,7 +77,6 @@ void LocalVc::initialize( GlobalVc* ParentGlobalVc,
 		
 		throw;
 	}
-	
 }
 
 
@@ -87,10 +88,23 @@ void LocalVc::deinitialize()
 	
     try
     {
+		try 
+		{
+			for (;;)
+			{
+				//TODO: SharedCyclicQueue shall offer a mode, to block all other operations
+				//and return all contents in queue
+				
+				unsigned long Buffer = m_Queue.pop( TimeStamp::Instant().asaac_Time() );
+				m_ParentGlobalVc->releaseBuffer( Buffer );
+			}
+		}
+		catch ( TimeoutException &e )
+		{
+		}
+		
 		m_Description.deinitialize();
 		m_Queue.deinitialize();
-		
-		m_QueueAllocator.deinitialize();
     }
     catch (ASAAC_Exception &e)
     {
@@ -117,115 +131,12 @@ bool LocalVc::isInitialized()
 
 
 
-bool LocalVc::isAssigned()
-{
-    if ( m_IsInitialized == false ) 
-        throw UninitializedObjectException(LOCATION);
-
-    return (getDescription()->global_pid != OS_UNUSED_ID);
-}
-
-
-
 void LocalVc::remove()
 {
     if ( m_IsInitialized == false ) 
         throw UninitializedObjectException(LOCATION);
 
 	m_ParentGlobalVc->removeLocalVc( m_Description->global_pid, m_Description->local_vc_id );
-}
-
-
-
-void LocalVc::assign( const ASAAC_VcMappingDescription& Description )
-{
-	if ( m_IsInitialized == false ) 
-		throw UninitializedObjectException(LOCATION);
-		
-	try
-	{
-		if ( m_Description->local_vc_id != OS_UNUSED_ID ) 
-			throw OSException("This local vc is already assigned", LOCATION);
-		
-		*m_Description = Description;
-		
-		m_Queue.deinitialize();
-		
-		// Get number of Buffers for queue
-		unsigned long ThisQueueSize = m_Description->number_of_message_buffers;
-	
-		// Evaluate BlockingType and Direction
-		DirectionType ThisQueueDirection = m_Description->is_lifo_queue ? LIFO : FIFO;
-		BlockingType  ThisQueueBlocking  = m_Description->is_refusing_queue ? BLOCKING : OVERWRITE_OLDEST;
-		
-		m_QueueAllocator.reset();
-		
-		// Allocate and initialize BufferQueue in shared memory.
-		m_Queue.initialize( &m_QueueAllocator, // Memory allocator to determine position
-						    m_IsMaster,		   // This function creates the object, so is the master.
-						    ThisQueueSize, 	   // Size of the queue in cells
-							ThisQueueDirection, 			 
-							ThisQueueBlocking );
-	
-		m_Queue.setOverwriteCallback( m_OverwriteCallback );
-
-	}
-	catch ( ASAAC_Exception &e )
-	{
-		e.addPath("Error assigning local vc", LOCATION);
-
-		try { unassign(); } catch ( ... ) {}
-		
-		throw;
-	}
-}
-
-
-
-void LocalVc::unassign()
-{
-	if ( m_IsInitialized == false ) 
-		throw UninitializedObjectException(LOCATION);
-
-	try
-	{
-		if ( m_Description->local_vc_id == OS_UNUSED_ID ) 
-			throw OSException("This local vc is not assigned", LOCATION);
-			
-		try 
-		{
-			for (;;)
-			{
-				//TODO: SharedCyclicQueue shall offer a mode, to block all other operations
-				//and return all contents in queue
-				
-				unsigned long Buffer = m_Queue.pop( TimeStamp::Instant().asaac_Time() );
-				
-				m_ParentGlobalVc->releaseBuffer( Buffer );
-			}
-		}
-		catch ( TimeoutException &e )
-		{
-			
-		}
-		
-		m_Description->local_vc_id 					= OS_UNUSED_ID;
-		m_Description->global_pid 					= OS_UNUSED_ID;
-		m_Description->global_vc_id 				= OS_UNUSED_ID;
-		m_Description->local_thread_id 				= OS_UNUSED_ID;
-		m_Description->buffer_size 					= 0;
-		m_Description->number_of_message_buffers 	= 0;
-		m_Description->is_reading 					= ASAAC_BOOL_FALSE;
-		m_Description->is_lifo_queue 				= ASAAC_BOOL_FALSE;
-		m_Description->is_refusing_queue 			= ASAAC_BOOL_FALSE;
-		m_Description->Priority 					= 0;
-	}
-	catch ( ASAAC_Exception &e )
-	{
-		e.addPath("Error unassigning local vc", LOCATION);
-		
-		throw;
-	}
 }
 
 

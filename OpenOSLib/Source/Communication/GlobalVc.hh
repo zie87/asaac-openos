@@ -4,6 +4,7 @@
 #include "OpenOSIncludes.hh"
 
 #include "Allocator/SharedMemory.hh"
+#include "Allocator/AllocatedArea.hh"
 
 #include "Common/Templates/Shared.hh"
 #include "Common/Templates/SharedCyclicQueue.hh"
@@ -293,6 +294,11 @@ public:
 
 protected:	
 
+	typedef struct {
+		ASAAC_PublicId LocalVcId;
+		ASAAC_PublicId ProcessId;
+	} LocalVcIndex;
+	
 	// Internal variables of importance for initialization issues
 	bool							 m_IsInitialized;
 	bool							 m_IsMaster;
@@ -300,8 +306,6 @@ protected:
 	SharedMemory					 m_Allocator;
 
     SessionId                        m_SessionId;
-
-    ASAAC_VcDescription              m_DescriptionBackup;
 
 	// Shared memory variables.
 	// Order also reflects order in shared memory block.
@@ -316,10 +320,12 @@ protected:
 	Shared<char>					 m_BufferData;
 	
 	SharedCyclicQueue<unsigned long>	 m_FreeBuffersQueue;
-
-	GlobalVcQueueCallback			 m_GlobalVcQueueCallback;
 	
-	LocalVc							 m_LocalVc[ OS_MAX_NUMBER_OF_LOCALVCS ];
+	GlobalVcQueueCallback			 m_GlobalVcQueueCallback;
+
+	AllocatedArea					 m_LocalVcAllocator[ OS_MAX_NUMBER_OF_LOCALVCS ];
+	Shared<LocalVcIndex>			 m_LocalVcIndex;
+	LocalVc							 m_LocalVcObject[ OS_MAX_NUMBER_OF_LOCALVCS ];
 	
 private:
 	// no implicit copying and assignment
