@@ -39,7 +39,10 @@ static ProcessSigChildCallback SigChildCallback;
 ProcessManager::ProcessManager()
 {
 	m_CurrentCpuId = OS_UNUSED_ID;
+	m_CurrentProcessId = OS_UNUSED_ID;
+	
 	m_CurrentProcessIndex = -1;
+	
 	m_IsMaster = false;
 	m_IsInitialized = false;
 		
@@ -81,8 +84,6 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 		m_IsInitialized = true;	
 
 		m_CurrentCpuId = CurrentCpuId;
-		m_CurrentProcessId = OS_UNUSED_ID;
-		m_CurrentThreadId = OS_UNUSED_ID;
 		
 		m_IsServer = IsServer;
 		m_IsMaster = IsMaster;
@@ -642,12 +643,6 @@ ASAAC_PublicId ProcessManager::getCurrentCpuId()
 ASAAC_PublicId ProcessManager::getCurrentProcessId()
 {
 	return m_CurrentProcessId;
-}
-
-
-ASAAC_PublicId ProcessManager::getCurrentThreadId()
-{
-	return m_CurrentThreadId;
 }
 
 

@@ -285,23 +285,24 @@ void Process::launch()
                 OpenOS::getInstance()->switchState( false, LAS_PROCESS_INIT, getId() );
 
 				// Enter main cycle of ProcessStarter
-				unsigned long CommandId;
 				for(;;)
 				{					
+					unsigned long CommandId;
 					handleOneCommand( CommandId );
 	
 					if ( CommandId == CMD_TERM_PROCESS )
-						throw OSException("Process reached signal to terminate", LOCATION);
+						break;
 					
 					if ( CommandId == CMD_TERM_ENTITY )
-						throw OSException("Process reached signal to terminate", LOCATION);
+						break;
 					
 					if ( CommandId == CMD_RUN_PROCESS ) 
-						break;
+						FileManager::getInstance()->executeFile( ProcessPath, getAlias() );
 				} 
-                    
-		        // Load and execute the binary
-		        FileManager::getInstance()->executeFile( ProcessPath, getAlias() );
+	            
+                AllocatorManager::getInstance()->deallocateAllObjects();
+                //OpenOS::getInstance()->deinitialize();
+	            exit(0);            
             }
             catch ( ASAAC_Exception &e )
             {
@@ -328,10 +329,6 @@ void Process::launch()
 
                 exit(-2);
             }
-            
-            OpenOS::getInstance()->deinitialize();
-
-            exit(0);            
         }           
 	}
 	catch (ASAAC_Exception &e)

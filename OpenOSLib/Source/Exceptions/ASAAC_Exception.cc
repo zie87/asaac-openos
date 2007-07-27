@@ -38,11 +38,29 @@ const char *ASAAC_Exception::what() const throw()
 void ASAAC_Exception::initialize()
 {
 	m_PathSize = 0;
+	m_Time = TimeZero;
+	m_ProcessId = OS_UNUSED_ID;
+	m_ThreadId = OS_UNUSED_ID;
 	
-	TimeManager::getAbsoluteLocalTime(m_Time);
+	static bool Initializing = false;
 	
-	m_ProcessId = ProcessManager::getInstance()->getCurrentProcessId();
-	m_ThreadId = ProcessManager::getInstance()->getCurrentThreadId();
+	if (Initializing == true)
+		return;
+	
+	Initializing = true;
+	
+	try
+	{
+		TimeManager::getAbsoluteLocalTime(m_Time);
+		m_ProcessId = ProcessManager::getInstance()->getCurrentProcessId();
+		m_ThreadId = ThreadManager::getInstance()->getCurrentThread()->getId();
+	}
+	catch (ASAAC_Exception &e)
+	{
+		// do nothing
+	}
+
+	Initializing = false;
 }
 
 
