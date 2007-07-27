@@ -12,11 +12,6 @@
 #include "LocalMemory.hh"
 #include "Exceptions/Exceptions.hh"
 
-LocalMemory::LocalMemory(long Size) : m_IsInitialized(false)
-{
-	initialize( Size );
-}
-
 LocalMemory::LocalMemory() : m_IsInitialized(false)
 {
 }
@@ -64,9 +59,10 @@ void LocalMemory::deinitialize()
 			delete[] m_BaseAddress;
 		}
 	}
-	catch ( ... )
+	catch ( ASAAC_Exception &e )
 	{
-		OSException("Error deinitializing LocalMemory", LOCATION).raiseError();
+		e.addPath("Error deinitializing LocalMemory", LOCATION);
+		e.raiseError();
 	}
 	
 	m_IsInitialized = false;

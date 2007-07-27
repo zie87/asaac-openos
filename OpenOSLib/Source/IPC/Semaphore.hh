@@ -41,12 +41,6 @@ public:
 	};
 
 
-	//! initializing constructor (see initialize())
-    Semaphore(Allocator* ThisAllocator,
-    		  const bool IsMaster = true,
-    		  const long InitialCount = 1,
-    		  const long MaximumCount = -1 );
-    					  
     //! non-initializing constructor
     Semaphore();
 

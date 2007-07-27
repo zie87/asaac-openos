@@ -36,9 +36,6 @@ class SharedMemory : public Allocator
 {
 	
 public:
-	SharedMemory( const ASAAC_CharacterSequence& Name, bool IsMaster, unsigned long Size );
-	//!< instantiate allocator and initialize it instantly (see initialize()).
-
 	SharedMemory();
 	
 	void initialize( const ASAAC_CharacterSequence& Name, bool IsMaster, unsigned long Size, bool EraseMemory = true, bool EvaluateSession = true );

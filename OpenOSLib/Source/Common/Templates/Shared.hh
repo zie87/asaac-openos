@@ -116,7 +116,6 @@ template <class T> void Shared<T>::initialize( Allocator* ThisAllocator, unsigne
 	try
 	{        
 		m_Global = (T*)ThisAllocator->allocate( sizeof( T ) * m_Count );
-        //cout << "##############" << typeid( T ).name() << " count:" << Count << " address:" << m_Global << endl; 
 	
 		m_Allocator = ThisAllocator;
 	}
@@ -149,8 +148,11 @@ template <class T> void Shared<T>::deinitialize()
 		// unlink from allocator
 		m_Allocator = 0;
 	}
-	catch (...)
+	catch (ASAAC_Exception &e)
 	{
+		e.addPath("Error deinitializing shared data structure", LOCATION);
+		
+		e.raiseError();
 	}
 	
 	m_IsInitialized = false;

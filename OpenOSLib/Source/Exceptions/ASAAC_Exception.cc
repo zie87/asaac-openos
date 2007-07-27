@@ -40,27 +40,9 @@ void ASAAC_Exception::initialize()
 	m_PathSize = 0;
 	
 	TimeManager::getAbsoluteLocalTime(m_Time);
-	m_ProcessId = OS_UNUSED_ID;
-	m_ThreadId = OS_UNUSED_ID;
-
-	ProcessManager *PM = ProcessManager::getInstance();
-	Process *P = PM->getCurrentProcess(false);
-	if (P != NULL)
-	{
-	 	if ( P->isInitialized() )
-	 	{
-	 		m_ProcessId = P->getId();
-	 	}
-	}
-	ThreadManager *TM = ThreadManager::getInstance();
-	Thread *T = TM->getCurrentThread(false);
-	if (T != NULL)
-	{
-	 	if ( T->isInitialized() )
-	 	{
-	 		m_ThreadId = T->getId();
-	 	}
-	}	
+	
+	m_ProcessId = ProcessManager::getInstance()->getCurrentProcessId();
+	m_ThreadId = ProcessManager::getInstance()->getCurrentThreadId();
 }
 
 

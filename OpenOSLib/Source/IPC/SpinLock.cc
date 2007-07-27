@@ -5,11 +5,6 @@
 #include "IPC/BlockingScope.hh"
 #include "Common/Templates/ObjectPool.hh"
 
-SpinLock::SpinLock(Allocator* ThisAllocator, const bool IsMaster ) : m_IsInitialized(false)
-{
-	initialize( ThisAllocator, IsMaster );
-}
-
 SpinLock::SpinLock() : m_IsInitialized(false)
 {
 }
@@ -18,25 +13,36 @@ SpinLock::SpinLock() : m_IsInitialized(false)
 void SpinLock::initialize(Allocator* ThisAllocator,
     					  const bool IsMaster )
 {
-	if ( m_IsInitialized ) throw DoubleInitializationException();
-	
-	SpinLockData.initialize( ThisAllocator );
-	
-	m_IsMaster = IsMaster;
-	
-	if ( IsMaster )
-	{
-		if ( oal_thread_spin_init( SpinLockData.getLocation(), PTHREAD_PROCESS_SHARED ) != 0 ) 
-			throw OSException( LOCATION );
-	}
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException();
 	
 	m_IsInitialized = true;
+
+	try
+	{
+		SpinLockData.initialize( ThisAllocator );
+		
+		m_IsMaster = IsMaster;
+		
+		if ( IsMaster )
+		{
+			if ( oal_thread_spin_init( SpinLockData.getLocation(), PTHREAD_PROCESS_SHARED ) != 0 ) 
+				throw OSException( LOCATION );
+		}
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing SpinLock", LOCATION);
+		
+		deinitialize();
+		
+		e.raiseError();
+	}	
 }
 		
         					  
 SpinLock::~SpinLock()
 {
-	deinitialize();
 }
     
  
@@ -46,14 +52,22 @@ void SpinLock::deinitialize()
 		return;
 
 	m_IsInitialized = false;
-	
-	if ( m_IsMaster )
-	{
-		if ( oal_thread_spin_destroy( SpinLockData.getLocation() ) != 0 ) 
-			throw OSException( LOCATION );
+
+	try
+	{	
+		if ( m_IsMaster )
+		{
+			if ( oal_thread_spin_destroy( SpinLockData.getLocation() ) != 0 ) 
+				throw OSException( LOCATION );
+		}
+		
+		SpinLockData.deinitialize();
 	}
-	
-	SpinLockData.deinitialize();
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing SpinLock", LOCATION);
+		e.raiseError();
+	}
 }
 
 

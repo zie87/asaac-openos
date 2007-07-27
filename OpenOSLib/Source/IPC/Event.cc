@@ -72,8 +72,10 @@ void Event::initialize( Allocator* ThisAllocator, bool IsMaster )
 
 		}
 	}
-	catch ( ASAAC_Exception& E )
+	catch ( ASAAC_Exception& e )
 	{
+		e.addPath("Error deinitializing Event", LOCATION);
+		
 		deinitialize();
 
 		throw;
@@ -84,7 +86,6 @@ void Event::initialize( Allocator* ThisAllocator, bool IsMaster )
 
 Event::~Event()
 {
-	if ( m_IsInitialized ) deinitialize();
 }
 
 
@@ -93,16 +94,24 @@ void Event::deinitialize()
 	if ( m_IsInitialized == false ) 
 		return;
 	
-		// If this is the master object, destroy mutex and condition
-	// deallocation of shared objects will be performed by Shareable<> destructor.
-	if ( m_IsMaster )
+	try
 	{
-//		oal_thread_cond_destroy( &(Global->Condition) );
-//		oal_thread_mutex_destroy( &(Global->Mutex) );
-		Global->InitializedFlag = 0;
+		// If this is the master object, destroy mutex and condition
+		// deallocation of shared objects will be performed by Shareable<> destructor.
+		if ( m_IsMaster )
+		{
+	//		oal_thread_cond_destroy( &(Global->Condition) );
+	//		oal_thread_mutex_destroy( &(Global->Mutex) );
+			Global->InitializedFlag = 0;
+		}
+		
+		Global.deinitialize();
 	}
-	
-	Global.deinitialize();
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing Event", LOCATION);
+		e.raiseError();
+	}
 	
 	m_IsInitialized = false;
 }

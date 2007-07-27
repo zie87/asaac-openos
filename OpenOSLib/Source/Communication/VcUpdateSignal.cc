@@ -23,24 +23,36 @@ Trigger* VcUpdateSignal::getInstance()
 
 void VcUpdateSignal::initialize( bool IsMaster, Allocator *ParentAllocator )
 {	
-	if ( getInstance()->IsInitialized() == false )
+	if ( getInstance()->IsInitialized() == true )
+		throw DoubleInitializationException(LOCATION);
+
+	try 
 	{
-		try {
-			getInstance()->initialize( ParentAllocator, IsMaster );
-		}
-		catch ( ASAAC_Exception& e )
-		{
-			e.raiseError();
-			throw;
-		}
+		getInstance()->initialize( ParentAllocator, IsMaster );
+	}
+	catch ( ASAAC_Exception& e )
+	{
+		e.addPath("Error initializing VcUpdateSignal", LOCATION);
+		
+		deinitialize();
+		
+		throw;
 	}
 }
 
 void VcUpdateSignal::deinitialize()
 {
-	if ( getInstance()->IsInitialized() ) 
+	if ( getInstance()->IsInitialized() == false )
+		return;
+	
+	try
 	{
 		getInstance()->deinitialize();
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing VcUpdateSignal", LOCATION);
+		e.raiseError();
 	}
 }
 

@@ -104,6 +104,14 @@ template <class TID, class T> SharedMap<TID, T>::~SharedMap()
 
 
 
+template <class TID, class T> size_t SharedMap<TID, T>::predictSize( unsigned long Size )
+{
+	return ( SharedList<MapData>::predictSize(Size)+
+	         Semaphore::predictSize() );
+}
+
+
+
 template <class TID, class T> void SharedMap<TID, T>::initialize( Allocator* ThisAllocator, 
 							 									  const bool IsMaster, 
 							 									  const unsigned long Size )
@@ -136,7 +144,7 @@ template <class TID, class T> void SharedMap<TID, T>::deinitialize()
 
 
 
-template <class TID, class T> long SharedMap<TID, T>::add( const TID Id, const T Value, const ASAAC_Time& Timeout )
+template <class TID, class T> inline long SharedMap<TID, T>::add( const TID Id, const T Value, const ASAAC_Time& Timeout )
 {
 	ProtectedScope Access( "Add an element into SharedMap", m_Semaphore, Timeout );
 
@@ -167,7 +175,7 @@ template <class TID, class T> long SharedMap<TID, T>::add( const TID Id, const T
 
 
 
-template <class TID, class T> void SharedMap<TID, T>::remove( const TID Id, const ASAAC_Time& Timeout )
+template <class TID, class T> inline void SharedMap<TID, T>::remove( const TID Id, const ASAAC_Time& Timeout )
 {
 	try
 	{
@@ -183,43 +191,35 @@ template <class TID, class T> void SharedMap<TID, T>::remove( const TID Id, cons
 
 
 
-template <class TID, class T> unsigned long SharedMap<TID, T>::getSize() const
+template <class TID, class T> inline unsigned long SharedMap<TID, T>::getSize() const
 {
 	return m_List.getSize();
 }
 
 
 
-template <class TID, class T> unsigned long SharedMap<TID, T>::getCount() const
+template <class TID, class T> inline unsigned long SharedMap<TID, T>::getCount() const
 {
 	return m_List.getCount();
 }
 
 	
 
-template <class TID, class T> bool SharedMap<TID, T>::isEmpty() const
+template <class TID, class T> inline bool SharedMap<TID, T>::isEmpty() const
 {
 	return m_List.isEmpty();
 }
 
 
 
-template <class TID, class T> size_t SharedMap<TID, T>::predictSize( unsigned long Size )
-{
-	return ( SharedList<MapData>::predictSize(Size)+
-	         Semaphore::predictSize() );
-}
-
-
-
-template <class TID, class T> T& SharedMap<TID, T>::operator[]( const long Index )
+template <class TID, class T> inline T& SharedMap<TID, T>::operator[]( const long Index )
 {
 	return m_List[ Index ].Data;
 }
 
 
 
-template <class TID, class T> long SharedMap<TID, T>::indexOf( const TID Id )
+template <class TID, class T> inline long SharedMap<TID, T>::indexOf( const TID Id )
 {
 	ProtectedScope Access( "Determine index of an element in SharedMap", m_Semaphore );
 
@@ -245,7 +245,7 @@ template <class TID, class T> long SharedMap<TID, T>::indexOf( const TID Id )
 
 
 
-template <class TID, class T> TID SharedMap<TID, T>::idOf( const long Index )
+template <class TID, class T> inline TID SharedMap<TID, T>::idOf( const long Index )
 {
 	return m_List[Index].Id;
 }

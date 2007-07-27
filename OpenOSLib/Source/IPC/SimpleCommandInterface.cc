@@ -33,7 +33,6 @@ SimpleCommandInterface::SimpleCommandInterface() : m_HandlerThreadRunning(false)
 
 SimpleCommandInterface::~SimpleCommandInterface()
 {
-	deinitialize();
 }
 
 
@@ -42,27 +41,38 @@ void SimpleCommandInterface::initialize( Allocator* ThisAllocator, bool IsMaster
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException(LOCATION);
 	
-	m_IsInitialized = true;
-	
-	m_CommandSemaphore.initialize( ThisAllocator, IsMaster );
-	m_AdministrationSemaphore.initialize( ThisAllocator, IsMaster );
-
-	m_SendReceiveEvent.initialize( ThisAllocator, IsMaster );
-	
-	if ( IsMaster )
+	try
 	{
-		m_SendReceiveEvent.resetEvent();
-	}
+		m_IsInitialized = true;
+		m_IsMaster = IsMaster;
+		
+		m_CommandSemaphore.initialize( ThisAllocator, IsMaster );
+		m_AdministrationSemaphore.initialize( ThisAllocator, IsMaster );
 	
-	m_CommandData.initialize( ThisAllocator );
-
-	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_COMMAND_HANDLERS; Index ++ )
-	{
-		m_Handler[ Index ].Identifier = OS_UNUSED_ID;
-		m_Handler[ Index ].Handler = NULL;
+		m_SendReceiveEvent.initialize( ThisAllocator, IsMaster );
+		
+		if ( IsMaster )
+		{
+			m_SendReceiveEvent.resetEvent();
+		}
+		
+		m_CommandData.initialize( ThisAllocator );
+	
+		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_COMMAND_HANDLERS; Index ++ )
+		{
+			m_Handler[ Index ].Identifier = OS_UNUSED_ID;
+			m_Handler[ Index ].Handler = NULL;
+		}
+	
 	}
-
-	m_IsMaster = IsMaster;
+	catch ( ASAAC_Exception &e)
+	{
+		e.addPath("Error initializing SimpleCoommandInterface", LOCATION);
+		
+		deinitialize();
+		
+		throw;
+	}
 }
 
 
@@ -71,12 +81,20 @@ void SimpleCommandInterface::deinitialize()
 	if ( m_IsInitialized == false ) 
 		return;
 	
-	stopHandlerThread();
-	
-	m_CommandData.deinitialize();
-	m_SendReceiveEvent.deinitialize();
-	m_CommandSemaphore.deinitialize();
-	m_AdministrationSemaphore.deinitialize();
+	try
+	{
+		stopHandlerThread();
+		
+		m_CommandData.deinitialize();
+		m_SendReceiveEvent.deinitialize();
+		m_CommandSemaphore.deinitialize();
+		m_AdministrationSemaphore.deinitialize();
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing SimpleCommandInterface", LOCATION);
+		e.raiseError();
+	}
 	
 	m_IsInitialized = false;
 }

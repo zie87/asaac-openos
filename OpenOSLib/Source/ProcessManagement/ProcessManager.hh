@@ -99,6 +99,8 @@ public:
 	void     destroyEntity();
 	
 	ASAAC_PublicId getCurrentCpuId();
+	ASAAC_PublicId getCurrentProcessId();
+	ASAAC_PublicId getCurrentThreadId();
 	
 	//! predict the amount of memory for control and data structures to be allocated via an external allocator
 	static size_t	predictSize();
@@ -140,6 +142,8 @@ private:
 	SimpleCommandInterface	m_CommandInterface;
 	
 	ASAAC_PublicId 			m_CurrentCpuId;
+	ASAAC_PublicId 			m_CurrentProcessId;
+	ASAAC_PublicId 			m_CurrentThreadId;
 	
 	bool					m_IsMaster;
 	bool					m_IsServer;

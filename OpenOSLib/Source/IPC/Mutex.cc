@@ -61,7 +61,6 @@ void Mutex::initialize( Allocator* ThisAllocator, bool IsMaster, long Protocol )
 
 Mutex::~Mutex()
 {
-	if ( m_IsInitialized ) deinitialize();
 }
 
 
@@ -70,14 +69,22 @@ void Mutex::deinitialize()
 	if ( m_IsInitialized == false ) 
 		return;
 	
-	// If this is the master object, destroy mutex and condition
-	// deallocation of shared objects will be performed by Shareable<> destructor.
-	if ( m_IsMaster )
+	try
 	{
-		oal_thread_mutex_destroy( &(Global->Mutex) );
+		// If this is the master object, destroy mutex and condition
+		// deallocation of shared objects will be performed by Shareable<> destructor.
+		if ( m_IsMaster )
+		{
+			oal_thread_mutex_destroy( &(Global->Mutex) );
+		}
+		
+		Global.deinitialize();
 	}
-	
-	Global.deinitialize();
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing Mutex", LOCATION);
+		e.raiseError();
+	}
 	
 	m_IsInitialized = false;
 }

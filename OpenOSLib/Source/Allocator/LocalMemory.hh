@@ -26,7 +26,6 @@
 class LocalMemory : public Allocator
 {
 public:
-    LocalMemory(long Size);
     LocalMemory();
     
     virtual ~LocalMemory();

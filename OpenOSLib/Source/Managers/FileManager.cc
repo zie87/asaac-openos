@@ -1051,8 +1051,10 @@ FileManager::FileInfoData FileManager::getFileDataByAsaacHandle( const ASAAC_Pri
     
     if (Index == -1)
     	throw OSException( (ErrorString << "data for given asaac_handle (" << asaac_handle << ") is not available").c_str() , LOCATION);
-    	
-    return m_FileInfoList[ Index ];	    
+    
+	FileInfoData Data = m_FileInfoList[ Index ]; 
+	
+    return Data;
 }
 
 

@@ -15,12 +15,6 @@
 #include "Allocator/Allocator.hh"
 #include "Exceptions/Exceptions.hh"
 
-Semaphore::Semaphore(Allocator* ThisAllocator, const bool IsMaster, const long InitialCount, const long MaximumCount ) : m_IsInitialized(false)
-{
-	initialize( ThisAllocator, IsMaster, InitialCount );
-}
-
-
 Semaphore::Semaphore() : m_IsInitialized(false)
 {
 }
@@ -28,12 +22,9 @@ Semaphore::Semaphore() : m_IsInitialized(false)
 
 void Semaphore::initialize(Allocator* ThisAllocator, const bool IsMaster, const long InitialCount, const long MaximumCount )
 {
-	// avoid duplicate initialization
-//	cout << "Semaphore::initialize( " << this << ", " << Allocator << ", " << IsMaster << ", " << InitialCount << ")"<< endl;
 	if ( m_IsInitialized )
-	{
 		throw DoubleInitializationException( LOCATION );
-	}
+
 	m_IsInitialized = true;
 
 	try
@@ -51,8 +42,10 @@ void Semaphore::initialize(Allocator* ThisAllocator, const bool IsMaster, const 
 		}
 
 	}
-	catch ( ASAAC_Exception& E )
+	catch ( ASAAC_Exception& e )
 	{
+		e.addPath("Error deinitialzing Semaphore", LOCATION);
+		
 		deinitialize();
 		
 		throw;
@@ -63,8 +56,6 @@ void Semaphore::initialize(Allocator* ThisAllocator, const bool IsMaster, const 
 
 Semaphore::~Semaphore()
 {
-	if ( m_IsInitialized ) 
-		deinitialize();
 }
 
 

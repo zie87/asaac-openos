@@ -120,10 +120,6 @@ namespace ASAAC
 				e.raiseError();
 				handlerStatus = ASAAC_ERROR;
 			}
-			catch (...)
-			{
-				handlerStatus = ASAAC_ERROR;
-			}
 			
 			if (handlerStatus == ASAAC_SUCCESS)
 			{

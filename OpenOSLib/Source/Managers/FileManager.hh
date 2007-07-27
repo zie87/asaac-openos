@@ -119,7 +119,7 @@ protected:
 		long				indexOf( const int posix_handle );
 		long				indexOf( const ASAAC_CharacterSequence name, FileType type, ASAAC_UseOption use_option );
         
-        FileInfoData   		getFileDataByAsaacHandle( const ASAAC_PrivateId asaac_handle );
+        FileInfoData  		getFileDataByAsaacHandle( const ASAAC_PrivateId asaac_handle );
         ASAAC_PrivateId		getAsaacHandleByName( const ASAAC_CharacterSequence name, FileType type, ASAAC_UseOption use_option, bool derived );
         
         void            	releaseFileData( const ASAAC_PrivateId asaac_handle );

@@ -107,6 +107,15 @@ template <class T> SharedList<T>::~SharedList()
 
 
 
+template <class T> size_t SharedList<T>::predictSize( unsigned long Size )
+{
+	return ( Shared<T>::predictSize( Size ) +
+			 Shared<GlobalData>::predictSize() +
+			 Semaphore::predictSize() );
+}
+
+
+
 template <class T> void SharedList<T>::initialize( Allocator* ThisAllocator, 
 							 									  const bool IsMaster, 
 							 									  const unsigned long Size )
@@ -165,7 +174,7 @@ template <class T> void SharedList<T>::deinitialize()
 
 
 
-template <class T> long SharedList<T>::add( const T Value, const ASAAC_Time& Timeout )
+template <class T> inline long SharedList<T>::add( const T Value, const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -186,7 +195,7 @@ template <class T> long SharedList<T>::add( const T Value, const ASAAC_Time& Tim
 
 
 
-template <class T> long SharedList<T>::insert( const long Index, const T Value, const ASAAC_Time& Timeout )
+template <class T> inline long SharedList<T>::insert( const long Index, const T Value, const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -214,7 +223,7 @@ template <class T> long SharedList<T>::insert( const long Index, const T Value, 
 
 
 
-template <class T> void SharedList<T>::remove( const long Index, const ASAAC_Time& Timeout )
+template <class T> inline void SharedList<T>::remove( const long Index, const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -235,7 +244,7 @@ template <class T> void SharedList<T>::remove( const long Index, const ASAAC_Tim
 
 
 
-template <class T> unsigned long SharedList<T>::getSize() const
+template <class T> inline unsigned long SharedList<T>::getSize() const
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -245,7 +254,7 @@ template <class T> unsigned long SharedList<T>::getSize() const
 
 
 
-template <class T> unsigned long SharedList<T>::getCount() const
+template <class T> inline unsigned long SharedList<T>::getCount() const
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -255,7 +264,7 @@ template <class T> unsigned long SharedList<T>::getCount() const
 
 	
 
-template <class T> bool SharedList<T>::isEmpty() const
+template <class T> inline bool SharedList<T>::isEmpty() const
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -265,16 +274,7 @@ template <class T> bool SharedList<T>::isEmpty() const
 
 
 
-template <class T> size_t SharedList<T>::predictSize( unsigned long Size )
-{
-	return ( Shared<T>::predictSize( Size ) +
-			 Shared<GlobalData>::predictSize() +
-			 Semaphore::predictSize() );
-}
-
-
-
-template <class T> T &SharedList<T>::operator[]( const long Index )
+template <class T> inline T& SharedList<T>::operator[]( const long Index )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );

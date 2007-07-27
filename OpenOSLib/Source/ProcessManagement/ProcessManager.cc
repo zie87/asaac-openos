@@ -80,7 +80,9 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 	{
 		m_IsInitialized = true;	
 
-		m_CurrentCpuId = CurrentCpuId;			
+		m_CurrentCpuId = CurrentCpuId;
+		m_CurrentProcessId = OS_UNUSED_ID;
+		m_CurrentThreadId = OS_UNUSED_ID;
 		
 		m_IsServer = IsServer;
 		m_IsMaster = IsMaster;
@@ -545,6 +547,8 @@ void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 		else P = getProcess( ProcessId, m_CurrentProcessIndex );
 	
 		P->setServer( true );
+		
+		m_CurrentProcessId = ProcessId;
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -632,6 +636,18 @@ void ProcessManager::handleOneCommand( unsigned long& CommandIdentifier )
 ASAAC_PublicId ProcessManager::getCurrentCpuId()
 {
 	return m_CurrentCpuId;
+}
+
+
+ASAAC_PublicId ProcessManager::getCurrentProcessId()
+{
+	return m_CurrentProcessId;
+}
+
+
+ASAAC_PublicId ProcessManager::getCurrentThreadId()
+{
+	return m_CurrentThreadId;
 }
 
 

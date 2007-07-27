@@ -6,12 +6,6 @@
 #include "IPC/BlockingScope.hh"
 
 
-Trigger::Trigger( Allocator* ThisAllocator, bool IsMaster ) : m_IsInitialized(false)
-{
-	initialize( ThisAllocator, IsMaster );
-}
-
-
 Trigger::Trigger() : m_IsInitialized(false)
 {
 }
@@ -79,7 +73,6 @@ void Trigger::initialize( Allocator* ParentAllocator, bool IsMaster )
 
 Trigger::~Trigger()
 {
-	if ( m_IsInitialized ) deinitialize();
 }
 
 
@@ -87,19 +80,27 @@ void Trigger::deinitialize()
 {
 	if ( m_IsInitialized == false ) 
 		return;
-	
-	m_IsInitialized = false;
-	
-	// If this is the only initialized object, destroy mutex and condition
-	if ( m_Allocator.getAllocationCounter() == 1 )
+
+	try
 	{
-		oal_thread_cond_destroy( &(m_Global->Condition) );
-		oal_thread_mutex_destroy( &(m_Global->Mutex) );
+		m_IsInitialized = false;
+		
+		// If this is the only initialized object, destroy mutex and condition
+		if ( m_Allocator.getAllocationCounter() == 1 )
+		{
+			oal_thread_cond_destroy( &(m_Global->Condition) );
+			oal_thread_mutex_destroy( &(m_Global->Mutex) );
+		}
+		
+		m_Global.deinitialize();
+		
+		m_Allocator.deinitialize();
 	}
-	
-	m_Global.deinitialize();
-	
-	m_Allocator.deinitialize();
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing Trigger", LOCATION);
+		e.raiseError();
+	}
 }
 
 bool Trigger::IsInitialized()

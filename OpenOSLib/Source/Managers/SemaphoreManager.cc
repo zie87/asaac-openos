@@ -67,15 +67,23 @@ void SemaphoreManager::deinitialize()
 	if ( m_IsInitialized == false )
 		return;
 
-	for ( unsigned long Index = 0; Index < m_NumberOfSemaphores; Index ++ )
+	try
 	{
-		if ( m_Semaphores[ Index ].SemaphoreObject != 0 ) 
-			delete ( m_Semaphores[ Index ].SemaphoreObject );
-		
-		m_Semaphores[ Index ].SemaphoreAllocator.deinitialize();
+		for ( unsigned long Index = 0; Index < m_NumberOfSemaphores; Index ++ )
+		{
+			if ( m_Semaphores[ Index ].SemaphoreObject != 0 ) 
+				delete ( m_Semaphores[ Index ].SemaphoreObject );
+			
+			m_Semaphores[ Index ].SemaphoreAllocator.deinitialize();
+		}
+	
+		m_GlobalAllocator.deinitialize();
 	}
-
-	m_GlobalAllocator.deinitialize();
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing SemaphoreManager", LOCATION);
+		e.raiseError();
+	}
 
 	m_IsInitialized = false;
 }

@@ -19,7 +19,10 @@ public:
 	virtual ~Thread();
 
 	//! explicit initialization
-	void 		initialize( Allocator* ThisAllocator, bool IsMaster, Process* ParentProcess );
+	void 		initialize( bool IsMaster, 
+			                const ASAAC_ThreadDescription& Description,
+			                Process* ParentProcess,
+			                Allocator* ThisAllocator );
 	/*!< This function allocates the memory required for the storing of
 	 *   thread configuration and control of one thread in a process.
 	 * 
@@ -42,30 +45,6 @@ public:
 	 
 	 
 	void 		deinitialize();
-	
-	//! assign an actual thread to the current Thread object
-	void		assign( const ASAAC_ThreadDescription& Description );
-	/*!< This function is used to assign a thread as created via
-	 *   the SMOS call createThread() to the current Thread object,
-	 *   and sets all longernal configuration sets to respectively
-	 *   required values.
-	 * 
-	 *   Assigning a thread does not require any communication between
-	 *   master and client, for the data structures are located within
-	 *   shared memory, and changes on one side always are mirrored on the
-	 *   other side.
-	 * 
-	 *   Note that the current implementation does not require
-	 *   the thread's entry polong to be declared at the time of
-	 *   thread creation. However, trying to run the thread will fail
-	 *   of no respective entry polong is configured.
-	 * 
-	 *   \param[in] Description Thread Description as provided by createThread()
-	 * 
-	 *   \returns ASAAC_SUCCESS if the thread could be successfully assigned.
-	 *            ASAAC_ERROR if an error occurred. 
-	 * 
-	 */
 	
 	bool 		isInitialized();
 	

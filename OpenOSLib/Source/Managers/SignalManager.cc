@@ -91,10 +91,10 @@ void SignalManager::registerSignalHandler( int Signal, Callback& Handler )
 
 	try
     {
-	    // If Signal number is invalid, throw Exception
+		// If Signal number is invalid, throw Exception
 		if (( Signal < 0 ) || ( Signal > SIGRTMAX )) 
 			throw OSException( "Signal value is not valid", LOCATION );
-		
+
 		// If another handler has already been registered for this signal, return with error
 		if ( m_Signals.indexOf(Signal) != -1 ) 
 			throw OSException( "A handler for this signal is already registered", LOCATION );		
@@ -247,21 +247,30 @@ void SignalManager::waitForSignal( int Signal, int& Value, const ASAAC_TimeInter
 
 void SignalManager::InternalSignalHandler( int Signal, siginfo_t* SignalInfo, void* Context )
 {
-    // This function merely serves as a wrapper call to decouple the Callback structure
-	// from the posix data structure
-	
-	SignalManager* ThisInstance = SignalManager::getInstance();
-	
-	int Index = ThisInstance->m_Signals.indexOf( Signal );
-	
-	if ( Index == -1 ) 
-		return;
-	
-	if (ThisInstance->m_Signals[Index].Handler == NULL )
-		return;
-	
-	ThisInstance->m_Signals[Index].Handler->call( &(SignalInfo->si_value) );
-	
+    try
+    {
+		// This function merely serves as a wrapper call to decouple the Callback structure
+		// from the posix data structure
+		
+		SignalManager* ThisInstance = SignalManager::getInstance();
+		
+		int Index = ThisInstance->m_Signals.indexOf( Signal );
+		
+		if ( Index == -1 ) 
+			return;
+		
+		if (ThisInstance->m_Signals[Index].Handler == NULL )
+			return;
+		
+		ThisInstance->m_Signals[Index].Handler->call( &(SignalInfo->si_value) );
+    }
+    catch ( ASAAC_Exception &e )
+    {
+    	e.addPath("Error executing callback function", LOCATION);
+    	
+    	e.raiseError();
+    }
+    
 	return;
 }
 

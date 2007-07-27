@@ -635,12 +635,6 @@ void OpenOS::FlushSessionHandler( CommandBuffer Buffer )
 		
 		d->Return = ASAAC_ERROR; 
 	}
-	catch (...)
-	{
-		FatalException("Critical Error flushing local session", LOCATION).raiseError();
-		
-		d->Return = ASAAC_ERROR; 
-	}
 	
 	d->Return = ASAAC_SUCCESS; 
 	

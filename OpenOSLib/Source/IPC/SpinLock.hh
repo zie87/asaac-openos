@@ -26,10 +26,6 @@
 class SpinLock : public LockingObject
 {
 public:
-	//! initializing constructore (see initialize())
-	SpinLock(Allocator* ThisAllocator,
-    		 const bool IsMaster = true );
-    					  
     //! non-initializing constructor
     SpinLock();
 

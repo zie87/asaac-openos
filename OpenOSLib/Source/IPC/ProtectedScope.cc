@@ -24,7 +24,9 @@ ProtectedScope::ProtectedScope( char * Scope, LockingObject& ThisLockingObject, 
 	}
 	catch ( ASAAC_Exception &e )
 	{
-		e.addPath("Protected Scope couldn't be entered", LOCATION);
+		CharSeq ErrorString;
+		
+		e.addPath( (ErrorString << "Protected Scope couldn't be entered: " << Scope).c_str(), LOCATION);
 		
 		throw;		
 	}
@@ -66,14 +68,16 @@ ProtectedScope::~ProtectedScope()
 			{
 				oal_thread_testcancel();
 			
-				Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
-			
-				if ( ThisThread != NULL)
+				try
 				{
-					if (  ThisThread->isSuspendPending() )
+					if (  ThreadManager::getInstance()->getCurrentThread()->isSuspendPending() )
 					{
 						oal_thread_kill( oal_thread_self(), OS_SIGNAL_SUSPEND );
 					}
+				}
+				catch ( ASAAC_Exception &e )
+				{
+					// do nothing
 				}
 			}
 		}
@@ -94,20 +98,26 @@ ProtectedScope::~ProtectedScope()
 
 void ProtectedScope::enter()
 {
-	Thread *T = ThreadManager::getInstance()->getCurrentThread(false);
-	
-	if ( T != NULL )
-		T->enterProtectedScope(this);
+	try
+	{
+		ThreadManager::getInstance()->getCurrentThread()->enterProtectedScope(this);
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		// do nothing
+	}
 }
 
 
 void ProtectedScope::exit()
 {
-	Thread * ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
-	
-	if (ThisThread == 0)
-		return;
-		
-	ThisThread->exitProtectedScope(this);
+	try
+	{
+		ThreadManager::getInstance()->getCurrentThread()->exitProtectedScope(this);
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		// do nothing
+	}
 }
 

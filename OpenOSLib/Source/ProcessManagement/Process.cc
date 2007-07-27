@@ -57,7 +57,10 @@ size_t Process::predictSize()
 	// m_Semaphore
 	CumulativeSize +=  Semaphore::predictSize();
 	
-	// m_Threads
+	// m_ThreadIndex
+	CumulativeSize += Shared<ASAAC_PublicId>::predictSize( OS_MAX_NUMBER_OF_THREADS );
+
+	// m_ThreadObject
 	CumulativeSize +=  OS_MAX_NUMBER_OF_THREADS * Thread::predictSize();
 				 
 	// m_EntryPoints
@@ -102,27 +105,28 @@ void Process::initialize( bool IsServer, bool IsMaster, const ASAAC_ProcessDescr
 		}
 		
 		m_ProcessData.initialize( m_Allocator );
-	
-		if ( IsMaster )
-		{
-			m_ProcessData->Status 			  = PROCESS_DORMANT;
-			m_ProcessData->Description        = Description;
-		}
-	
 		m_LocalVCs.initialize( m_Allocator, OS_MAX_NUMBER_OF_LOCALVCS );	
 		m_Semaphore.initialize( m_Allocator, IsMaster );
 		m_InternalCommandInterface.initialize( m_Allocator, IsMaster );
 		m_EntryPoints.initialize( m_Allocator, OS_MAX_NUMBER_OF_ENTRYPOINTS );
+		m_ThreadIndex.initialize( m_Allocator, OS_MAX_NUMBER_OF_THREADS );
 		
 		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 		{
-			m_Threads[ Index ].initialize( m_Allocator, IsMaster, this );
+			m_ThreadAllocator[ Index ].initialize( m_Allocator, Thread::predictSize() );
 		}
 		
 		if ( IsMaster )
 		{
+			m_ProcessData->Description        = Description;
 			m_ProcessData->Status             = PROCESS_INITIALIZED;
 			m_ProcessData->AuthenticationCode = lrand48();
+			m_ProcessData->LockLevel		  = 0;
+			
+			for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
+			{
+				m_ThreadIndex[ Index ] = OS_UNUSED_ID;
+			}
 	
 			for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_LOCALVCS; Index ++ )
 			{
@@ -160,13 +164,19 @@ void Process::deinitialize()
 	{
 		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 		{
-			m_Threads[ Index ].deinitialize();
+			m_ThreadObject[ Index ].deinitialize();
+		}
+
+		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
+		{
+			m_ThreadAllocator[ Index ].deinitialize();
 		}
 	
 		m_EntryPoints.deinitialize();
 		m_InternalCommandInterface.deinitialize();
 		m_Semaphore.deinitialize();
 		m_ProcessData.deinitialize();
+		m_ThreadIndex.deinitialize();
 		
 		// Only one of the following two will have been initialized.
 		// however, DEinitializing twice doesn't matter, and
@@ -361,7 +371,7 @@ void Process::createThread( const ASAAC_ThreadDescription& Description )
 	try
 	{
 		ProtectedScope Access( "Creating a thread", m_Semaphore );
-	
+
 		if ( m_ProcessData->Status != PROCESS_INITIALIZED ) 
 			throw OSException("Process shall be in state PROCESS_INITIALIZED", LOCATION);
 		
@@ -373,7 +383,9 @@ void Process::createThread( const ASAAC_ThreadDescription& Description )
 		if ( Index == -1 ) 
 			throw OSException("Maximum number of threads reached", LOCATION);
 		
-		m_Threads[ Index ].assign( Description );
+		m_ThreadAllocator[Index].reset();
+		m_ThreadObject[ Index ].initialize( true, Description, this, &(m_ThreadAllocator[Index]) );
+		m_ThreadIndex[ Index ] = Description.thread_id;
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -391,7 +403,7 @@ signed long	Process::getThreadIndex( ASAAC_PublicId ThreadId )
 
 	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 	{
-		if ( m_Threads[ Index ].getId() == ThreadId ) 
+		if ( m_ThreadIndex[ Index ] == ThreadId ) 
 			return Index;
 	}
 	
@@ -417,7 +429,7 @@ Thread* Process::getThread( ASAAC_PublicId ThreadId, const bool do_throw )
 		else return NULL;
 	}
 
-	return &m_Threads[ Index ];
+	return getThreadByIndex(Index);
 }
 
 
@@ -433,9 +445,10 @@ Thread* Process::getCurrentThread( const bool do_throw )
 	
 	for ( Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 	{
-		if ( m_Threads[ Index ].isInitialized() )
+		Thread *ThreadObject = getThreadByIndex(Index);
+		if ( ThreadObject->isInitialized() )
 		{
-			if ( m_Threads[ Index ].isCurrentThread() ) 
+			if ( m_ThreadObject[ Index ].isCurrentThread() ) 
 	            break;
 		}
 	}
@@ -447,7 +460,37 @@ Thread* Process::getCurrentThread( const bool do_throw )
 		else return NULL;
 	}
 	
-	return &(m_Threads[ Index ]);
+	return getThreadByIndex(Index);
+}
+
+
+Thread*	Process::getThreadByIndex( unsigned long Index, const bool do_throw )
+{
+	if (m_IsInitialized == false)
+	{
+		if (do_throw == true)
+			throw UninitializedObjectException(LOCATION);
+		else return NULL;
+	}
+
+	if ( (  Index < 0 ) || 
+         ( (unsigned long)Index > OS_MAX_NUMBER_OF_THREADS ) ) 
+	{
+		if (do_throw == true)
+			throw OSException("Index is out of range",LOCATION);
+		else return NULL;
+	}
+	
+	Thread* ThreadObject = &m_ThreadObject[ Index ];
+	
+	if ((ThreadObject->isInitialized() == false) && (m_ThreadIndex[ Index ] != OS_UNUSED_ID))
+	{
+		ASAAC_ThreadDescription Description;
+		m_ThreadAllocator[Index].reset();
+		ThreadObject->initialize( false, Description, this, &m_ThreadAllocator[Index] );
+	}
+	
+	return ThreadObject;
 }
 
 
@@ -468,16 +511,18 @@ void Process::resumeAllThreads()
 		
 		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 		{
-			if (m_Threads[ Index ].getId() == OS_UNUSED_ID)
+			Thread* ThreadObject = getThreadByIndex(Index);
+			
+			if (ThreadObject->isInitialized() == false )
 				continue;
 				
 			ASAAC_ThreadStatus state;
-			m_Threads[ Index ].getState( state );
+			ThreadObject->getState( state );
 			
 			if (state == ASAAC_DORMANT)
 				continue;
 			
-			m_Threads[ Index ].resume();
+			ThreadObject->resume();
 		}		
 
 		m_ProcessData->Status = PROCESS_RUNNING;
@@ -509,21 +554,23 @@ void Process::suspendAllThreads()
 		Thread *ThisThread = NULL;
 		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 		{
-			if (m_Threads[ Index ].getId() == OS_UNUSED_ID)
+			Thread* ThreadObject = getThreadByIndex(Index);
+
+			if (ThreadObject->isInitialized() == false)
 				continue;
 				
 			ASAAC_ThreadStatus state;
-			m_Threads[ Index ].getState( state );
+			ThreadObject->getState( state );
 			
 			if (state == ASAAC_DORMANT)
 				continue;
 			
-			if ( m_Threads[ Index ].isCurrentThread() )
+			if ( ThreadObject->isCurrentThread() )
 			{
-				ThisThread = &(m_Threads[ Index ]); 
+				ThisThread = ThreadObject; 
 				continue;
 			}
-			m_Threads[ Index ].suspend();
+			ThreadObject->suspend();
 		}
 		
 		m_ProcessData->Status = PROCESS_STOPPED;
@@ -533,7 +580,7 @@ void Process::suspendAllThreads()
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.addPath("Error resuming all threads", LOCATION);
+		e.addPath("Error suspending all threads", LOCATION);
 		
 		throw;
 	}
@@ -558,22 +605,24 @@ void Process::terminateAllThreads()
 		Thread *ThisThread = NULL;
 		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 		{
-			if (m_Threads[ Index ].getId() == OS_UNUSED_ID)
+			Thread* ThreadObject = getThreadByIndex(Index);
+
+			if (ThreadObject->isInitialized() == false)
 				continue;
 				
 			ASAAC_ThreadStatus state;
-			m_Threads[ Index ].getState( state );
+			ThreadObject->getState( state );
 			
 			if (state == ASAAC_DORMANT)
 				continue;
 
-			if ( m_Threads[ Index ].isCurrentThread() )
+			if ( ThreadObject->isCurrentThread() )
 			{
-				ThisThread = &(m_Threads[ Index ]); 
+				ThisThread = ThreadObject; 
 				continue;
 			}
 			
-			m_Threads[ Index ].terminate();
+			ThreadObject->terminate();
 		}
 
 		m_ProcessData->Status = PROCESS_STOPPED; 			
@@ -739,6 +788,7 @@ void Process::destroy()
 		try
 		{
 			sendCommand( CMD_TERM_PROCESS, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );
+			
 		}
 		catch ( ASAAC_Exception &e )
 		{
@@ -750,16 +800,11 @@ void Process::destroy()
 			OSException((ErrorString << "Application created an error while terminating itself. (PID=" << CharSeq(getId()) << ")").c_str(), LOCATION).raiseError();
 	
 		//If Process shall be killed from outside, kill it truely now...
-		Process *P = ProcessManager::getInstance()->getCurrentProcess();
-		
-		if (P == NULL)
-			throw FatalException("Current Process not found", LOCATION);
-				
-		if (P->getId() != this->getId())
+		if (ProcessManager::getInstance()->getCurrentProcess()->getId() != this->getId())
 		{
 			try
 			{
-				int Dummy;		
+				int Dummy;	
 				SignalManager::getInstance()->waitForSignal( SIGCHLD, Dummy, OS_SIMPLE_COMMAND_TIMEOUT  );
 
 				oal_waitpid( (pid_t)-1, &Dummy, 0 );
@@ -1158,9 +1203,7 @@ LocalVc* Process::getAttachedVirtualChannel( ASAAC_PublicId LocalVcId )
 	}
 	catch ( ASAAC_Exception &e)
 	{
-		e.raiseError();
-		
-		return NULL;
+		throw;
 	}
 	
 	return LVc;

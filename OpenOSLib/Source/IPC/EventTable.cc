@@ -21,7 +21,9 @@ EventTable::EventTable() : m_IsInitialized(false)
 void EventTable::initialize( Allocator* ThisAllocator, bool IsMaster, unsigned long Size )
 {
 	// Avoid double initialization of object.
-	if ( m_IsInitialized ) throw DoubleInitializationException();
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException();
+
 	m_IsInitialized = true;
 
 	try
@@ -75,24 +77,34 @@ void EventTable::initialize( Allocator* ThisAllocator, bool IsMaster, unsigned l
 
 EventTable::~EventTable()
 {
-	if ( m_IsInitialized ) deinitialize();
 }
 
 
 void EventTable::deinitialize()
 {
-	if ( m_IsInitialized == false ) return;
+	if ( m_IsInitialized == false ) 
+		return;
 	
-	// If this is the master object, destroy mutex and condition
-	// deallocation of shared objects will be performed by Shareable<> destructor.
-	if ( m_IsMaster )
+	try
 	{
-//		oal_thread_cond_destroy( &(Global->Condition) );
-//		oal_thread_mutex_destroy( &(Global->Mutex) );
+		// If this is the master object, destroy mutex and condition
+		// deallocation of shared objects will be performed by Shareable<> destructor.
+		if ( m_IsMaster )
+		{
+	//		oal_thread_cond_destroy( &(Global->Condition) );
+	//		oal_thread_mutex_destroy( &(Global->Mutex) );
+		}
+		
+		m_Global.deinitialize();
+		m_EventTable.deinitialize();
 	}
-	
-	m_Global.deinitialize();
-	m_EventTable.deinitialize();
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing EventTable", LOCATION);
+		e.raiseError();
+	}
+
+	m_IsInitialized = false;
 }
 	
 

@@ -9,23 +9,6 @@ using namespace std;
 #include "FaultManagement/ErrorHandler.hh"
 
 
-SharedMemory::SharedMemory( const ASAAC_CharacterSequence& Name, bool IsMaster, unsigned long Size ) 
-		: 
-		m_IsInitialized(false),
-		m_IsMaster(false),
-		m_FileHandle(0),
-		m_BaseMemorySize(0),
-		m_UsedMemory(0)
-
-{
-	m_BaseAddress.ptr = 0;
-	m_HeaderAddress.ptr = 0;
-	m_MemoryAddress.ptr = 0;
-	
-	initialize( Name, IsMaster, Size );
-}
-
-
 SharedMemory::SharedMemory() : 
 		m_IsInitialized(false),
 		m_Name(),
@@ -45,21 +28,21 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 	if ( m_IsInitialized )
 		throw OSException("Double Initialisation",LOCATION);
 	
-	if ( Size == 0 )
-		throw OSException( "Trying to open zero size ShMO.", LOCATION );
-	
-	m_IsMaster = IsMaster;
-	m_Name = Name;
-	
-	m_BaseAddress.ptr = 0;
-	m_HeaderAddress.ptr = 0;
-	m_MemoryAddress.ptr = 0;
+    m_IsInitialized = true;
 	
 	try
 	{
-        m_IsInitialized = true;
-        
         CharacterSequence ErrorString;
+
+        m_IsMaster = IsMaster;
+    	m_Name = Name;
+    	
+    	m_BaseAddress.ptr = 0;
+    	m_HeaderAddress.ptr = 0;
+    	m_MemoryAddress.ptr = 0;        
+
+    	if ( Size == 0 )
+    		throw OSException( "Trying to open zero size ShMO.", LOCATION );
  		
  		// If Master, create Shared Memory File
 		if ( m_IsMaster )

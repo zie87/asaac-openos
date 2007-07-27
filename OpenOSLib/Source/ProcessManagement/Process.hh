@@ -7,6 +7,7 @@
 
 #include "Allocator/SharedMemory.hh"
 #include "Allocator/LocalMemory.hh"
+#include "Allocator/AllocatedArea.hh"
 
 #include "IPC/Semaphore.hh"
 #include "IPC/SimpleCommandInterface.hh"
@@ -81,6 +82,48 @@ class Process
 {
 public:
 
+	//! explicit initialization
+	void 					initialize( bool IsServer, bool IsMaster, const ASAAC_ProcessDescription& Description, MemoryLocation Location, SimpleCommandInterface *CommandInterface );
+	/*!< \param[in] IsMaster		Flag indicating whether the calling instance shall act as master and
+	 *                              initialize all communication structures of the process (usually the
+	 *                              GSM should do this, and call with IsMaster = true )
+	 *   \param[in] Description		Process description as indicated with the APOS call createProcess().
+	 * 								Can be fed with a dummy variable on the client side.
+	 * 
+	 *   \param[in] Location		Flag indicating where to store the control structures.
+	 *                              The GSM itself does not need to share its control structures with
+	 *                              other processes, hence it can choose to store its data in LOCAL memory rather
+	 *                              than SHARED.
+	 * 
+	 */
+
+	//! explicit deinitialization
+	void 					deinitialize();	
+
+	void 					setServer( bool IsServer );
+
+	//! launch the ProcessStarter to initialize the process
+	void					launch();
+	/*!< The actual starting of the new process in its current implementation, without
+	 *   the longended mechanism via a MasterProcess/ProcessManager makes use of functionality
+	 *   defined in the POSIX specification IEEE 1003.1, 2004 Edition 
+	 *   (CX extension to the ISO C standard and the optional SPN module).
+	 */ 
+		
+	//! stop and delete the process
+	void		            destroy();
+	/*!< The termination of another process in its current implementation depends on
+	 *   waitpid() and kill() functions as defined in the POSIX specification IEEE 1003.1, 2004 Edition
+	 */
+
+	void		            detachAndDestroyAllLocalVcs();
+
+	void		            resumeAllThreads();
+
+	void		            suspendAllThreads();
+
+	void		            terminateAllThreads();
+
 	bool 					isInitialized();
 	bool 					isServer();
 	
@@ -117,6 +160,7 @@ public:
 	  *                not found in this process.
 	  */
 
+	Thread*					getThreadByIndex( unsigned long Index, const bool do_throw = true );
 
 	//! add an entry point	
 	void            		addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address );
@@ -251,47 +295,6 @@ private:
 	Process();
 	virtual ~Process();
 		
-	//! explicit initialization
-	void 					initialize( bool IsServer, bool IsMaster, const ASAAC_ProcessDescription& Description, MemoryLocation Location, SimpleCommandInterface *CommandInterface );
-	/*!< \param[in] IsMaster		Flag indicating whether the calling instance shall act as master and
-	 *                              initialize all communication structures of the process (usually the
-	 *                              GSM should do this, and call with IsMaster = true )
-	 *   \param[in] Description		Process description as indicated with the APOS call createProcess().
-	 * 								Can be fed with a dummy variable on the client side.
-	 * 
-	 *   \param[in] Location		Flag indicating where to store the control structures.
-	 *                              The GSM itself does not need to share its control structures with
-	 *                              other processes, hence it can choose to store its data in LOCAL memory rather
-	 *                              than SHARED.
-	 * 
-	 */
-
-	//! explicit deinitialization
-	void 					deinitialize();	
-
-	void 					setServer( bool IsServer );
-
-	//! launch the ProcessStarter to initialize the process
-	void					launch();
-	/*!< The actual starting of the new process in its current implementation, without
-	 *   the longended mechanism via a MasterProcess/ProcessManager makes use of functionality
-	 *   defined in the POSIX specification IEEE 1003.1, 2004 Edition 
-	 *   (CX extension to the ISO C standard and the optional SPN module).
-	 */ 
-		
-	//! stop and delete the process
-	void		            destroy();
-	/*!< The termination of another process in its current implementation depends on
-	 *   waitpid() and kill() functions as defined in the POSIX specification IEEE 1003.1, 2004 Edition
-	 */
-
-	void		            detachAndDestroyAllLocalVcs();
-
-	void		            resumeAllThreads();
-
-	void		            suspendAllThreads();
-
-	void		            terminateAllThreads();
 
 	typedef struct  
 	{
@@ -358,7 +361,9 @@ private:
 
 	bool						m_ActiveMainLoop;
 	
-	Thread						m_Threads[ OS_MAX_NUMBER_OF_THREADS ];
+	AllocatedArea				m_ThreadAllocator[ OS_MAX_NUMBER_OF_THREADS ];
+	Shared<ASAAC_PublicId>		m_ThreadIndex;
+	Thread						m_ThreadObject[ OS_MAX_NUMBER_OF_THREADS ];
 	
 	pid_t						m_PosixPid;
     

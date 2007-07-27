@@ -15,21 +15,16 @@ int applicationMain( void )
 		registerThreads();
 
 	  	ProcessManager::getInstance()->getCurrentProcess()->run();
-	
 		OpenOS::getInstance()->deinitialize();
 	}
 	catch ( ASAAC_Exception& e )
 	{
+		OpenOS::getInstance()->deinitialize();
+
 		e.addPath("Caught exception in main loop of application.", LOCATION);
 		e.printMessage();
 		
 		return 1;
-	}
-	catch (...)
-	{
-		FatalException( "Caught exception in main loop of application.", LOCATION).printMessage();
-		
-		return 2;
 	}
 
 	return 0;	

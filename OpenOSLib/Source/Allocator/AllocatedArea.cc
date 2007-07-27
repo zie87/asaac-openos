@@ -5,12 +5,6 @@
 using namespace std;
 
 
-AllocatedArea::AllocatedArea( Allocator* ParentAllocator, unsigned long Size ) : m_IsInitialized(false)
-{
-	initialize( ParentAllocator, Size );
-}
-
-
 AllocatedArea::AllocatedArea() : m_IsInitialized(false)
 {
 }
@@ -19,26 +13,26 @@ AllocatedArea::AllocatedArea() : m_IsInitialized(false)
 void AllocatedArea::initialize( Allocator* ParentAllocator, unsigned long Size )
 {
 	if ( m_IsInitialized )
-	{
 		throw OSException("Double Initialisation", LOCATION);
-	}
-	
-	m_ParentAllocator = ParentAllocator;
-	m_MemorySize      = Size;
-	m_UsedMemory      = 0;
-	
-	try {
+
+	m_IsInitialized = true;
+
+	try
+	{
+		m_ParentAllocator = ParentAllocator;
+		m_MemorySize      = Size;
+		m_UsedMemory      = 0;
+		
 		m_BaseAddress = static_cast<char*>(ParentAllocator->allocate( Size ));
 	}
-	catch ( ASAAC_Exception& E )
+	catch ( ASAAC_Exception &e )
 	{
-		m_MemorySize			= 0;
-		m_ParentAllocator		= 0;	
-
+		e.addPath("Error initializing AllocatedArea", LOCATION);
+		
+		deinitialize();
+		
 		throw;
 	}
-	
-	m_IsInitialized = true;
 }
 
 
@@ -47,7 +41,17 @@ void AllocatedArea::deinitialize()
 	if (m_IsInitialized == false)
 		return; 
 	
-	m_ParentAllocator->free( m_BaseAddress );
+	try
+	{
+		m_ParentAllocator->free( m_BaseAddress );
+		m_MemorySize = 0;
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing AllocatedArea", LOCATION);
+		
+		e.raiseError();
+	}
 
 	m_IsInitialized = false;
 }

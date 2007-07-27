@@ -2,8 +2,77 @@
 
 #include "ProcessManagement/ThreadManager.hh"
 #include "ProcessManagement/ProcessManager.hh"
+#include "Managers/SignalManager.hh"
 #include "IPC/BlockingScope.hh"
 
+
+//TODO: For what is this needed?
+static bool SuspendStatus;
+
+class ThreadSuspendCallback : public Callback {
+
+public:
+		virtual void call ( void* Data )
+		{
+			int iDummy;
+
+			// get current cancel state
+			// if current thread is not supposed to be cancelled,
+			// it is not supposed to be suspended, either,
+			// because it could hold important OS resources
+			oal_thread_setcancelstate( PTHREAD_CANCEL_DISABLE, &iDummy );
+			oal_thread_setcancelstate( iDummy, 0 );
+			if ( iDummy == PTHREAD_CANCEL_DISABLE )
+			{
+				// ProtectedScope will take care of calling this interrupt
+				// again once the thread cancellation has been reset
+				return;
+			}
+	
+			Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
+
+			if ( ThisThread != NULL ) 
+				ThisThread->setSuspendPending( false );
+
+			/* TODO: Find out, if this is necessary. Problems occured, while suspending a thread a second time.
+			SignalManager::getInstance()->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
+	
+			if ( ThisThread != NULL ) 
+				ThisThread->setSuspendPending( false );*/
+		}
+		
+		virtual ~ThreadSuspendCallback() { };
+};
+
+
+class ThreadKillCallback : public Callback {
+public:	
+		virtual void call( void* Data ) 
+		{ 
+			Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
+			
+			if ( ThisThread != NULL ) 
+				ThisThread->terminateSelf();
+		}
+		
+		virtual ~ThreadKillCallback() { };
+};
+
+
+class ThreadResumeCallback : public Callback {
+public:	
+		virtual void call( void* Data ) 
+		{ 
+			SuspendStatus = false; 
+		};
+		
+		virtual ~ThreadResumeCallback() { };
+};
+
+
+static ThreadKillCallback		KillCallback;
+static ThreadSuspendCallback	SuspendCallback;
+static ThreadResumeCallback		ResumeCallback;
 
 
 ThreadManager* ThreadManager::getInstance()
@@ -26,12 +95,51 @@ ThreadManager::ThreadManager()
 
 void ThreadManager::initialize()
 {
-	m_IsInitialized = true;
+	try
+	{
+		m_IsInitialized = true;
+	
+		// register signal for termination of threads
+		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_KILL,    KillCallback );
+					
+		// register signal for suspension of threads
+		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_SUSPEND, SuspendCallback );
+		
+		// register signal to catch superfluous 'resume' signals, to
+		// avoid program abortion
+		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_RESUME,  ResumeCallback );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error initializing ThreadManager", LOCATION);
+		
+		deinitialize();
+		
+		throw;
+	}
 }
 
 
 void ThreadManager::deinitialize()
 {
+	try
+	{
+		// register signal for termination of threads
+		SignalManager::getInstance()->unregisterSignalHandler( OS_SIGNAL_KILL );
+					
+		// register signal for suspension of threads
+		SignalManager::getInstance()->unregisterSignalHandler( OS_SIGNAL_SUSPEND );
+		
+		// register signal to catch superfluous 'resume' signals, to
+		// avoid program abortion
+		SignalManager::getInstance()->unregisterSignalHandler( OS_SIGNAL_RESUME );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing ThreadManager", LOCATION);
+		e.raiseError();
+	}
+	
 	m_IsInitialized = false;
 }
 
@@ -124,7 +232,6 @@ Thread* ThreadManager::getCurrentThread( const bool do_throw )
 {
 	if (m_IsInitialized == false)
 	{
-		return NULL;
 		if (do_throw == true)
 			throw UninitializedObjectException(LOCATION);
 		else return NULL;

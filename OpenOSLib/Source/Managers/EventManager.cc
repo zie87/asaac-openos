@@ -31,34 +31,56 @@ void EventManager::initialize()
 	if ( m_IsInitialized ) 
 		throw DoubleInitializationException();
 	
-	m_NumberOfEvents = OS_MAX_NUMBER_OF_EVENTS;
-	
-	m_GlobalAllocator.initialize( m_NumberOfEvents * Event::predictSize() + Semaphore::predictSize() );
-	
-	m_AccessSemaphore.initialize( &m_GlobalAllocator, true, 1 );
-																	  
-	for ( unsigned long Index = 0; Index < m_NumberOfEvents; Index ++ )
+	try
 	{
-		m_Events[ Index ].EventAllocator.initialize( &m_GlobalAllocator, Event::predictSize() );
-																		
-		m_Events[ Index ].EventId = OS_UNUSED_ID;
-	}
+		m_IsInitialized = true;
 
-	m_IsInitialized = true;
+		m_NumberOfEvents = OS_MAX_NUMBER_OF_EVENTS;
+		
+		m_GlobalAllocator.initialize( m_NumberOfEvents * Event::predictSize() + Semaphore::predictSize() );
+		
+		m_AccessSemaphore.initialize( &m_GlobalAllocator, true, 1 );
+																		  
+		for ( unsigned long Index = 0; Index < m_NumberOfEvents; Index ++ )
+		{
+			m_Events[ Index ].EventAllocator.initialize( &m_GlobalAllocator, Event::predictSize() );
+																			
+			m_Events[ Index ].EventId = OS_UNUSED_ID;
+		}
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing EventManager", LOCATION);
+		
+		deinitialize();
+		
+		throw;
+	}
 }
 
 
 void EventManager::deinitialize()
 {
-	for ( unsigned long Index = 0; Index < m_NumberOfEvents; Index ++ )
-	{
-		if ( m_Events[ Index ].EventObject != 0 ) 
-			delete m_Events[ Index ].EventObject;
-		
-		m_Events[Index].EventAllocator.deinitialize();
-	}
+	if (m_IsInitialized == false)
+	    return;
 	
-	m_GlobalAllocator.deinitialize();
+	try
+	{
+		for ( unsigned long Index = 0; Index < m_NumberOfEvents; Index ++ )
+		{
+			if ( m_Events[ Index ].EventObject != 0 ) 
+				delete m_Events[ Index ].EventObject;
+			
+			m_Events[Index].EventAllocator.deinitialize();
+		}
+		
+		m_GlobalAllocator.deinitialize();
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error deinitializing EventManager", LOCATION);
+		e.raiseError();
+	}
 	
 	m_IsInitialized = false;
 }

@@ -51,9 +51,6 @@ public:
 		unsigned long		WaitingThreads;
 	};
 
-	//! initializing constructor (see initialize())
-	Trigger( Allocator* ThisAllocator, bool IsMaster = true );
-	
 	//! non-initializing constructor
 	Trigger( );
 

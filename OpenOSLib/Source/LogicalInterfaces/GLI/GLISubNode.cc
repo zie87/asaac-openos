@@ -339,10 +339,6 @@ namespace ASAAC
                 e.addPath("Error handling a SubNodeMessage", LOCATION);
                 throw;
             }
-            catch (...)
-            {
-                throw OSException("Unknown error handling a SubNodeMessage", LOCATION);
-            }                
         }       
         
     }

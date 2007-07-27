@@ -18,9 +18,6 @@ class AllocatedArea : public Allocator
 {
 	
 public:
-	AllocatedArea( Allocator* ParentAllocator, unsigned long Size );
-	//!< instantiate AllocatedArea and initialize instantly (see initialize()).
-	
 	AllocatedArea();
 
 	virtual ~AllocatedArea();
