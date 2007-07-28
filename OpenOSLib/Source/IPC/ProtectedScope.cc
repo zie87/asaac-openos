@@ -4,23 +4,25 @@
 #include "ProcessManagement/ThreadManager.hh"
 #include "ProcessManagement/Thread.hh"
 
-ProtectedScope::ProtectedScope( char * Scope, LockingObject& ThisLockingObject, const ASAAC_Time& Timeout, bool Cancelable ) : m_LockingObject(&ThisLockingObject), m_Cancelable(Cancelable)
+ProtectedScope::ProtectedScope( char * Scope, LockingObject& ThisLockingObject, const ASAAC_Time& Timeout, bool Cancelable ) : m_LockingObject(&ThisLockingObject), m_Locked(false), m_SuspendPending(false)
 {
-	m_Scope = Scope;
+	m_Scope = CharSeq(Scope).asaac_str();
 	m_Timeout = Timeout;
+	m_Cancelable = Cancelable;
 
 	try
 	{		
 		m_LockingObject->lock( Timeout );
-	
-		enter();
-	
-		if ( m_Cancelable == false )
+		m_Locked = true;
+
+		Thread* CurrentThread = NULL;
+		NO_EXCEPTION( CurrentThread = ThreadManager::getInstance()->getCurrentThread() );
+		
+		if (CurrentThread != NULL)
 		{
-			oal_thread_setcancelstate( PTHREAD_CANCEL_DISABLE, &m_CancelState );
+			m_SuspendPending = CurrentThread->isSuspendPending();
+			CurrentThread->enterProtectedScope(*this);
 		}
-	
-		m_Status = LOCKED;
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -33,91 +35,60 @@ ProtectedScope::ProtectedScope( char * Scope, LockingObject& ThisLockingObject, 
 }
 
 
-bool ProtectedScope::isCancelable()
-{
-	return m_Cancelable;
-}
-
-
-ASAAC_Time ProtectedScope::timeout()
-{
-	return m_Timeout;
-}
-
-
-ASAAC_CharacterSequence ProtectedScope::scope()
-{
-	return m_Scope.asaac_str();
-}
-
-
 ProtectedScope::~ProtectedScope()
 {
 	try
 	{
-		if ( m_Status == LOCKED )
-		{
+		if ( m_Locked == true )
 			m_LockingObject->release();
-		}
 		
-		if ( m_Cancelable == false )
-		{
-			oal_thread_setcancelstate( m_CancelState, NULL );
-			
-			if ( m_CancelState == PTHREAD_CANCEL_ENABLE )
-			{
-				oal_thread_testcancel();
-			
-				try
-				{
-					if (  ThreadManager::getInstance()->getCurrentThread()->isSuspendPending() )
-					{
-						oal_thread_kill( oal_thread_self(), OS_SIGNAL_SUSPEND );
-					}
-				}
-				catch ( ASAAC_Exception &e )
-				{
-					// do nothing
-				}
-			}
-		}
+		Thread* CurrentThread = NULL;
+		NO_EXCEPTION( CurrentThread = ThreadManager::getInstance()->getCurrentThread() );
+		
+		if (CurrentThread != NULL)
+			CurrentThread->exitProtectedScope(*this);
 	}
 	catch (ASAAC_Exception &e)
 	{
 		CharSeq ErrorString;
 		e.addPath( (ErrorString << "Error exiting ProtectedScope: '" << m_Scope << "'").c_str() );
 		
-		exit();
-		
 		throw;
 	}
-	
-	exit();
+}
+
+bool ProtectedScope::isCancelable()
+{
+	return m_Cancelable;
 }
 
 
-void ProtectedScope::enter()
+ASAAC_Time ProtectedScope::getTimeout()
 {
-	try
-	{
-		ThreadManager::getInstance()->getCurrentThread()->enterProtectedScope(this);
-	}
-	catch ( ASAAC_Exception &e )
-	{
-		// do nothing
-	}
+	return m_Timeout;
 }
 
 
-void ProtectedScope::exit()
+ASAAC_CharacterSequence ProtectedScope::getScope()
 {
-	try
-	{
-		ThreadManager::getInstance()->getCurrentThread()->exitProtectedScope(this);
-	}
-	catch ( ASAAC_Exception &e )
-	{
-		// do nothing
-	}
+	return m_Scope;
+}
+
+
+int	ProtectedScope::getCancelState()
+{
+	return m_CancelState;
+}
+
+
+void ProtectedScope::setCancelState(int CancelState)
+{
+	m_CancelState = CancelState;
+}
+
+
+bool ProtectedScope::isSuspendPending()
+{
+	return m_SuspendPending;
 }
 

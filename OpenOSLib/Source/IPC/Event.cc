@@ -232,7 +232,7 @@ void Event::waitForEventStatus( bool Status, const ASAAC_Time& Timeout )
 	
 	while (( Global->EventSet != Status ) && ( iErrorCode != ETIMEDOUT ))
 	{
-		if (( Timeout.sec == TimeInfinity.sec ) && ( Timeout.nsec == TimeInfinity.nsec ))
+		if ( TimeStamp(Timeout).isInfinity() )
 			iErrorCode = oal_thread_cond_wait(&(Global->Condition), &(Global->Mutex));
 		else iErrorCode = oal_thread_cond_timedwait(&(Global->Condition), &(Global->Mutex), &TimeSpecTimeout );
 	}

@@ -134,8 +134,9 @@ public:
 	ProcessAlias			getAlias();
 	
 	//! get Process' POSIX PID (process id) and store it inside the object
-	void					refreshPosixPid();
-		
+	void					refreshPosixId();
+	pid_t					getPosixId();
+	
 	//! set up a thread inside the process
 	void		            createThread( const ASAAC_ThreadDescription& Description );
 	/*!< \param[in] Description Thread description as supplied by the SMOS call
@@ -365,7 +366,7 @@ private:
 	Shared<ASAAC_PublicId>		m_ThreadIndex;
 	Thread						m_ThreadObject[ OS_MAX_NUMBER_OF_THREADS ];
 	
-	pid_t						m_PosixPid;
+	pid_t						m_PosixId;
     
 public:
 

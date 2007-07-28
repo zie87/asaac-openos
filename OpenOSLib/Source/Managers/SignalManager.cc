@@ -1,5 +1,7 @@
 #include "SignalManager.hh"
 
+#include "OpenOSObject.hh"
+#include "ProcessManagement/ProcessManager.hh"
 #include "IPC/BlockingScope.hh"
 
 
@@ -175,7 +177,9 @@ void SignalManager::raiseSignal( ASAAC_PublicId ProcessId, int Signal, int Value
 		
 		SignalValue.sival_int = Value;
 		
-		if ( oal_sigqueue( ProcessId, Signal, SignalValue ) != 0 )
+		pid_t PosixId = ProcessManager::getInstance()->getProcess(ProcessId)->getPosixId();
+		
+		if ( oal_sigqueue( PosixId, Signal, SignalValue ) != 0 )
 			throw OSException( strerror(errno), LOCATION );
     }
 	catch ( ASAAC_Exception &e )
@@ -209,30 +213,26 @@ void SignalManager::waitForSignal( int Signal, int& Value, const ASAAC_TimeInter
 		oal_sigemptyset( &ThisSigSet );
 		oal_sigaddset( &ThisSigSet, Signal );
 	
-		// Register Null Handler. Returns ASAAC_ERROR if there is already a handler installed.
+		// Register Null Handler. 
 		int Index = m_Signals.indexOf(Signal);
 		
 		if (Index == -1)
 			registerSignalHandler( Signal, ThisNullCallback );
 		
 		long iError = 0;
-		if ((Timeout.sec == TimeInfinity.sec) && (Timeout.nsec == TimeInfinity.nsec))
+		if ( TimeInterval(Timeout).isInfinity() )
 			iError = oal_sigwaitinfo( &ThisSigSet, &ThisSigInfo );
 		else iError = oal_sigtimedwait( &ThisSigSet, &ThisSigInfo, &TimeSpecTimeout );
-	
+
 		// unregister Null Handler, if it was applied before.
 		if ( Index == -1 ) 
 			unregisterSignalHandler( Signal );
 		
 		if (( iError == -1 ) && ( errno == EAGAIN ))
-		{
 			throw TimeoutException( LOCATION );
-		}
 		
 		if ( iError <= 0 )
-		{
 			throw OSException( strerror(errno), LOCATION );
-		}
 	
 		Value = ThisSigInfo.si_value.sival_int;
     }

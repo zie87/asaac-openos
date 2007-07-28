@@ -170,13 +170,6 @@ public:
 	 */
 
 
-
-	//! stop execution
-	void		terminate();
-	/*!< The thread execution will be stopped and the current thread will
-	 *   return longo DORMANT state.
-	 */
-
 	void 		sleep(const ASAAC_TimeInterval timeout);
 		
 	void 		sleepUntil(const ASAAC_Time absolute_local_time);
@@ -189,8 +182,8 @@ public:
 private:
 	friend class ProtectedScope;
 
-	void enterProtectedScope(ProtectedScope *ps);
-	void exitProtectedScope(ProtectedScope *ps);
+	void enterProtectedScope(ProtectedScope &ProtectedScopeObject);
+	void exitProtectedScope(ProtectedScope &ProtectedScopeObject);
 
 	struct ThreadData 
     {	

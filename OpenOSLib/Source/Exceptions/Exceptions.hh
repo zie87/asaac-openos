@@ -2,7 +2,6 @@
 #define EXCEPTIONS_HH_
 
 
-#define LOCATION __PRETTY_FUNCTION__,__LINE__
 
 #include "ASAAC_Exception.hh"
 
@@ -23,5 +22,8 @@
 #include "DoubleInitializationException.hh"
 #include "TimeoutException.hh"
 #include "UninitializedObjectException.hh"
+
+#define NO_EXCEPTION(x) try{ x; } catch(ASAAC_Exception &e){ /* do nothing */ }
+#define LOCATION __PRETTY_FUNCTION__,__LINE__
 
 #endif /*EXCEPTIONS_HH_*/

@@ -116,18 +116,13 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 		Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
 
 
-		ASAAC_Time absolute_local_time;
-		ASAAC_Time absolute_global_time;
-		ASAAC_Time relative_local_time;
+		ASAAC_Time absolute_local_time = TimeZero;
+		ASAAC_Time absolute_global_time = TimeZero;
+		ASAAC_Time relative_local_time = TimeZero;
 		
-		if (TimeManager::getAbsoluteLocalTime( absolute_local_time ) == ASAAC_ERROR)
-			absolute_local_time = TimeZero;
-	
-		if (TimeManager::getAbsoluteGlobalTime( absolute_global_time ) == ASAAC_ERROR)
-			absolute_local_time = TimeZero;
-	
-		if (TimeManager::getRelativeLocalTime( relative_local_time ) == ASAAC_ERROR)
-			absolute_local_time = TimeZero;
+		TimeManager::getAbsoluteLocalTime( absolute_local_time );
+		TimeManager::getAbsoluteGlobalTime( absolute_global_time );
+		TimeManager::getRelativeLocalTime( relative_local_time );
 	
 	
 		ASAAC_PublicId process_id = 0;

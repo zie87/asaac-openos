@@ -378,7 +378,7 @@ void ProcessManager::createProcess( const ASAAC_ProcessDescription& Description 
 			if (CreatedProcess == NULL)
 				throw OSException("Created process could not be located", LOCATION);
 				
-			CreatedProcess->refreshPosixPid();
+			CreatedProcess->refreshPosixId();
 					
 			if ( d.Return == ASAAC_TM_ERROR )
 				throw OSException("process entity reported an error while creating a process", LOCATION);

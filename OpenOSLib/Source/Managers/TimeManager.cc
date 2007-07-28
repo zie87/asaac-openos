@@ -1,6 +1,6 @@
 #include "TimeManager.hh"
 
-using namespace std;
+#include "OpenOSObject.hh"
 
 TimeManager::TimeManager()
 {
@@ -11,31 +11,54 @@ TimeManager::~TimeManager()
 }
 
 
-ASAAC_ReturnStatus TimeManager::getAbsoluteLocalTime( ASAAC_Time& absolute_local_time )
+void TimeManager::getAbsoluteLocalTime( ASAAC_Time& absolute_local_time )
 {
-	timespec TimeNow;
-	
-	if ( clock_gettime( CLOCK_REALTIME, &TimeNow ) != 0 )
+	try
 	{
-		return ASAAC_ERROR;
+		timespec TimeNow;
+		
+		if ( clock_gettime( CLOCK_REALTIME, &TimeNow ) != 0 )
+			throw OSException( strerror(errno), LOCATION );
+		
+		absolute_local_time.sec  = TimeNow.tv_sec;
+		absolute_local_time.nsec = TimeNow.tv_nsec;
 	}
-	
-	absolute_local_time.sec  = TimeNow.tv_sec;
-	absolute_local_time.nsec = TimeNow.tv_nsec;
-	
-	return ASAAC_SUCCESS;
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error retrieving absolute local time", LOCATION);
+		
+		throw;
+	}
 }
 
 
-ASAAC_ReturnStatus TimeManager::getAbsoluteGlobalTime( ASAAC_Time& absolute_global_time )
+void TimeManager::getAbsoluteGlobalTime( ASAAC_Time& absolute_global_time )
 {
-	return getAbsoluteLocalTime( absolute_global_time );
+	try
+	{
+		getAbsoluteLocalTime( absolute_global_time );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error retrieving absolute global time", LOCATION);
+		
+		throw;
+	}
 }
 
 
-ASAAC_ReturnStatus TimeManager::getRelativeLocalTime( ASAAC_Time& relative_local_time )
+void TimeManager::getRelativeLocalTime( ASAAC_Time& relative_local_time )
 {
-	return getAbsoluteLocalTime( relative_local_time );
+	try
+	{
+		getAbsoluteLocalTime( relative_local_time );
+	}
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error retrieving relative local time", LOCATION);
+		
+		throw;
+	}
 }
 
 

@@ -2,6 +2,7 @@
 #include "Process.hh"
 #include "ProcessManager.hh"
 #include "ThreadManager.hh"
+#include "Managers/SignalManager.hh"
 
 #include "FaultManagement/ErrorHandler.hh"
 
@@ -78,7 +79,7 @@ void Thread::deinitialize()
 }
 
 
-void Thread::enterProtectedScope(ProtectedScope *ps)
+void Thread::enterProtectedScope(ProtectedScope &ProtectedScopeObject)
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -86,12 +87,20 @@ void Thread::enterProtectedScope(ProtectedScope *ps)
 	if (m_ProtectedScopeStackSize >= OS_MAX_NUMBER_OF_PROTECTEDSCOPES)
 		throw FatalException("Maximum number of protected scopes in stack reached.", LOCATION);
 		
-	m_ProtectedScopeStack[m_ProtectedScopeStackSize] = ps;
+	m_ProtectedScopeStack[m_ProtectedScopeStackSize] = &ProtectedScopeObject;
 	m_ProtectedScopeStackSize++;
+	
+	if ( ProtectedScopeObject.isCancelable() == false )
+	{
+		int CancelState;
+		oal_thread_setcancelstate( PTHREAD_CANCEL_DISABLE, &CancelState );
+		
+		ProtectedScopeObject.setCancelState(CancelState);
+	}
 }
 
 
-void Thread::exitProtectedScope(ProtectedScope *ps)
+void Thread::exitProtectedScope(ProtectedScope &ProtectedScopeObject)
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -100,6 +109,29 @@ void Thread::exitProtectedScope(ProtectedScope *ps)
 		throw FatalException("Exit a protected scope without entering.", LOCATION);
 		
 	m_ProtectedScopeStackSize--;
+	
+	if ( ProtectedScopeObject.isCancelable() == false )
+	{
+		oal_thread_setcancelstate( ProtectedScopeObject.getCancelState(), NULL );
+		
+		if ( ProtectedScopeObject.getCancelState() == PTHREAD_CANCEL_ENABLE )
+		{
+			oal_thread_testcancel();
+		
+			try
+			{
+				if ( (isSuspendPending() == true) && (ProtectedScopeObject.isSuspendPending() == false) )
+				{
+					oal_thread_kill( oal_thread_self(), OS_SIGNAL_SUSPEND );
+				}
+			}
+			catch ( ASAAC_Exception &e )
+			{
+				// do nothing
+			}
+		}
+	}
+
 }
 
 
@@ -130,7 +162,7 @@ bool Thread::isCancelable( ASAAC_CharacterSequence &scope )
 		if (!m_ProtectedScopeStack[i]->isCancelable())
 		{
 			cancelable = false;
-			scope = m_ProtectedScopeStack[i]->scope();
+			scope = m_ProtectedScopeStack[i]->getScope();
 		}
 	}
 	
@@ -151,8 +183,8 @@ void Thread::setState( ASAAC_ThreadStatus State )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
-
-	m_ThreadData->Status = State;
+    
+    m_ThreadData->Status = State;
 }
 
 
@@ -293,7 +325,7 @@ void Thread::start()
 			throw OSException( strerror(Result), LOCATION );
 		
 		m_ThreadData->Status = ASAAC_RUNNING;
-		sched_yield();
+
 		update();
     }
     catch ( ASAAC_Exception &e )
@@ -426,8 +458,13 @@ void Thread::suspend()
 
 	try
 	{
-		ASAAC_CharacterSequence scope;
+		if ( m_ThreadData->Status  == ASAAC_DORMANT ) 
+			throw OSException("Thread is in state 'DORAMANT'. It cannot be suspended", LOCATION);
 		
+		if ( isCurrentThread() ) 
+			throw OSException("A thread cannot suspend itself by calling 'suspend'. Use 'suspendSelf' instead.", LOCATION);
+
+		ASAAC_CharacterSequence scope;		
 		if (!isCancelable(scope))
 		{
 			CharacterSequence LogMsg;
@@ -436,16 +473,10 @@ void Thread::suspend()
 			ErrorHandler::getInstance()->logMessage(LogMsg.asaac_str(), ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE);
 		}
 		
-		if ( isCurrentThread() ) 
-			throw OSException("A thread cannot suspend itself by calling 'suspend'. Use 'suspendSelf' instead.", LOCATION);
-
 		ProtectedScope Access( "Suspending a thread", *(m_ParentProcess->getSemaphore()) );
 	
 		m_ThreadData->SuspendLevel ++;
 	
-		if ( m_ThreadData->Status  == ASAAC_DORMANT ) 
-			throw OSException("Thread is in state 'DORAMANT'. It cannot be suspended", LOCATION);
-		
 		if ( m_ThreadData->SuspendLevel == 1 )
 		{
 			m_SuspendPending = true;
@@ -545,9 +576,8 @@ void Thread::suspendSelf()
 		if ( m_ParentProcess->getLockLevel() > 0 )
 			throw OSException( (ErrorString << "The lock level of the thread must be zero: " << m_ParentProcess->getLockLevel()).c_str(), LOCATION);
 	
-		// TODO: What is a "release condition" ? It's specified in 11.4.1.5 of STANAG, but nowhere else.
-	
-		oal_sched_yield();
+		int iDummy;
+		SignalManager::getInstance()->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
     }
     catch ( ASAAC_Exception &e )
     {
@@ -565,46 +595,22 @@ void Thread::terminateSelf()
 
     try
     {
+    	CharacterSequence ErrorString;
+    	
 		if ( isCurrentThread() == false ) 
 			throw OSException("This thread object is not responsible for the current one", LOCATION);
 		
+		if ( m_ParentProcess->getLockLevel() > 0 )
+			throw OSException( (ErrorString << "The lock level of the thread must be zero: " << m_ParentProcess->getLockLevel()).c_str(), LOCATION);
+
 		m_ThreadData->Status = ASAAC_DORMANT;
-		
-		oal_thread_exit(0);
 	
+		oal_thread_exit(0);
 		throw OSException( strerror(errno), LOCATION );
     }
     catch ( ASAAC_Exception &e )
     {
     	e.addPath("Error terminating self", LOCATION);
-    	
-    	throw;
-    }
-}
-
-
-void Thread::terminate()
-{
-    if (m_IsInitialized == false) 
-        throw UninitializedObjectException(LOCATION);
-
-    try
-    {
-		if ( isCurrentThread() ) 
-			throw OSException("A thread cannot terminate itself using this function", LOCATION);
-	
-		if (m_ThreadData->Status == ASAAC_DORMANT)
-			throw OSException("The thread is in state ASAAC_DORMANT", LOCATION);
-			
-		m_ThreadData->Status = ASAAC_DORMANT;
-		
-		int Result = oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_KILL );
-		if (Result != 0)
-			throw OSException( strerror(Result), LOCATION );
-    }
-    catch ( ASAAC_Exception &e )
-    {
-    	e.addPath("Error terminating thread", LOCATION);
     	
     	throw;
     }

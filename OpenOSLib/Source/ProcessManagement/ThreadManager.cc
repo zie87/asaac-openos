@@ -29,16 +29,13 @@ public:
 				return;
 			}
 	
-			Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
+			Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
+			ThisThread->setSuspendPending( false );
 
-			if ( ThisThread != NULL ) 
-				ThisThread->setSuspendPending( false );
-
-			/* TODO: Find out, if this is necessary. Problems occured, while suspending a thread a second time.
+			// TODO: Find out, if this is necessary. Problems occured, while suspending a thread a second time.
 			SignalManager::getInstance()->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
 	
-			if ( ThisThread != NULL ) 
-				ThisThread->setSuspendPending( false );*/
+			ThisThread->setSuspendPending( false );
 		}
 		
 		virtual ~ThreadSuspendCallback() { };
@@ -188,7 +185,7 @@ void ThreadManager::stopThread(const ASAAC_PublicId thread_id)
 	
 void ThreadManager::terminateSelf()
 {
-	getCurrentThread()->terminate();
+	getCurrentThread()->terminateSelf();
 }
 
 	

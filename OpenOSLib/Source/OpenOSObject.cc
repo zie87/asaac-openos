@@ -298,7 +298,6 @@ void OpenOS::destroyAllEntities()
 				continue;
 			
 			CommandData d;
-			
 			sendCommand( m_CpuId[Index], CMD_TERM_ENTITY, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false );		
 				
 			if (d.Return == ASAAC_ERROR)

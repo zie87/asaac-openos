@@ -311,18 +311,14 @@ TimeStamp TimeStamp::Zero()
 TimeStamp TimeStamp::Now(TimeType type)
 {
 	ASAAC_Time t;
-	ASAAC_ReturnStatus r;
 	
 	switch (type)
 	{
-		case AbsoluteLocal:  r = TimeManager::getAbsoluteLocalTime(t); break;
-		case AbsoluteGlobal: r = TimeManager::getAbsoluteGlobalTime(t); break;
-		case RelativeLocal:  r = TimeManager::getRelativeLocalTime(t); break;
-		default: r = ASAAC_ERROR;
+		case AbsoluteLocal:  TimeManager::getAbsoluteLocalTime(t); break;
+		case AbsoluteGlobal: TimeManager::getAbsoluteGlobalTime(t); break;
+		case RelativeLocal:  TimeManager::getRelativeLocalTime(t); break;
+		default: break;
 	}
-	
-	if (r == ASAAC_ERROR)
-		throw OSException("Time::Now object could not be initialized.", LOCATION);
 	
 	return TimeStamp(t);
 }

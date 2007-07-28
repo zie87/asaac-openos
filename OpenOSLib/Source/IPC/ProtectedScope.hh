@@ -36,31 +36,29 @@ public:
 	 * 
 	 */
 	
-	
-	bool isCancelable();
-	
-	ASAAC_Time timeout();
-	
-	ASAAC_CharacterSequence scope();
-	
 	//! remove the protected scope and re-enable cancellability and suspendability if applicable
 	virtual ~ProtectedScope();
 	
+	bool 					isCancelable();
+	
+	ASAAC_Time 				getTimeout();
+	
+	ASAAC_CharacterSequence getScope();
+
+	int						getCancelState();
+	void					setCancelState(int CancelState);
+	
+	bool					isSuspendPending();
+	
 protected:
-	void enter();
-	void exit();
+	LockingObject*				m_LockingObject;
+	int							m_CancelState;
+	ASAAC_Time					m_Timeout;
+	bool						m_Cancelable;
+	ASAAC_CharacterSequence 	m_Scope;
+	bool						m_SuspendPending;
 	
-	LockingObject*		m_LockingObject;
-	int					m_CancelState;
-	ASAAC_Time			m_Timeout;
-	bool				m_Cancelable;
-	CharacterSequence 	m_Scope;
-	
-	enum {
-		LOCKED,
-		TIMEOUT,
-		ERROR
-	}				m_Status;
+	bool						m_Locked;
 };
 
 #endif /*PROTECTEDSCOPE_HH_*/

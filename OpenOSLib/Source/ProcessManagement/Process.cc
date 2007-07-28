@@ -34,7 +34,7 @@ const EntryPoint EmptyEntryPoint = { { 0, "" }, 0 };
 
 Process::Process() :  m_IsInitialized( false ),  m_IsMaster(false), m_IsServer(false)
 {
-	m_PosixPid = 0;
+	m_PosixId = 0;
 	m_ActiveMainLoop = false;
 }
 
@@ -188,7 +188,7 @@ void Process::deinitialize()
 		m_IsMaster = false;
 		m_IsServer = false;
 		
-		m_PosixPid = 0;
+		m_PosixId = 0;
 		m_ActiveMainLoop = false;
 	}
 	catch (ASAAC_Exception &e)
@@ -272,13 +272,13 @@ void Process::launch()
 		}
 		else ProcessPath = FileNameGenerator::getAsaacPath(m_ProcessData->Description.programme_file_name);
 		
-		m_PosixPid = fork();
+		m_PosixId = fork();
 
-        if (m_PosixPid == -1)
+        if (m_PosixId == -1)
             throw OSException( strerror(errno), LOCATION );                
         
         //Starter process
-        if (m_PosixPid == 0)
+        if (m_PosixId == 0)
         {
             try
             {            	
@@ -340,14 +340,14 @@ void Process::launch()
 }
 
 
-void Process::refreshPosixPid()
+void Process::refreshPosixId()
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
 	if ( m_IsServer )
 	{
-		m_PosixPid = getpid();
+		m_PosixId = getpid();
 	}
 	else
 	{
@@ -355,8 +355,17 @@ void Process::refreshPosixPid()
 		
 		sendCommand( CMD_GET_PID, Data.Buffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time());
 	
-        m_PosixPid = Data.PosixPid;
+        m_PosixId = Data.PosixPid;
 	}	
+}
+
+
+pid_t Process::getPosixId()
+{
+	if (m_IsInitialized == false) 
+		throw UninitializedObjectException(LOCATION);
+
+	return m_PosixId;
 }
 
 
@@ -619,7 +628,7 @@ void Process::terminateAllThreads()
 				continue;
 			}
 			
-			ThreadObject->terminate();
+			ThreadObject->stop();
 		}
 
 		m_ProcessData->Status = PROCESS_STOPPED; 			
@@ -656,8 +665,6 @@ void Process::run()
 					throw OSException( "Process is already running", LOCATION );
 		
 				resumeAllThreads();
-				
-				m_ProcessData->Status = PROCESS_RUNNING;
 			}
 			else
 			{	
@@ -674,7 +681,7 @@ void Process::run()
 					for(;;)
 					{
 						handleOneCommand( CommandId );
-
+						
 						if ( CommandId == CMD_TERM_PROCESS ) break;
 						if ( CommandId == CMD_TERM_ENTITY ) break;
 					} 
@@ -683,7 +690,8 @@ void Process::run()
 					if (m_IsMaster)
 						ProcessManager::getInstance()->destroyEntity();
 
-					terminateAllThreads();
+					//terminateAllThreads();
+					suspendAllThreads();
 
 					detachAndDestroyAllLocalVcs();
 				}
@@ -708,7 +716,7 @@ void Process::run()
 		{
 		    CommandData Data;
 	    
-			bool RefreshPosixPid = ( getState() == PROCESS_INITIALIZED );
+			bool RefreshPosixId = ( getState() == PROCESS_INITIALIZED );
 		
 			sendCommand( CMD_RUN_PROCESS, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );
 			
@@ -717,8 +725,8 @@ void Process::run()
 				// wait for process to send its PID,
 				// thus also signalling its readiness to
 				// respond.
-	            if (RefreshPosixPid)
-	                refreshPosixPid();
+	            if (RefreshPosixId)
+	                refreshPosixId();
 			}
 			
 			if (Data.Return == ASAAC_ERROR)
@@ -747,8 +755,6 @@ void Process::stop()
 				throw OSException("Process is not in state 'RUNNING'", LOCATION);
 			
 			suspendAllThreads();
-		
-			m_ProcessData->Status = PROCESS_STOPPED;
 		}
 		else
 		{
@@ -784,8 +790,7 @@ void Process::destroy()
 		//sendCommand will not return here.	
 		try
 		{
-			sendCommand( CMD_TERM_PROCESS, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );
-			
+			sendCommand( CMD_TERM_PROCESS, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );		
 		}
 		catch ( ASAAC_Exception &e )
 		{
@@ -810,8 +815,8 @@ void Process::destroy()
 			{
 				if (e.isTimeout())
 				{
-					if ( m_PosixPid != 0 ) 
-						oal_kill( m_PosixPid, SIGTERM );
+					if ( m_PosixId != 0 ) 
+						oal_kill( m_PosixId, SIGTERM );
 					else OSException("Kill Signal cannot be send, because pid is unknown (PID=0).", LOCATION).raiseError();
 				}
 				else throw;

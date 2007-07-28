@@ -69,17 +69,11 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
             if (EvaluateSession)
             {
                  if ( getMemoryHeader()->MemorySessionId != OpenOS::getInstance()->getSessionId() )
-                {
-                	//cout << "SharedMemory::SessionId is not the current one" << endl;
                     throw OSException("SessionId is not the current one", LOCATION);
-                }
             }
 	
 			if ( getMemoryHeader()->Size < Size )
-			{
-               	//cout << "SharedMemory::Size of of shared memory is smaller than requested size" << endl;
  				throw FatalException("Size of of shared memory is smaller than requested size", LOCATION);
-			}
 				
 			Size = getMemoryHeader()->Size;
 			

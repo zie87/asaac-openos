@@ -585,7 +585,7 @@ void OneWayCommunication::invokeOSScope( const ASAAC_PublicId process_id, const 
 	{
 		//In this case "invoking OSScope" is not needed, because target process can be stopped easily
 		//This call is much faster
-		return foo( param.buffer );
+		foo( param.buffer );
 	}
 	else
 	{	
@@ -655,7 +655,7 @@ void OneWayCommunication::detachLocalVc(OSScopeCommandBuffer param)
 			throw OSException("process is not available", LOCATION);
 	
 		ProcessStatus p_state = P->getState(); 
-						
+
 		if (p_state == PROCESS_RUNNING)
 			P->stop();	
 		
