@@ -110,9 +110,6 @@ FileManager* FileManager::getInstance()
 void FileManager::executeFile( const ASAAC_CharacterSequence name, const ProcessAlias alias )
 {
 	
-	cout <<__FILE__<<":"<<__LINE__<< " name = " << name << endl;
-	cout <<__FILE__<<":"<<__LINE__<< " alias= " << alias << endl;
-	
 	try
 	{
 	    // For APOS processes drop all privileges. set uid and gid == nobody

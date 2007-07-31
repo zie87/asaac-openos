@@ -556,8 +556,8 @@ bool OneWayCommunication::isLocalVcAdequate(ASAAC_VcMappingDescription currentDe
 		//if (currentDescription.is_refusing_queue != referenceDescription.is_refusing_queue)
 			//throw OSException( (ErrorString << "current is_refusing_queue:" << (long)currentDescription.is_refusing_queue << " reference is_refusing_queue:" << (long)referenceDescription.is_refusing_queue).c_str(), LOCATION);
 			
-		if (currentDescription.Priority != referenceDescription.Priority)
-			throw OSException( (ErrorString << "current Priority:" << currentDescription.Priority << " reference Priority:" << referenceDescription.Priority).c_str(), LOCATION);
+		//if (currentDescription.Priority != referenceDescription.Priority)
+			//throw OSException( (ErrorString << "current Priority:" << currentDescription.Priority << " reference Priority:" << referenceDescription.Priority).c_str(), LOCATION);
 			
 	}
 	catch ( ASAAC_Exception &e )

@@ -89,6 +89,43 @@ ASAAC_ReturnStatus createVcMapping(
     RequestMapping.is_lifo_queue			 = ASAAC_BOOL_FALSE;
     RequestMapping.is_refusing_queue		 = ASAAC_BOOL_TRUE;
     RequestMapping.local_thread_id           = 1;
-    RequestMapping.Priority					 = 1;
+    RequestMapping.Priority					 = 0;
     return ASAAC_SMOS_attachChannelToProcessOrThread( &RequestMapping );
+}
+
+
+ASAAC_ReturnStatus createTransferConnection(
+	ASAAC_PublicId tc_id,
+	ASAAC_PublicId network,
+	ASAAC_PublicId port,
+	ASAAC_Bool is_receiver
+)
+{
+	ASAAC_TcDescription Description;
+	Description.tc_id = tc_id;
+	Description.network_descr.network = network;
+	Description.network_descr.port = port;
+	Description.is_receiver = is_receiver;
+	Description.is_msg_transfer = ASAAC_BOOL_TRUE;
+	Description.is_fragmented = ASAAC_BOOL_FALSE;
+	Description.security_rating.classification_level = ASAAC_UNCLASSIFIED;
+	Description.security_rating.security_category = ASAAC_LEVEL_1;
+	Description.cpu_id = 0;
+	Description.conf_data_size = 0;
+	
+	return ASAAC_SMOS_createTransferConnection(&Description);
+}
+
+
+ASAAC_ReturnStatus attachTransferConnectionToVirtualChannel(
+	ASAAC_PublicId global_vc_id,
+	ASAAC_PublicId tc_id,
+	ASAAC_Bool is_data_representation)
+{
+	ASAAC_VcToTcMappingDescription Description;
+	Description.global_vc_id = global_vc_id;
+	Description.tc_id = tc_id;
+	Description.is_data_representation = is_data_representation;
+	
+	return ASAAC_SMOS_attachTransferConnectionToVirtualChannel(&Description);
 }

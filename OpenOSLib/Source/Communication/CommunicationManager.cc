@@ -254,6 +254,7 @@ GlobalVc* CommunicationManager::createVirtualChannel( const ASAAC_VcDescription&
 	catch ( ASAAC_Exception& e )
 	{
 		e.addPath( (ErrorString << "Error while creating Global VC: " << CharSeq(Description.global_vc_id)).c_str(), LOCATION);
+		
 		throw;
 	}
 }
@@ -391,7 +392,7 @@ void CommunicationManager::configureInterface( const ASAAC_InterfaceData& if_con
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("SMOS::configureInterface", LOCATION);
+        e.addPath("Error configuring interface", LOCATION);
 
         throw;
     }
@@ -409,7 +410,7 @@ void CommunicationManager::createTransferConnection( const ASAAC_TcDescription& 
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("SMOS::createTransferConnection", LOCATION);
+        e.addPath("Error creating TransferConnection", LOCATION);
 
         throw;
     }
@@ -427,7 +428,7 @@ void CommunicationManager::destroyTransferConnection( ASAAC_PublicId tc_id, cons
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("SMOS::destroyTransferConnection", LOCATION);
+        e.addPath("Error destroying TransferConnection", LOCATION);
 
         throw;
     }
@@ -445,7 +446,7 @@ void CommunicationManager::getNetworkPortStatus( const ASAAC_NetworkDescriptor& 
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("SMOS::getNetworkPortStatus", LOCATION);
+        e.addPath("Error retrieving NetworkPortStatus", LOCATION);
 
         throw;
     }
@@ -540,7 +541,7 @@ void CommunicationManager::attachTransferConnectionToVirtualChannel( const ASAAC
 	}		
 	catch (ASAAC_Exception &e)
 	{
-        e.addPath("SMOS::attachTransferConnectionToVirtualChannel", LOCATION);
+        e.addPath("Error attaching TransferConnection to VirtualChannel", LOCATION);
 
         throw;
 	}			
@@ -585,7 +586,7 @@ void CommunicationManager::detachTransferConnectionFromVirtualChannel( ASAAC_Pub
     }
 	catch (ASAAC_Exception &e)
 	{
-        e.addPath("SMOS::detachTransferConnectionFromVirtualChannel", LOCATION);
+        e.addPath("Error detaching TransferConnection from VirtualChannel", LOCATION);
 
         throw;
 	}			
@@ -648,7 +649,7 @@ void CommunicationManager::getPMData(ASAAC_PublicId &vc_id, ASAAC_Address &messa
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.addPath("SMOS::getPMData", LOCATION);
+		e.addPath("Error retrieving PM data", LOCATION);
 		
 		throw;
 	}
@@ -692,8 +693,8 @@ void CommunicationManager::returnPMData(const ASAAC_PublicId vc_id, const ASAAC_
 	}
 	catch (ASAAC_Exception &e)
 	{
-        e.addPath("SMOS::returnPMData", LOCATION);
-
+		e.addPath("Error returning PM data", LOCATION);
+		
         throw;
 	}
 }
@@ -774,8 +775,6 @@ void CommunicationManager::sendMessage(const ASAAC_PublicId local_vc_id, const A
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::sendMessage", LOCATION);
-
         throw;
     }
 }
@@ -802,8 +801,6 @@ void CommunicationManager::receiveMessage(const ASAAC_PublicId local_vc_id, cons
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::receiveMessage", LOCATION);
-        
         throw;
     }
 }
@@ -829,8 +826,6 @@ void CommunicationManager::lockBuffer(const ASAAC_PublicId local_vc_id, const AS
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::lockBuffer", LOCATION);
-
         throw;
     }
 }
@@ -854,8 +849,6 @@ void CommunicationManager::sendBuffer( const ASAAC_PublicId local_vc_id, const A
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::sendBuffer", LOCATION);
-        
         throw;
     }
 }
@@ -881,8 +874,6 @@ void CommunicationManager::receiveBuffer(const ASAAC_PublicId local_vc_id, const
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::receiveBuffer", LOCATION);
-
         throw;
     }
 }
@@ -906,8 +897,6 @@ void CommunicationManager::unlockBuffer ( const ASAAC_PublicId local_vc_id, cons
     }
     catch ( ASAAC_Exception &e )
     {
-        e.addPath("APOS::unlockBuffer", LOCATION);
-        
         throw;
     }
 }

@@ -1,5 +1,7 @@
 #include "Aid.h"
 
+#include "OpenOSObject.hh"
+
 // Returns an ASAAC network id based on an IP4 address format X.X.X.X
 ASAAC_PublicId IpAddressToNetworkId(const char* ip_addr)
 {

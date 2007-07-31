@@ -1,7 +1,7 @@
 #ifndef AID_H_
 #define AID_H_
 
-#include "OpenOSIncludes.hh"
+#include "ASAAC.h"
 
 ASAAC_PublicId IpAddressToNetworkId(const char* ip_addr);
 

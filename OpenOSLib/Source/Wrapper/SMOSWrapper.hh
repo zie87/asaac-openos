@@ -35,5 +35,15 @@ ASAAC_ReturnStatus createVcMapping(
 	unsigned long buffer_size = 4096,
     unsigned long number_of_message_buffers = 10);
 
+ASAAC_ReturnStatus createTransferConnection(
+	ASAAC_PublicId tc_id,
+	ASAAC_PublicId network,
+	ASAAC_PublicId port,
+	ASAAC_Bool is_receiver);
 
+ASAAC_ReturnStatus attachTransferConnectionToVirtualChannel(
+	ASAAC_PublicId global_vc_id,
+	ASAAC_PublicId tc_id,
+	ASAAC_Bool is_data_representation = ASAAC_BOOL_FALSE);
+		
 #endif /*SMOSWRAPPER_HH_*/
