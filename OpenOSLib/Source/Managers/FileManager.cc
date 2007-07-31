@@ -109,6 +109,10 @@ FileManager* FileManager::getInstance()
 
 void FileManager::executeFile( const ASAAC_CharacterSequence name, const ProcessAlias alias )
 {
+	
+	cout <<__FILE__<<":"<<__LINE__<< " name = " << name << endl;
+	cout <<__FILE__<<":"<<__LINE__<< " alias= " << alias << endl;
+	
 	try
 	{
 	    // For APOS processes drop all privileges. set uid and gid == nobody
@@ -116,11 +120,21 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 	    {
 	    	// It is important here first to set the group id and then the user id
 	    	
+	if (0)
+		{
 	        if (setgid( 65534 ) == -1)
-	        	throw OSException( strerror(errno), LOCATION );
-
+	        	{
+	        	CharacterSequence err = "setgid error: ";
+	        		err += strerror(errno);
+	        	throw OSException( err.c_str(), LOCATION );
+	        	}
 	        if (setuid( 65534 ) == -1)
-	        	throw OSException( strerror(errno), LOCATION );
+	        	{
+	        		CharacterSequence err = "setuid error:";
+	        		err += strerror(errno);
+	        	throw OSException( err.c_str(), LOCATION );
+	        	}
+		}
 	    } 
 	    
 	    deinitialize( true );
@@ -133,6 +147,11 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 	
 	    //if the last call returned, an error occured
 	    OSException e( strerror(errno), LOCATION );
+	        	{
+	        		CharacterSequence err = "execve error";
+	        		err += strerror(errno);
+	        		OSException e( err.c_str(), LOCATION );
+	        	}
 
 		//reallocate all objects, because execve failed.
 	    AllocatorManager::getInstance()->reallocateAllObjects();

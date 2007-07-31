@@ -800,8 +800,11 @@ bool CharacterSequence::operator!=(const ASAAC_CharacterSequence &data) const
 
 char CharacterSequence::operator[](const unsigned long Index) const
 {
+	CharacterSequence error_string;
+	
+	
 	if (Index >= m_Size)
-		OSException("Index is out of range", LOCATION);
+		throw OSException((error_string<< "Index is out of range (" << Index << ")").c_str(), LOCATION);
 	
 	return m_Data[Index];
 }

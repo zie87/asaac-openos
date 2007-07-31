@@ -223,10 +223,20 @@ void ASAAC_Exception::raiseError( const bool do_throw ) const
 		throw *this;*/
 	}
 
+	
 #ifdef DEBUG
     printMessage();
 #endif
 
+if ((isTimeout() == true) || (isResource() == true))
+	return;
+
+#ifdef DEBUG_APPLICATION
+#ifndef DEBUG
+    printMessage();
+#endif
+#endif
+    
     ASAAC_CharacterSequence error_message = CharSeq(getMessage()).asaac_str(); 
 
     ErrorHandler* eh = ErrorHandler::getInstance();

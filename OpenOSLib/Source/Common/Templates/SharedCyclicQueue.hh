@@ -71,10 +71,10 @@ public:
 
 
 	//! set the handler called when overwriting of cells in the queue
-	ASAAC_ReturnStatus setOverwriteCallback( Callback* OverwriteCallback );
+	void setOverwriteCallback( Callback* OverwriteCallback );
 	
 	//! set the handler called for any update to the queue
-	ASAAC_ReturnStatus setUpdateCallback( Callback* UpdateCallback );
+	void setUpdateCallback( Callback* UpdateCallback );
 
 	//! push data longo the next free cell of the queue
 	void push( const T Value, const ASAAC_Time& Timeout = TimeZero );
@@ -83,19 +83,16 @@ public:
 	T pop( const ASAAC_Time& Timeout = TimeZero );
 
 	//! wait for free cells in the queue to become available
-	ASAAC_TimedReturnStatus waitForFreeCells( const ASAAC_Time& Timeout = TimeInfinity );
+	void waitForFreeCells( const ASAAC_Time& Timeout = TimeInfinity );
 	
 	//! wait for cells in the queue to become allocated with data
-	ASAAC_TimedReturnStatus waitForAvailableData( const ASAAC_Time& Timeout = TimeInfinity );
+	void waitForAvailableData( const ASAAC_Time& Timeout = TimeInfinity );
 
 	//! get number of free cells in the queue
 	unsigned long getFreeCells() const;
 	
 	//! check for empty state of the queue
 	bool isEmpty() const;
-
-	//! queue shall be released, semophores triggered.
-	void forceRelease();
 
 	virtual ~SharedCyclicQueue(); 
 	
@@ -141,8 +138,8 @@ template <class T> SharedCyclicQueue<T>::SharedCyclicQueue(  Allocator* ThisAllo
 															 BlockingType Blocking ) :
 															 
 															 m_IsInitialized(false),
-															 m_OverwriteCallback( 0 ),
-															 m_UpdateCallback( 0 )
+															 m_OverwriteCallback( NULL ),
+															 m_UpdateCallback( NULL )
 {
 	// Call the explicit initialization
 	initialize( ThisAllocator, IsMaster, Size, Direction, Blocking );
@@ -219,27 +216,23 @@ template <class T> void SharedCyclicQueue<T>::initialize( Allocator* ThisAllocat
 }
 
 
-template <class T>  ASAAC_ReturnStatus SharedCyclicQueue<T>::setOverwriteCallback( Callback* OverwriteCallback )
+template <class T>  void SharedCyclicQueue<T>::setOverwriteCallback( Callback* OverwriteCallback )
 {
-	if (( m_OverwriteCallback != 0 ) && ( OverwriteCallback != 0 ))
-		return ASAAC_ERROR;
+	if (( m_OverwriteCallback != NULL ) && ( OverwriteCallback != NULL ))
+		throw OSException("Callback already set", LOCATION);
 	
 	m_OverwriteCallback = OverwriteCallback;
-	
-	return ASAAC_SUCCESS;
 }
 
 
 
 
-template <class T> ASAAC_ReturnStatus SharedCyclicQueue<T>::setUpdateCallback( Callback* UpdateCallback )
+template <class T> void SharedCyclicQueue<T>::setUpdateCallback( Callback* UpdateCallback )
 {
-	if (( m_UpdateCallback != 0 ) && ( UpdateCallback != 0 )) 
-		return ASAAC_ERROR;
+	if (( m_UpdateCallback != NULL ) && ( UpdateCallback != NULL )) 
+		throw OSException("Callback already set", LOCATION);
 	
 	m_UpdateCallback = UpdateCallback;
-	
-	return ASAAC_SUCCESS;
 }
 
 
@@ -420,7 +413,7 @@ template <class T> T SharedCyclicQueue<T>::pop( const ASAAC_Time& Timeout )
 
 
 
-template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForFreeCells( const ASAAC_Time& Timeout )
+template <class T> void SharedCyclicQueue<T>::waitForFreeCells( const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -444,17 +437,14 @@ template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForFreeCell
 	catch ( ASAAC_Exception &e )
 	{
         e.addPath("Error waiting for free cells", LOCATION);
-        e.raiseError();
 
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        throw;
 	}
-	
-	return ASAAC_TM_SUCCESS;
 }
 
 
 
-template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForAvailableData( const ASAAC_Time& Timeout )
+template <class T> void SharedCyclicQueue<T>::waitForAvailableData( const ASAAC_Time& Timeout )
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
@@ -474,12 +464,9 @@ template <class T> ASAAC_TimedReturnStatus SharedCyclicQueue<T>::waitForAvailabl
 	catch ( ASAAC_Exception &e )
 	{
         e.addPath("Error waiting for free cells", LOCATION);
-        e.raiseError();
 
-        return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+        throw;
 	}
-	
-	return ASAAC_TM_SUCCESS;
 }
 
 
