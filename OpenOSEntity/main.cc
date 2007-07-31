@@ -52,8 +52,6 @@ ASAAC_THREAD(MainThread)
         ASAAC_SMOS_runProcess( entityConfiguration.ProcessConfiguration.List[p].Description.global_pid );
     }
 	
-	ASAAC_APOS_suspendSelf();
-	
     return 0;
 }
 
@@ -70,11 +68,6 @@ int main( char argc, char** argv )
     {
     	e.printMessage();
     	return 1;
-    }
-    catch (...)
-    {
-    	FatalException("Caught fatal exception reading parameter list", LOCATION).printMessage();
-    	return 2;
     }
 	
 	// 2nd step: start execution	
@@ -107,12 +100,6 @@ int main( char argc, char** argv )
     	e.printMessage();
     	
     	return 3;
-    }
-    catch (...)
-    {
-    	FatalException("Caught critical exception in main loop of OpenOS Entity.", LOCATION).printMessage();
-    	
-    	return 4;
     }
     
     // 3rd step: shut down
