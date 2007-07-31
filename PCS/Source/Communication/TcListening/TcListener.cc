@@ -1,5 +1,7 @@
 #include "TcListener.hh"
 
+#include "PcsHIncludes.hh"
+
 TcListener::TcListener()
 {
     
@@ -36,7 +38,7 @@ ASAAC_TimedReturnStatus TcListener::listen(const ASAAC_NetworkDescriptor& networ
     
     ASAAC_NiiReturnStatus ret = ASAAC_MOS_receiveNetwork(&network_id, &receive_data, PCS_MAX_SIZE_OF_NWMESSAGE, &data_length, &tc_id, &AbsTime);
 #ifdef _DEBUG_
-    cout << "TcListener::listen() ASAAC_MOS_receiveNetwork() returned " << cMosNii::spell(ret) << endl;
+    //cout << "TcListener::listen() ASAAC_MOS_receiveNetwork() returned " << cMosNii::spell(ret) << endl;
     if(ret == ASAAC_MOS_NII_CALL_COMPLETE)
     {
     	cout << "TcListener::listen() received data : " << " from TC " << tc_id << " of length " << data_length << endl;

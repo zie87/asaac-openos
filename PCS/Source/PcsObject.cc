@@ -257,7 +257,7 @@ ASAAC_ReturnStatus PCS::returnPMData(ASAAC_PublicId vc_id, ASAAC_PublicId rec_vc
 
 
 #ifdef _DEBUG_       
-		cout << "PCS::returnPMData()  receiveMessage(" << rec_vc << ", " << TC_MAX_MESSAGE_SIZE << ", " << (void*) msg_buffer << ")" << endl;
+		cout << "PCS::returnPMData()  receiveMessage(" << rec_vc << ", " << PCS_MAX_SIZE_OF_TCMESSAGE << ", " << (void*) msg_buffer << ")" << endl;
 #endif
 	ASAAC_TimedReturnStatus receiveStatus = ASAAC_APOS_receiveMessage(rec_vc, &TimeIntervalInstant, PCS_MAX_SIZE_OF_TCMESSAGE, msg_buffer, &actual_size);
 	
