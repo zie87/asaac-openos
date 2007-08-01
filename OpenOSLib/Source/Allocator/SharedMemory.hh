@@ -5,7 +5,6 @@
 
 #include "Allocator/Allocator.hh"
 
-
 //! Allocator for memory located in a POSIX shared memory area
 
 /*! The SharedMemory Allocator provides access to data structures contained
@@ -34,11 +33,13 @@ class AllocatorManager;
 
 class SharedMemory : public Allocator
 {
-	
+
 public:
 	SharedMemory();
-	
-	void initialize( const ASAAC_CharacterSequence& Name, bool IsMaster, unsigned long Size, bool EraseMemory = true, bool EvaluateSession = true );
+
+	void initialize(const ASAAC_CharacterSequence& Name, bool IsMaster,
+			unsigned long Size, bool EraseMemory = true,
+			bool EvaluateSession = true);
 	//!< initialize shared memory allocator
 	/*!< \param[in] Name           File name of the POSIX shared memory object to connect to
 	 *   \param[in] IsMaster       Flag to indicate whether this instance shall be the master instance of the
@@ -53,8 +54,8 @@ public:
 	 *   other POSIX-related errors, a ResourceException will be thrown. 
 	 *   In case of an error during the memory mapping of the shared data, an OSException will be thrown.
 	 */
-	
-	void deinitialize( );
+
+	void deinitialize();
 	//!< deinitialize shared memory allocator
 	/*!< unmap the shared memory object from memory and reset longernal data structures of the
 	 *   object. Note that the actual POSIX shared memory object will not be closed, so it can
@@ -65,65 +66,65 @@ public:
 	 */
 
 	virtual ~SharedMemory();
-	
+
 	bool isInitialized();
-	
-    virtual ASAAC_Address allocate(long Size);
-    virtual void free(ASAAC_Address AllocatedAddress);
-    
-    virtual void reset();
-    
-    virtual unsigned long getSize() const;
-    virtual unsigned long getFreeMemory() const;
-    virtual unsigned long getUsedMemory() const;
+
+	virtual ASAAC_Address allocate(long Size);
+	virtual void free(ASAAC_Address AllocatedAddress);
+
+	virtual void reset();
+
+	virtual unsigned long getSize() const;
+	virtual unsigned long getFreeMemory() const;
+	virtual unsigned long getUsedMemory() const;
 
 	virtual unsigned long getAllocationCounter() const;
-    
-    SessionId getSessionId();
-    
-    ASAAC_CharacterSequence getName();
-    
+
+	SessionId getSessionId();
+
+	ASAAC_CharacterSequence getName();
+
 protected:
-	friend class OpenOS; 
+	friend class OpenOS;
 	friend class AllocatorManager;
-	
-    typedef struct {
-    	unsigned long MagicNumber;
-        unsigned long Size;
-        unsigned long AllocationCounter;
-        SessionId      	MemorySessionId;
-    } MemoryHeader;
 
-    union SharedAddress {
-        void *        ptr;
-        char *        ch;
-        unsigned long number;
-    };
+	typedef struct
+	{
+		unsigned long MagicNumber;
+		unsigned long Size;
+		unsigned long AllocationCounter;
+		SessionId MemorySessionId;
+	} MemoryHeader;
 
-    MemoryHeader *getMemoryHeader() const;    
-    void setSessionId(SessionId id);
+	typedef union
+	{
+		void * ptr;
+		char * ch;
+		unsigned long number;
+	} SharedAddress;
+
+	MemoryHeader *getMemoryHeader() const;
+	void setSessionId(SessionId id);
 	void setAllocationCounter(unsigned long id);
-    
-	bool 					m_IsInitialized;
 
-	SharedAddress			m_BaseAddress;   
-	SharedAddress			m_HeaderAddress; 
-	SharedAddress			m_MemoryAddress; 
-	
+	bool m_IsInitialized;
+
+	SharedAddress m_BaseAddress;
+	SharedAddress m_HeaderAddress;
+	SharedAddress m_MemoryAddress;
+
 	ASAAC_CharacterSequence m_Name;
-	
-	bool 					m_IsMaster;
-	ASAAC_PrivateId			m_FileHandle;
-	unsigned long 			m_BaseMemorySize;
-	unsigned long 			m_UsedMemory;
-	
+
+	bool m_IsMaster;
+	ASAAC_PrivateId m_FileHandle;
+	unsigned long m_BaseMemorySize;
+	unsigned long m_UsedMemory;
+
 private:
 	// no implicit assignment and copying
-	SharedMemory( const SharedMemory& Source );
-	SharedMemory& operator= ( const SharedMemory& Source );
-	
+	SharedMemory(const SharedMemory& Source);
+	SharedMemory& operator=(const SharedMemory& Source);
+
 };
-
-
 
 #endif /*SHAREDMEMORYALLOCATOR_HH_*/

@@ -182,7 +182,7 @@ namespace ASAAC
 			{
 				e.addPath("Error receiving an oli message", LOCATION);
 
-				try { CommunicationManager::getInstance()->unlockBuffer( getReplyVc(), Incoming ); } catch ( ... ) {}
+				NO_EXCEPTION( CommunicationManager::getInstance()->unlockBuffer( getReplyVc(), Incoming ) );
 				
 				throw;
 			}					
@@ -218,7 +218,7 @@ namespace ASAAC
 			{
 				e.addPath("Error requesting file", LOCATION);
 
-				try { CommunicationManager::getInstance()->unlockBuffer( getRequestVc(), Outgoing ); } catch ( ... ) {}
+				NO_EXCEPTION( CommunicationManager::getInstance()->unlockBuffer( getRequestVc(), Outgoing ) );
                 
 				throw;
 			}

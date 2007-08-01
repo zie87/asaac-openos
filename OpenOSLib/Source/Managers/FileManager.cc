@@ -157,7 +157,7 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 	    {
 	    	initialize();
 	    }
-	    catch ( ... )
+	    catch ( ASAAC_Exception &e2 )
 	    {
 	    	e.addPath("Reinitialization of FileManager failed.", LOCATION);
 	    }
@@ -320,13 +320,8 @@ void FileManager::createMessageQueue(const ASAAC_CharacterSequence name, const A
     {
         e.addPath("APOS::createMessageQueue", LOCATION);
         
-		try
-		{
-	        if (Handle != -1)
-	            deleteMessageQueue( Path.asaac_str(), ASAAC_IMMEDIATELY, TimeIntervalInstant );
-        }
-        catch ( ... )
-        {}
+        if (Handle != -1)
+        	NO_EXCEPTION( deleteMessageQueue( Path.asaac_str(), ASAAC_IMMEDIATELY, TimeIntervalInstant ) );
         
         throw;
     }
@@ -890,6 +885,21 @@ int FileManager::UseOptionToFlags( ASAAC_UseOption UseOption ) const
 
 ASAAC_UseOption FileManager::FlagsToUseOption( int Flags ) const
 {
+	ASAAC_UseOption Result;
+	
+	Result.use_access = ASAAC_READ;
+	
+	if ( (Flags & O_WRONLY) == O_WRONLY )
+		Result.use_access = ASAAC_WRITE;
+	
+	if ( (Flags & O_RDWR) == O_RDWR )
+		Result.use_access = ASAAC_READWRITE;
+
+	if ( (Flags & O_EXCL) == O_EXCL )
+		Result.use_concur = ASAAC_EXCLUSIVE;
+	else Result.use_concur = ASAAC_SHARE;
+	
+	return Result;
 }
 
 

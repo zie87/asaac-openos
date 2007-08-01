@@ -52,13 +52,13 @@ public:
 	
 protected:
 	LockingObject*				m_LockingObject;
-	int							m_CancelState;
+	ASAAC_CharacterSequence 	m_Scope;	
 	ASAAC_Time					m_Timeout;
 	bool						m_Cancelable;
-	ASAAC_CharacterSequence 	m_Scope;
-	bool						m_SuspendPending;
 	
+	int							m_CancelState;
 	bool						m_Locked;
+	bool						m_SuspendPending;
 };
 
 #endif /*PROTECTEDSCOPE_HH_*/

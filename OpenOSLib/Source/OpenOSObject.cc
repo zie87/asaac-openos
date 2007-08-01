@@ -272,10 +272,6 @@ void OpenOS::deinitialize()
 		e.addPath("Error deinitializing OpenOS", LOCATION);
 		e.raiseError();
 	}
-	catch ( ... )
-	{
-		FatalException("Error deinitializing OpenOS", LOCATION).raiseError();
-	}	
 }
 
 

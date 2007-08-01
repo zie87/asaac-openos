@@ -374,11 +374,11 @@ void* Thread::ThreadStartWrapper( void* RealAddress )
 			
 			throw;
 		}
-	    catch ( ... )
+	    catch ( exception &e )
 	    {
 			ThisThread->setState(ASAAC_DORMANT);
 			
-			throw FatalException("Unknown error in main loop of thread", LOCATION);
+			throw FatalException(e.what(), LOCATION);
 	    }
 		
 		ThisThread->setState(ASAAC_DORMANT);
