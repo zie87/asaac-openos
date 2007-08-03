@@ -284,13 +284,13 @@ void Thread::stop()
 		
 		int Result;
 		
+		// resume, so cancellation may be performed
+		raiseSignal( OS_SIGNAL_RESUME );
+		
 		Result = oal_thread_cancel( m_ThreadData->PosixThread );
 		if (Result != 0)
 			throw OSException( strerror(Result), LOCATION );
 	
-		// resume, so cancellation may be performed
-		raiseSignal( OS_SIGNAL_RESUME );
-		
 		waitForTermination();
 			
 		m_ThreadData->Status = ASAAC_DORMANT;
@@ -705,14 +705,5 @@ void Thread::SuspendCallback( void* )
 	ThisThread->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
 
 	ThisThread->m_SuspendPending = false; // resume() is waiting for this switch
-}
-
-
-void Thread::KillCallback( void* )
-{
-	Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
-	
-	if ( ThisThread != NULL ) 
-		ThisThread->terminateSelf();
 }
 

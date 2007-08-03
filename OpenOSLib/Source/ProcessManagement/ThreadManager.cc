@@ -15,19 +15,7 @@ public:
 		
 		virtual ~ThreadSuspendCallback() { };
 };
-
-class ThreadKillCallback : public Callback {
-public:	
-		virtual void call( void* Data ) 
-		{
-			Thread::KillCallback( Data );
-		}
-		
-		virtual ~ThreadKillCallback() { };
-};
-
 	
-static ThreadKillCallback		KillCallback;
 static ThreadSuspendCallback	SuspendCallback;
 
 
@@ -55,7 +43,6 @@ void ThreadManager::initialize()
 	{
 		m_IsInitialized = true;
 	
-		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_KILL,    KillCallback );
 		SignalManager::getInstance()->registerSignalHandler( OS_SIGNAL_SUSPEND, SuspendCallback );
 	}
 	catch ( ASAAC_Exception &e )
@@ -73,7 +60,6 @@ void ThreadManager::deinitialize()
 {
 	try
 	{
-		SignalManager::getInstance()->unregisterSignalHandler( OS_SIGNAL_KILL );					
 		SignalManager::getInstance()->unregisterSignalHandler( OS_SIGNAL_SUSPEND );		
 	}
 	catch ( ASAAC_Exception &e )
