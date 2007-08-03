@@ -2,6 +2,7 @@
 
 #include "OpenOSObject.hh"
 #include "ProcessManagement/ProcessManager.hh"
+#include "ProcessManagement/ThreadManager.hh"
 #include "IPC/BlockingScope.hh"
 
 
@@ -159,14 +160,14 @@ void SignalManager::unregisterSignalHandler( int Signal )
     }
 	catch ( ASAAC_Exception &e )
 	{
-		e.addPath("Error registering signal handler", LOCATION);
+		e.addPath("Error unregistering signal handler", LOCATION);
 		
 		throw;
 	}
 }
 	
 
-void SignalManager::raiseSignal( ASAAC_PublicId ProcessId, int Signal, int Value )
+void SignalManager::raiseSignalToProcess( ASAAC_PublicId ProcessId, int Signal, int Value )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -184,7 +185,25 @@ void SignalManager::raiseSignal( ASAAC_PublicId ProcessId, int Signal, int Value
     }
 	catch ( ASAAC_Exception &e )
 	{
-		e.addPath("Error registering signal handler", LOCATION);
+		e.addPath("Error raising signal to process", LOCATION);
+		
+		throw;
+	}		
+}
+
+
+void SignalManager::raiseSignalToThread( ASAAC_PublicId ThreadId, int Signal, int Value )
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+    try
+    {
+    	ThreadManager::getInstance()->getThread( ThreadId )->raiseSignal( Signal, Value );
+    }
+	catch ( ASAAC_Exception &e )
+	{
+		e.addPath("Error raising signal to thread", LOCATION);
 		
 		throw;
 	}		
@@ -238,7 +257,7 @@ void SignalManager::waitForSignal( int Signal, int& Value, const ASAAC_TimeInter
     }
 	catch ( ASAAC_Exception &e )
 	{
-		e.addPath("Error registering signal handler", LOCATION);
+		e.addPath("Error waiting for signal", LOCATION);
 		
 		throw;
 	}		

@@ -6,9 +6,13 @@
 #include "Common/Templates/Shared.hh"
 #include "AbstractInterfaces/Callback.hh"
 
+#include "IPC/BlockingScope.hh"
 #include "IPC/ProtectedScope.hh"
 
 class Process;
+class ThreadSuspendCallback;
+class ThreadKillCallback;
+
 
 //! object class responsible for handling all operations related to a thread
 
@@ -61,9 +65,6 @@ public:
 	/*!< \returns ASAAC_PublicId of the thread handled by this Thread instance.
 	 *           'UnusedId', if the thread is not yet assigned.
 	 */
-	
-	//! set the ASAAC_ThreadStatus of this thread
-	void		setState( ASAAC_ThreadStatus State );
 	
 	//! get the ASAAC_ThreadStatus of this thread
 	void		getState( ASAAC_ThreadStatus& State );
@@ -156,12 +157,6 @@ public:
 	 */
 	
 	
-	//! set the suspend-pending flag of the controlled thread
-	void		setSuspendPending( bool Value );
-	/*!< This function sets the suspend-pending flag of the controlled thread.
-	 */
-	
-	
 	//! stop execution of current thread
 	void		terminateSelf();
 	/*!< If the called thread is the currently executed thread,
@@ -170,17 +165,27 @@ public:
 	 */
 
 
-	void 		sleep(const ASAAC_TimeInterval timeout);
-		
+	void 		sleep(const ASAAC_TimeInterval timeout);		
 	void 		sleepUntil(const ASAAC_Time absolute_local_time);
 
+	
+	void 		raiseSignal( int Signal, int Value = 0 );
+	void 		waitForSignal( int Signal, int& Value, const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
+	
 	
 	//! predict the amount of memory for control and data structures to be allocated via an allocator	
 	static size_t	predictSize();
 	
 			
 private:
+	friend class ThreadSuspendCallback;
+	friend class ThreadKillCallback;
+	
+	friend class BlockingScope;
 	friend class ProtectedScope;
+
+	void enterBlockingScope(BlockingScope &BlockingScopeObject);
+	void exitBlockingScope(BlockingScope &BlockingScopeObject);
 
 	void enterProtectedScope(ProtectedScope &ProtectedScopeObject);
 	void exitProtectedScope(ProtectedScope &ProtectedScopeObject);
@@ -203,10 +208,13 @@ private:
 	
 	bool				m_SuspendPending;
 	
-	static				void* ThreadStartWrapper( void* );
-	
 	ProtectedScope*		m_ProtectedScopeStack[OS_MAX_NUMBER_OF_PROTECTEDSCOPES];
 	unsigned long		m_ProtectedScopeStackSize;
+
+	static				void* ThreadStartWrapper( void* );
+
+	static				void SuspendCallback( void* );
+	static				void KillCallback( void* );
 
 };
 

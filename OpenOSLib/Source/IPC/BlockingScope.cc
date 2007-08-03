@@ -9,9 +9,10 @@ BlockingScope::BlockingScope(): m_ThreadId(OS_UNUSED_ID)
 	try
 	{		 
 		Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
-	
+		
 		m_ThreadId = ThisThread->getId();
-		ThisThread->setState( ASAAC_WAITING );
+
+		ThisThread->enterBlockingScope(*this);
 	}
 	catch ( ASAAC_Exception &e )
 	{
@@ -24,13 +25,16 @@ BlockingScope::~BlockingScope()
 {
 	try
 	{		 
-		Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
-
-		if ( ThisThread->getId() == m_ThreadId )
-			ThisThread->setState( ASAAC_RUNNING );
+		ThreadManager::getInstance()->getCurrentThread()->exitBlockingScope(*this);
 	}
 	catch ( ASAAC_Exception &e )
 	{
 		// do nothing
 	}
+}
+
+
+ASAAC_PublicId BlockingScope::getThreadId()
+{
+	return m_ThreadId;
 }

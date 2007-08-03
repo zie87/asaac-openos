@@ -79,62 +79,6 @@ void Thread::deinitialize()
 }
 
 
-void Thread::enterProtectedScope(ProtectedScope &ProtectedScopeObject)
-{
-    if (m_IsInitialized == false) 
-        throw UninitializedObjectException(LOCATION);
-
-	if (m_ProtectedScopeStackSize >= OS_MAX_NUMBER_OF_PROTECTEDSCOPES)
-		throw FatalException("Maximum number of protected scopes in stack reached.", LOCATION);
-		
-	m_ProtectedScopeStack[m_ProtectedScopeStackSize] = &ProtectedScopeObject;
-	m_ProtectedScopeStackSize++;
-	
-	if ( ProtectedScopeObject.isCancelable() == false )
-	{
-		int CancelState;
-		oal_thread_setcancelstate( PTHREAD_CANCEL_DISABLE, &CancelState );
-		
-		ProtectedScopeObject.setCancelState(CancelState);
-	}
-}
-
-
-void Thread::exitProtectedScope(ProtectedScope &ProtectedScopeObject)
-{
-    if (m_IsInitialized == false) 
-        throw UninitializedObjectException(LOCATION);
-
-	if (m_ProtectedScopeStackSize <= 0)
-		throw FatalException("Exit a protected scope without entering.", LOCATION);
-		
-	m_ProtectedScopeStackSize--;
-	
-	if ( ProtectedScopeObject.isCancelable() == false )
-	{
-		oal_thread_setcancelstate( ProtectedScopeObject.getCancelState(), NULL );
-		
-		if ( ProtectedScopeObject.getCancelState() == PTHREAD_CANCEL_ENABLE )
-		{
-			oal_thread_testcancel();
-		
-			try
-			{
-				if ( (isSuspendPending() == true) && (ProtectedScopeObject.isSuspendPending() == false) )
-				{
-					oal_thread_kill( oal_thread_self(), OS_SIGNAL_SUSPEND );
-				}
-			}
-			catch ( ASAAC_Exception &e )
-			{
-				// do nothing
-			}
-		}
-	}
-
-}
-
-
 bool Thread::isInitialized()
 {
 	return m_IsInitialized;
@@ -176,15 +120,6 @@ ASAAC_PublicId Thread::getId()
         throw UninitializedObjectException(LOCATION);
 
 	return m_ThreadData->Description.thread_id;
-}
-
-
-void Thread::setState( ASAAC_ThreadStatus State )
-{
-    if (m_IsInitialized == false) 
-        throw UninitializedObjectException(LOCATION);
-    
-    m_ThreadData->Status = State;
 }
 
 
@@ -337,63 +272,6 @@ void Thread::start()
 }
 
 
-void* Thread::ThreadStartWrapper( void* RealAddress )
-{
-	void* Result = 0;
-
-	try
-	{
-		// TODO: Maybe add 'dormant' state to thread, if createThread is changed to
-		//        actually CREATE the thread
-		
-		// if the preemption level is > 0, this thread needs to wait for the release signal,
-		// just like all threads that have been locked.
-		
-		Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
-		
-		// Thread Id 0 ( Error Handler ) shall not be subject to suspension
-		if (( ThisThread->getId() != 0 ) &&
-			( ThisThread->m_ThreadData->SuspendLevel > 0 ))
-		{
-			// emulate a received 'suspend' call.
-			// TODO: Analyse this call
-			// SuspendCallback.call( 0 );
-		}
-		
-		EntryPointAddr ThisEntryPoint = EntryPointAddr(RealAddress);
-		
-		try
-		{
-			Result = ThisEntryPoint( 0 );
-		}
-		catch ( ASAAC_Exception &e )
-		{
-			e.addPath("Error in main loop of thread", LOCATION);
-
-			ThisThread->setState(ASAAC_DORMANT);
-			
-			throw;
-		}
-	    catch ( exception &e )
-	    {
-			ThisThread->setState(ASAAC_DORMANT);
-			
-			throw FatalException(e.what(), LOCATION);
-	    }
-		
-		ThisThread->setState(ASAAC_DORMANT);
-	}
-    catch ( ASAAC_Exception &e )
-    {
-    	e.addPath("Caught exception in wrapper method of thread", LOCATION);
-    	e.raiseError();
-    }
-		
-	return Result;
-}
-
-
-
 void Thread::stop()
 {
     if (m_IsInitialized == false) 
@@ -411,9 +289,7 @@ void Thread::stop()
 			throw OSException( strerror(Result), LOCATION );
 	
 		// resume, so cancellation may be performed
-		Result = oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_RESUME );
-		if (Result != 0)
-			throw OSException( strerror(Result), LOCATION );
+		raiseSignal( OS_SIGNAL_RESUME );
 		
 		waitForTermination();
 			
@@ -481,9 +357,7 @@ void Thread::suspend()
 		{
 			m_SuspendPending = true;
 			
-	 		int Result = oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_SUSPEND );
-			if (Result != 0)
-				throw OSException( strerror(Result), LOCATION );
+	 		raiseSignal( OS_SIGNAL_SUSPEND );
 
 	 		while ( m_SuspendPending ) 
 	 		{ 
@@ -510,23 +384,21 @@ void Thread::resume()
 		if ( isCurrentThread() ) 
 			throw OSException("A thread cannot resume itself", LOCATION);
 		
-		ProtectedScope Access( "Resuming a thread", *(m_ParentProcess->getSemaphore()) );
-	
-		if ( m_ThreadData->SuspendLevel == 0 ) 
-			throw OSException("Suspend level is zero", LOCATION);
-		
-		m_ThreadData->SuspendLevel--;
-	
 		if ( m_ThreadData->Status == ASAAC_DORMANT ) 
 			throw OSException("Thread is in state ASAAC_DORMANT", LOCATION);
 		
+		if ( m_ThreadData->SuspendLevel == 0 ) 
+			throw OSException("Thread is not suspended", LOCATION);
+		
+		ProtectedScope Access( "Resuming a thread", *(m_ParentProcess->getSemaphore()) );
+	
+		m_ThreadData->SuspendLevel--;
+	
 		if ( m_ThreadData->SuspendLevel == 0 )
 		{
 				m_SuspendPending = true;
 	
-				int Result = oal_thread_kill( m_ThreadData->PosixThread, OS_SIGNAL_RESUME );
-				if (Result != 0)
-					throw OSException( strerror(Result), LOCATION );
+				raiseSignal( OS_SIGNAL_RESUME );
 		
 				while ( m_SuspendPending ) 
 				{
@@ -552,15 +424,6 @@ bool Thread::isSuspendPending()
 }
 
 
-void Thread::setSuspendPending( bool Value )
-{
-    if (m_IsInitialized == false) 
-        throw UninitializedObjectException(LOCATION);
-
-	m_SuspendPending = Value;
-}
-
-
 void Thread::suspendSelf()
 {
     if (m_IsInitialized == false) 
@@ -577,7 +440,7 @@ void Thread::suspendSelf()
 			throw OSException( (ErrorString << "The lock level of the thread must be zero: " << m_ParentProcess->getLockLevel()).c_str(), LOCATION);
 	
 		int iDummy;
-		SignalManager::getInstance()->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
+		waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
     }
     catch ( ASAAC_Exception &e )
     {
@@ -636,7 +499,7 @@ void Thread::sleepUntil(const ASAAC_Time absolute_local_time)
 
 	long iError = 0;
 
-	setState( ASAAC_WAITING );
+   	BlockingScope TimeoutScope();
 
 	do 
 	{
@@ -647,10 +510,209 @@ void Thread::sleepUntil(const ASAAC_Time absolute_local_time)
 		
 	} while ( iError != 0 );
 	
-	setState( ASAAC_RUNNING );
-	
 	if ( iError != 0 ) 
 		throw OSException( strerror(errno), LOCATION ); 
 }
 
+
+void Thread::raiseSignal( int Signal, int Value )
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+    int Result = oal_thread_kill( m_ThreadData->PosixThread, Signal );
+	if (Result != 0)
+		throw OSException( strerror(Result), LOCATION );
+}
+
+
+void Thread::waitForSignal( int Signal, int& Value, const ASAAC_TimeInterval& Timeout )
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+    if ( isCurrentThread() == false ) 
+		throw OSException("Only the thread itself can wait for its signals", LOCATION);
+
+	SignalManager::getInstance()->waitForSignal( Signal, Value, Timeout );
+}
+
+
+
+// *******************************************************************************************
+//                            S C O P E   H A N D L I N G
+// *******************************************************************************************
+
+void Thread::enterBlockingScope(BlockingScope &BlockingScopeObject)
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+    m_ThreadData->Status = ASAAC_WAITING;
+}
+
+
+void Thread::exitBlockingScope(BlockingScope &BlockingScopeObject)
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+    if ( getId() == BlockingScopeObject.getThreadId() )
+		m_ThreadData->Status = ASAAC_RUNNING;
+}
+
+
+void Thread::enterProtectedScope(ProtectedScope &ProtectedScopeObject)
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+	if (m_ProtectedScopeStackSize >= OS_MAX_NUMBER_OF_PROTECTEDSCOPES)
+		throw FatalException("Maximum number of protected scopes in stack reached.", LOCATION);
+		
+	m_ProtectedScopeStack[m_ProtectedScopeStackSize] = &ProtectedScopeObject;
+	m_ProtectedScopeStackSize++;
+	
+	if ( ProtectedScopeObject.isCancelable() == false )
+	{
+		int CancelState;
+		oal_thread_setcancelstate( PTHREAD_CANCEL_DISABLE, &CancelState );
+		
+		ProtectedScopeObject.setCancelState(CancelState);
+	}
+}
+
+
+void Thread::exitProtectedScope(ProtectedScope &ProtectedScopeObject)
+{
+    if (m_IsInitialized == false) 
+        throw UninitializedObjectException(LOCATION);
+
+	if (m_ProtectedScopeStackSize <= 0)
+		throw FatalException("Exit a protected scope without entering.", LOCATION);
+		
+	m_ProtectedScopeStackSize--;
+	
+	if ( ProtectedScopeObject.isCancelable() == false )
+	{
+		oal_thread_setcancelstate( ProtectedScopeObject.getCancelState(), NULL );
+		
+		if ( ProtectedScopeObject.getCancelState() == PTHREAD_CANCEL_ENABLE )
+		{
+			oal_thread_testcancel();
+		
+			try
+			{
+				if ( (isSuspendPending() == true) && (ProtectedScopeObject.isSuspendPending() == false) )
+				{
+					raiseSignal( OS_SIGNAL_SUSPEND );
+				}
+			}
+			catch ( ASAAC_Exception &e )
+			{
+				e.raiseError();
+			}
+		}
+	}
+
+}
+
+
+
+// *******************************************************************************************
+//                                W R A P P E R
+// *******************************************************************************************
+
+void* Thread::ThreadStartWrapper( void* RealAddress )
+{
+	void* Result = 0;
+
+	try
+	{
+		// if the preemption level is > 0, this thread needs to wait for the release signal,
+		// just like all threads that have been locked.
+		
+		Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
+		
+		// Thread Id 0 ( Error Handler ) shall not be subject to suspension
+		if (( ThisThread->getId() != 0 ) &&
+			( ThisThread->m_ThreadData->SuspendLevel > 0 ))
+		{
+			// emulate a received 'suspend' call.
+			// TODO: Analyse this call
+			// SuspendCallback.call( 0 );
+		}
+		
+		EntryPointAddr ThisEntryPoint = EntryPointAddr(RealAddress);
+		
+		try
+		{
+			Result = ThisEntryPoint( 0 );
+		}
+		catch ( ASAAC_Exception &e )
+		{
+			e.addPath("Error in main loop of thread", LOCATION);
+
+			ThisThread->m_ThreadData->Status = ASAAC_DORMANT;
+			
+			throw;
+		}
+	    catch ( exception &e )
+	    {
+			ThisThread->m_ThreadData->Status = ASAAC_DORMANT;
+			
+			throw FatalException(e.what(), LOCATION);
+	    }
+		
+		ThisThread->m_ThreadData->Status = ASAAC_DORMANT;
+	}
+    catch ( ASAAC_Exception &e )
+    {
+    	e.addPath("Caught exception in wrapper method of thread", LOCATION);
+    	e.raiseError();
+    }
+		
+	return Result;
+}
+
+
+
+// *******************************************************************************************
+//                              C A L L B A C K ' S
+// *******************************************************************************************
+
+
+void Thread::SuspendCallback( void* )
+{
+	int iDummy;
+
+	// get current cancel state
+	// if current thread is not supposed to be cancelled,
+	// it is not supposed to be suspended, either,
+	// because it could hold important OS resources
+	oal_thread_setcancelstate( PTHREAD_CANCEL_DISABLE, &iDummy );
+	oal_thread_setcancelstate( iDummy, 0 );
+	if ( iDummy == PTHREAD_CANCEL_DISABLE )
+	{
+		// ProtectedScope will take care of calling this interrupt
+		// again once the thread cancellation has been reset
+		return;
+	}
+
+	Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
+	ThisThread->m_SuspendPending = false; // suspend() is waiting for this switch 
+
+	ThisThread->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
+
+	ThisThread->m_SuspendPending = false; // resume() is waiting for this switch
+}
+
+
+void Thread::KillCallback( void* )
+{
+	Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
+	
+	if ( ThisThread != NULL ) 
+		ThisThread->terminateSelf();
+}
 

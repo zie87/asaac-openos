@@ -8,6 +8,8 @@ class BlockingScope
 public:
 	BlockingScope();
 	virtual ~BlockingScope();
+	
+	ASAAC_PublicId getThreadId();
 private:
 	ASAAC_PublicId m_ThreadId;
 };
