@@ -437,10 +437,14 @@ void Thread::suspendSelf()
 			throw OSException("This thread object is not responsible for the current one", LOCATION);
 	
 		if ( m_ParentProcess->getLockLevel() > 0 )
-			throw OSException( (ErrorString << "The lock level of the thread must be zero: " << m_ParentProcess->getLockLevel()).c_str(), LOCATION);
+			throw FatalException( (ErrorString << "Data Corrupted. Lock level of thread shall be equal to zero: " << m_ParentProcess->getLockLevel()).c_str(), LOCATION);
 	
+		m_ThreadData->SuspendLevel = 1;
+
 		int iDummy;
 		waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
+		
+		m_SuspendPending = false; // resume() is waiting for this switch
     }
     catch ( ASAAC_Exception &e )
     {
