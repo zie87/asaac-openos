@@ -8,8 +8,7 @@ char receiveBuffer[NII_MAX_NUMBER_OF_RECEIVEBUFFERS][NII_MAX_SIZE_OF_RECEIVEBUFF
 //< Currently used buffer for received data
 unsigned int currentBuffer = 0; 
 
-const Time TimeInstant =
-{ 0, 0 };
+const ASAAC_Time TimeInstant = { 0, 0 };
 
 using namespace std;
 
@@ -23,11 +22,11 @@ cMosNii* cMosNii::getInstance()
 // Constructs a default object with no configured interfaces and no open transfer channels
 cMosNii::cMosNii()
 {
-	for (Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
+	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
 	{
 		tcData[i].valid = 0;
 	}
-	for (Index i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
+	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
 	{
 		nwData[i].valid = 0;
 	}
@@ -39,7 +38,7 @@ cMosNii::cMosNii()
 // Destroys all configurations and open transfer channels
 cMosNii::~cMosNii()
 {
-	for (Index i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
+	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
 	{
 		nwData[i].valid = 0;
 	}
@@ -51,11 +50,11 @@ cMosNii::~cMosNii()
 /////////////////////////////////////////////////////////////////////////////
 
 // Configure a local communication interface 
-NiiReturnStatus cMosNii::configureInterface(PublicId interface_id,
-		const NetworkDescriptor& network_id,
-		const InterfaceConfigurationData& configuration_data)
+ASAAC_NiiReturnStatus cMosNii::configureInterface(ASAAC_PublicId interface_id,
+		const ASAAC_NetworkDescriptor& network_id,
+		const ASAAC_InterfaceConfigurationData& configuration_data)
 {
-	Index nw_idx;
+	unsigned long nw_idx;
 	NwData* nw = 0;
 
 	if (interface_id != NII_IF_ETHERNET)
@@ -96,14 +95,16 @@ NiiReturnStatus cMosNii::configureInterface(PublicId interface_id,
 
 
 // Configure the local resource to handle the transmission or reception of information over a Transfer Channel (TC)
-NiiReturnStatus cMosNii::configureTransfer(PublicId tc_id,
-		const NetworkDescriptor& network_id, TransferDirection send_receive,
-		TransferType message_streaming,
-		TC_ConfigurationData configuration_data, bool trigger_callback,
-		PublicId callback_id)
+ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
+		const ASAAC_NetworkDescriptor& network_id, 
+		ASAAC_TransferDirection send_receive,
+		ASAAC_TransferType message_streaming,
+		ASAAC_TC_ConfigurationData configuration_data, 
+		bool trigger_callback,
+		ASAAC_PublicId callback_id)
 {
-	Index nw_idx;
-	Index tc_idx;
+	unsigned long nw_idx;
+	unsigned long tc_idx;
 	NwData* nw = 0;
 	TcData* tc = 0;
 	struct sockaddr_in addr;
@@ -266,10 +267,10 @@ NiiReturnStatus cMosNii::configureTransfer(PublicId tc_id,
 }
 
 // Send a block of data on the given TC
-NiiReturnStatus cMosNii::sendTransfer(PublicId tc_id,
-		const char* transmit_data, Length data_length, Time time_out)
+ASAAC_NiiReturnStatus cMosNii::sendTransfer(ASAAC_PublicId tc_id,
+		const char* transmit_data, unsigned long data_length, ASAAC_Time time_out)
 {
-	Index tc_idx;
+	unsigned long tc_idx;
 	TcData* tc = 0;
 
 	if (getIndex(tc_idx, tc_id) == false) //TC not established yet
@@ -343,10 +344,10 @@ NiiReturnStatus cMosNii::sendTransfer(PublicId tc_id,
 }
 
 // Receive a block of data on the given TC
-NiiReturnStatus cMosNii::receiveTransfer(PublicId tc_id, char* receive_data,
-		Length data_length_available, Length& data_length, Time time_out)
+ASAAC_NiiReturnStatus cMosNii::receiveTransfer(ASAAC_PublicId tc_id, char* receive_data,
+		unsigned long data_length_available, unsigned long& data_length, ASAAC_Time time_out)
 {
-	Index tc_idx;
+	unsigned long tc_idx;
 	TcData* tc = 0;
 
 	if (getIndex(tc_idx, tc_id) == false) //TC not established yet
@@ -416,9 +417,9 @@ NiiReturnStatus cMosNii::receiveTransfer(PublicId tc_id, char* receive_data,
 	return ASAAC_MOS_NII_CALL_FAILED;
 }
 
-NiiReturnStatus cMosNii::receiveNetwork(const NetworkDescriptor& network_id,
-		char* receive_data, Length data_length_available, Length& data_length,
-		PublicId& tc_id, Time time_out)
+ASAAC_NiiReturnStatus cMosNii::receiveNetwork(const ASAAC_NetworkDescriptor& network_id,
+		char* receive_data, unsigned long data_length_available, unsigned long& data_length,
+		ASAAC_PublicId& tc_id, ASAAC_Time time_out)
 {
 	fd_set rfds;
 	struct timeval tv;
@@ -457,15 +458,16 @@ NiiReturnStatus cMosNii::receiveNetwork(const NetworkDescriptor& network_id,
 	cout << "cMosNii::receiveNetwork() adding all TCs on network [" << network_id.network << "," << network_id.port << "] to selection " << endl;
 #endif
 
-	for (Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
+	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
 	{
-		if (tcData[i].valid && tcData[i].nw->id.network == network_id.network
-				&& tcData[i].nw->id.port == network_id.port)
+		if ( (tcData[i].valid && tcData[i].nw->id.network == network_id.network) &&
+			 (tcData[i].nw->id.port == network_id.port) )
 		{
 			//TC is valid and the Network is the same as required, then push file descriptor in set for select call
 			FD_SET(tcData[i].fd, &rfds)
-;			if(max_fd < tcData[i].fd)
-			max_fd = tcData[i].fd;
+			
+;			if (max_fd < tcData[i].fd)
+				max_fd = tcData[i].fd;
 #ifdef _DEBUG_
 			cout << "cMosNii::receiveNetwork() adding TC " << tcData[i].id << " to selection " << endl;
 #endif
@@ -500,7 +502,7 @@ NiiReturnStatus cMosNii::receiveNetwork(const NetworkDescriptor& network_id,
 		cerr << "cMosNii::receiveNetwork() Data is available now." << endl;
 #endif
 
-		for(Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
+		for(unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
 		{
 			//FD_ISSET(fd, &rfds) will be true
 
@@ -528,10 +530,10 @@ NiiReturnStatus cMosNii::receiveNetwork(const NetworkDescriptor& network_id,
 }
 
 // Release local resources previously allocated to handle the transmission or reception of information over a TC
-NiiReturnStatus cMosNii::destroyTransfer(PublicId tc_id,
-		const NetworkDescriptor& network_id)
+ASAAC_NiiReturnStatus cMosNii::destroyTransfer(ASAAC_PublicId tc_id,
+		const ASAAC_NetworkDescriptor& network_id)
 {
-	Index tc_idx;
+	unsigned long tc_idx;
 	TcData* tc = 0;
 
 	if (getIndex(tc_idx, tc_id) == false) //TC not established yet
@@ -574,12 +576,12 @@ NiiReturnStatus cMosNii::destroyTransfer(PublicId tc_id,
 
 
 // Returns TRUE, if network descriptor is available and associated with a valid interface and socket
-bool cMosNii::getIndex(Index& index, const NetworkDescriptor& network_id)
+bool cMosNii::getIndex(unsigned long& index, const ASAAC_NetworkDescriptor& network_id)
 {
-	for (Index i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
+	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
 	{
 		if (nwData[i].valid && memcmp(&nwData[i].id, &network_id,
-				sizeof(NetworkDescriptor)) == 0)
+				sizeof(ASAAC_NetworkDescriptor)) == 0)
 		{
 			index = i;
 			return true;
@@ -590,9 +592,9 @@ bool cMosNii::getIndex(Index& index, const NetworkDescriptor& network_id)
 
 
 // Returns TRUE, if the transfer connection is available and associated with a valid network interface
-bool cMosNii::getIndex(Index& index, PublicId tc_id)
+bool cMosNii::getIndex(unsigned long& index, ASAAC_PublicId tc_id)
 {
-	for (Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
+	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
 	{
 		if (tcData[i].valid && tcData[i].id == tc_id)
 		{
@@ -605,9 +607,9 @@ bool cMosNii::getIndex(Index& index, PublicId tc_id)
 
 
 // Returns TRUE, if an invalid, empty slot for a new connection was found and index is given as argument
-bool cMosNii::getEmptyTc(Index& index)
+bool cMosNii::getEmptyTc(unsigned long& index)
 {
-	for (Index i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
+	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
 	{
 		if (tcData[i].valid == 0)
 		{
@@ -620,9 +622,9 @@ bool cMosNii::getEmptyTc(Index& index)
 
 
 // Returns TRUE, if an invalid, empty slot for a new network socket was found and index is given as argument
-bool cMosNii::getEmptyNw(Index& index)
+bool cMosNii::getEmptyNw(unsigned long& index)
 {
-	for (Index i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
+	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
 	{
 		if (nwData[i].valid == 0)
 		{
@@ -635,7 +637,7 @@ bool cMosNii::getEmptyNw(Index& index)
 
 
 // Returns a character string representation of the return status code
-char* cMosNii::spell(NiiReturnStatus status)
+char* cMosNii::spell(ASAAC_NiiReturnStatus status)
 {
 	switch (status)
 	{
@@ -839,7 +841,7 @@ void* cMosNii::streamTcThread(void* pTcData)
 
 
 // Returns a network address based on an IP4 address format X.X.X.X
-NetworkId cMosNii::networkAddress(const char* ip_addr)
+ASAAC_PublicId cMosNii::networkAddress(const char* ip_addr)
 {
 #ifdef _DEBUG_    
 	cout << "networkAddress: " << ip_addr << endl;
@@ -847,13 +849,13 @@ NetworkId cMosNii::networkAddress(const char* ip_addr)
 	return inet_addr(ip_addr);
 }
 
-NetworkId cMosNii::getLocalNetwork()
+ASAAC_PublicId cMosNii::getLocalNetwork()
 {
 	return inet_addr("127.0.0.1");
 }
 
 // Returns a multicast address based on a network identifier between 3-255
-NetworkId cMosNii::networkGroup(char address)
+ASAAC_PublicId cMosNii::networkGroup(char address)
 {
 	char ip_addr[16];
 	sprintf(ip_addr, "224.0.0.%d", address);

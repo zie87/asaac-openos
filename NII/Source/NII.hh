@@ -37,9 +37,9 @@ public:
 	/// @param configuration_data a structure containing the configuration data for the communications interface
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
-	NiiReturnStatus configureInterface(PublicId interface_id,
-			const NetworkDescriptor& network_id,
-			const InterfaceConfigurationData& configuration_data);
+	ASAAC_NiiReturnStatus configureInterface(ASAAC_PublicId interface_id,
+			const ASAAC_NetworkDescriptor& network_id,
+			const ASAAC_InterfaceConfigurationData& configuration_data);
 
 	/////////////////////////////////////////////
 	/// Configure the local resource to handle the transmission or reception of information over a Transfer Channel (TC)
@@ -53,11 +53,11 @@ public:
 	/// @param callback_id a unique callback identifier used by the OS and the MSL.
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
-	NiiReturnStatus configureTransfer(PublicId tc_id,
-			const NetworkDescriptor& network_id,
-			TransferDirection send_receive, TransferType message_streaming,
-			TC_ConfigurationData configuration_data, bool trigger_callback,
-			PublicId callback_id);
+	ASAAC_NiiReturnStatus configureTransfer(ASAAC_PublicId tc_id,
+			const ASAAC_NetworkDescriptor& network_id,
+			ASAAC_TransferDirection send_receive, ASAAC_TransferType message_streaming,
+			ASAAC_TC_ConfigurationData configuration_data, bool trigger_callback,
+			ASAAC_PublicId callback_id);
 
 	/////////////////////////////////////////////
 	/// Send a block of data on the given TC
@@ -68,8 +68,8 @@ public:
 	/// @param time_out Time out value for the service call
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
-	NiiReturnStatus sendTransfer(PublicId tc_id, const char* transmit_data,
-			Length data_length, Time time_out);
+	ASAAC_NiiReturnStatus sendTransfer(ASAAC_PublicId tc_id, const char* transmit_data,
+			unsigned long data_length, ASAAC_Time time_out);
 
 	/////////////////////////////////////////////
 	/// Receive a block of data on the given TC
@@ -81,8 +81,8 @@ public:
 	/// @param time_out Time out value for the service call
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
-	NiiReturnStatus receiveTransfer(PublicId tc_id, char* receive_data,
-			Length data_length_available, Length& data_length, Time time_out);
+	ASAAC_NiiReturnStatus receiveTransfer(ASAAC_PublicId tc_id, char* receive_data,
+			unsigned long data_length_available, unsigned long& data_length, ASAAC_Time time_out);
 
 	/////////////////////////////////////////////
 	/// Release local resources previously allocated to handle the transmission or reception of information over a TC
@@ -91,8 +91,8 @@ public:
 	/// @param network_id a unique value to identify the network
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
-	NiiReturnStatus destroyTransfer(PublicId tc_id,
-			const NetworkDescriptor& network_id);
+	ASAAC_NiiReturnStatus destroyTransfer(ASAAC_PublicId tc_id,
+			const ASAAC_NetworkDescriptor& network_id);
 
 	/////////////////////////////////////////////
 	/// TBD
@@ -115,29 +115,29 @@ public:
 	/// @param time_out Time out value for the service call
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
-	NiiReturnStatus receiveNetwork(const NetworkDescriptor& network_id,
-			char* receive_data, Length data_length_available,
-			Length& data_length, PublicId& tc_id, Time time_out);
+	ASAAC_NiiReturnStatus receiveNetwork(const ASAAC_NetworkDescriptor& network_id,
+			char* receive_data, unsigned long data_length_available,
+			unsigned long& data_length, ASAAC_PublicId& tc_id, ASAAC_Time time_out);
 
 	/////////////////////////////////////////////
 	/// Returns a character string representation of the return status code
 
-	static char* spell(NiiReturnStatus status);
+	static char* spell(ASAAC_NiiReturnStatus status);
 
 	/////////////////////////////////////////////
 	/// Returns a multicast address based on a network identifier between 3-255
 
-	NetworkId networkGroup(char address);
+	ASAAC_PublicId networkGroup(char address);
 
 	/////////////////////////////////////////////
 	/// Returns a network address based on an IP4 address format X.X.X.X
 
-	NetworkId networkAddress(const char* ip_addr);
+	ASAAC_PublicId networkAddress(const char* ip_addr);
 
 	/////////////////////////////////////////////
 	/// Returns a network address based on an IP4 address 127,0.0.1
 
-	NetworkId getLocalNetwork();
+	ASAAC_PublicId getLocalNetwork();
 
 protected:
 
@@ -155,7 +155,7 @@ protected:
 	/// @param network_id a unique value to identify the network
 	/// @return TRUE if network_id was already configured and index could be specified
 
-	bool getIndex(Index& index, const NetworkDescriptor& network_id);
+	bool getIndex(unsigned long& index, const ASAAC_NetworkDescriptor& network_id);
 
 	/////////////////////////////////////////////
 	/// Returns TRUE, if the transfer connection is available and associated with a valid network interface
@@ -163,21 +163,21 @@ protected:
 	/// @param tc_id a unique value to identify the TC
 	/// @return TRUE if tc_id was already configured and index could be specified
 
-	bool getIndex(Index& index, PublicId tc_id);
+	bool getIndex(unsigned long& index, ASAAC_PublicId tc_id);
 
 	/////////////////////////////////////////////
 	/// Returns TRUE, if an invalid, empty slot for a new connection was found and index is given as argument
 	/// @param Index that is where an invalid index to an entry is stored to
 	/// @return TRUE if another empty slot for storage of a new TC could be specified
 
-	bool getEmptyTc(Index& index);
+	bool getEmptyTc(unsigned long& index);
 
 	/////////////////////////////////////////////
 	/// Returns TRUE, if an invalid, empty slot for a new network socket was found and index is given as argument
 	/// @param Index that is where an invalid index to an entry is stored to
 	/// @return TRUE if another empty slot for storage of a new Network could be specified
 
-	bool getEmptyNw(Index& index);
+	bool getEmptyNw(unsigned long& index);
 
 private:
 
@@ -188,7 +188,7 @@ private:
 	TcData tcData[NII_MAX_NUMBER_OF_TC_CONNECTIONS]; ///< Used to associate a Transfer Connection with a Network
 	NwData nwData[NII_MAX_NUMBER_OF_NETWORKS]; ///< Used to associate an Interface with a Network
 
-	Port niiLocalPort; ///< This is the current local port to open new sockets. It is inkremented from each time and initialized in constructor @see cMosNii()
+	ASAAC_PublicId niiLocalPort; ///< This is the current local port to open new sockets. It is inkremented from each time and initialized in constructor @see cMosNii()
 
 };
 
