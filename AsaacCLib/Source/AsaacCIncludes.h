@@ -3,4 +3,6 @@
 
 #include "ASAAC.h"
 
+#include <time.h>
+
 #endif /*ASAACCINCLUDES_H_*/

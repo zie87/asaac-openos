@@ -142,3 +142,14 @@ ASAAC_Time inline FloatToTime( double Value )
 	return thisTime;
 }	
 
+
+
+ASAAC_Time inline TimespecToTime( struct timespec Value )
+{
+	ASAAC_Time thisTime;
+	
+	thisTime.sec  = Value.tv_sec;
+	thisTime.nsec = Value.tv_nsec;
+
+	return thisTime;
+}
