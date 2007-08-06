@@ -1,0 +1,26 @@
+#ifndef NIIINCLUDES_H_
+#define NIIINCLUDES_H_
+
+#include "ASAAC.h"
+#include "AsaacCLib.h"
+
+#include "NIITypes.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/select.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <iostream>
+#include <fcntl.h>
+
+#include <errno.h>
+
+
+#endif /*NIIINCLUDES_H_*/
