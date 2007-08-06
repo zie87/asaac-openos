@@ -1,0 +1,4 @@
+#ifndef MOSCONSTANTS_H_
+#define MOSCONSTANTS_H_
+
+#endif /*MOSCONSTANTS_H_*/
