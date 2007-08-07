@@ -1,4 +1,8 @@
 #ifndef MOSCONSTANTS_H_
 #define MOSCONSTANTS_H_
 
+#define MOS_INTERFACE_ID_NII				8023
+
+#define MOS_MAX_NUMBER_OF_CALLBACKS			128
+
 #endif /*MOSCONSTANTS_H_*/

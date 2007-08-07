@@ -4,4 +4,9 @@
 #include "ASAAC.h"
 #include "AsaacCLib.h"
 
+#include "MOSConstants.h"
+
+#include <string.h>
+#include <pthread.h>
+
 #endif /*MOSINCLUDES_H_*/

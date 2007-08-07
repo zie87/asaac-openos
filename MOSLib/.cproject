@@ -4,7 +4,7 @@
 <cproject>
 <storageModule moduleId="org.eclipse.cdt.core.settings">
 <cconfiguration id="cdt.managedbuild.config.gnu.so.debug.984623079">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Debug" id="cdt.managedbuild.config.gnu.so.debug.984623079" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.so.debug.984623079" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/MOSLib"/>
@@ -52,11 +52,14 @@
 <option superClass="gnu.c.link.so.debug.option.shared" id="gnu.c.link.so.debug.option.shared.1953840836" name="Shared (-shared)" defaultValue="true" valueType="boolean"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.debug" id="cdt.managedbuild.tool.gnu.cpp.linker.so.debug.1517445094" name="GCC C++ Linker">
-<option superClass="gnu.cpp.link.so.debug.option.shared" id="gnu.cpp.link.so.debug.option.shared.1994082253" name="Shared (-shared)" defaultValue="true" valueType="boolean"/>
+<option superClass="gnu.cpp.link.so.debug.option.shared" id="gnu.cpp.link.so.debug.option.shared.1994082253" name="Shared (-shared)" value="true" defaultValue="true" valueType="boolean"/>
 <option superClass="gnu.cpp.link.option.libs" id="gnu.cpp.link.option.libs.1272500189" name="Libraries (-l)" valueType="libs">
 <listOptionValue value="NII" builtIn="false"/>
+<listOptionValue value="pthread" builtIn="false"/>
+<listOptionValue value="AsaacC" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.link.option.paths" id="gnu.cpp.link.option.paths.1727568305" name="Library search path (-L)" valueType="libPaths">
+<listOptionValue value="&quot;${workspace_loc:/AsaacCLib/Debug}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/NIILib/Debug}&quot;" builtIn="false"/>
 </option>
 <inputType superClass="cdt.managedbuild.tool.gnu.cpp.linker.input" id="cdt.managedbuild.tool.gnu.cpp.linker.input.1902893075">
@@ -493,7 +496,7 @@
 <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.so.release.795630477">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Release" id="cdt.managedbuild.config.gnu.so.release.795630477" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.so.release.795630477" name="Release" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/MOSLib"/>
@@ -509,7 +512,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.so.release.795630477" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.release" artifactName="MOSLib" artifactExtension="so" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.so.release.795630477" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.release" artifactName="MOSLib" artifactExtension="so" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.so.release.795630477." name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.so.release" id="cdt.managedbuild.toolchain.gnu.so.release.1561989311" name="Linux GCC">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.so.release" id="cdt.managedbuild.target.gnu.platform.so.release.2007823797" name="Debug Platform"/>

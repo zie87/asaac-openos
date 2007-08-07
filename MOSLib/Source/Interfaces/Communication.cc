@@ -6,10 +6,17 @@ ASAAC_NiiReturnStatus ASAAC_MOS_configureInterface(
 		const ASAAC_NetworkDescriptor* network_id,
 		const ASAAC_InterfaceConfigurationData* configuration_data)
 {
-	return cMosNii::getInstance()->configureInterface(
-			interface_id, 
-			*network_id,
-			*configuration_data);
+	switch (interface_id)
+	{
+		case MOS_INTERFACE_ID_NII: 	
+			return cMosNii::getInstance()->configureInterface(
+				interface_id, 
+				*network_id,
+				*configuration_data);
+			break;
+			
+		default: return ASAAC_MOS_NII_INVALID_INTERFACE; 
+	}
 }
 
 
