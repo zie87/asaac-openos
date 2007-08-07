@@ -46,9 +46,6 @@ ASAAC_NiiReturnStatus cMosNii::configureInterface(
 	unsigned long nw_idx;
 	NwData* nw = 0;
 
-	if (interface_id != NII_IF_ETHERNET)
-		return ASAAC_MOS_NII_INVALID_INTERFACE;
-
 	if (getIndex(nw_idx, network_id) == false) //network not configured yet
 	{
 		if (getEmptyNw(nw_idx) == false) //no slots free for new network entry
@@ -316,6 +313,9 @@ ASAAC_NiiReturnStatus cMosNii::sendTransfer(
 			}
 			else
 			{
+				if (tc->callback_id != 0)
+					ASAAC_MOS_callbackHandler( ASAAC_COMMS_EV_BUFFER_SEND, tc->callback_id, NULL );
+				
 				return ASAAC_MOS_NII_CALL_OK;
 			}
 
@@ -852,6 +852,12 @@ void* cMosNii::streamTcThread(void* pTcData)
 #endif
 
 	pthread_exit(nothing);
+}
+
+
+void* cMosNii::listenThread(void* pTcData)
+{
+	
 }
 
 

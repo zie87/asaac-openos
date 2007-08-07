@@ -103,6 +103,11 @@ public:
 
 	//NiiReturnStatus getNetworkPortStatus();
 
+	ASAAC_NiiReturnStatus listenNetwork(
+			const ASAAC_NetworkDescriptor& network_id,
+			ASAAC_PublicId& tc_id);
+	
+	
 	/////////////////////////////////////////////
 	/// Receive data on every TC connected to a specific network
 	/// (STANAG 4626 Part II - 11.5.1.3.7)
@@ -151,6 +156,8 @@ protected:
 	/// @see TcData
 
 	static void* streamTcThread(void* pTcData);
+
+	static void* listenThread(void* pTcData);
 
 	/////////////////////////////////////////////
 	/// Returns TRUE, if network descriptor is available and associated with a valid interface and socket

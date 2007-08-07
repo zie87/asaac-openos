@@ -26,6 +26,4 @@
 #define NII_MAX_SIZE_OF_RECEIVEBUFFER 			        (NII_MAX_SIZE_OF_TCMESSAGE + 8)
 // Size of each receive data buffers including possible header information
 
-#define NII_IF_ETHERNET 								 8023
-
 #endif /*NIICONSTANTS_H_*/
