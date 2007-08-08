@@ -25,7 +25,6 @@ public:
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
 	ASAAC_NiiReturnStatus configureInterface(
-			ASAAC_PublicId interface_id,
 			const ASAAC_NetworkDescriptor& network_id,
 			const ASAAC_InterfaceConfigurationData& configuration_data);
 

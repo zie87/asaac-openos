@@ -14,9 +14,6 @@
 #include "NIIConstants.h"
 
 
-const ASAAC_Time TimeInstant = { 0, 0 };
-
-
 /////////////////////////////////////////////
 /// Additional Data for TC configuration. Especially buffer for streaming transfer connections
 
@@ -34,7 +31,6 @@ typedef struct
 {
   int                               valid;        ///< Valid flag
   ASAAC_NetworkDescriptor           id;           ///< Network Identifier
-  ASAAC_PublicId                    interface;    ///< Interface Identifier
   ASAAC_InterfaceConfigurationData  config_data;  ///< Additional configuration data
   int                               open_tcs;     ///< Number of open Transfer Connections on Network
 } NwData;
@@ -54,6 +50,7 @@ typedef struct
   TransferConfigurationData         config_data;  ///< Additional configuration data, such as streaming buffers
   ASAAC_PublicId                    callback_id;  ///< Identifier of Callback
   pthread_t                         th;           ///< Thread handle whenever streaming is used
+  int								hasData;      ///< Indicates if, new data is available
 } TcData;
 
 #endif

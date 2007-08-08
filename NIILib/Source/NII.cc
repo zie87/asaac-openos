@@ -39,7 +39,6 @@ cMosNii::~cMosNii()
 
 // Configure a local communication interface 
 ASAAC_NiiReturnStatus cMosNii::configureInterface(
-		ASAAC_PublicId interface_id,
 		const ASAAC_NetworkDescriptor& network_id,
 		const ASAAC_InterfaceConfigurationData& configuration_data)
 {
@@ -55,7 +54,6 @@ ASAAC_NiiReturnStatus cMosNii::configureInterface(
 
 		nw->valid = 1;
 		nw->id = network_id;
-		nw->interface = interface_id;
 		nw->config_data = configuration_data;
 		nw->open_tcs = 0;
 
@@ -65,13 +63,9 @@ ASAAC_NiiReturnStatus cMosNii::configureInterface(
 	{
 		nw = &m_NwData[nw_idx];
 
-		if (nw->interface == interface_id)
-			return ASAAC_MOS_NII_ALREADY_CONFIGURED;
-
 		if (nw->open_tcs > 0)
 			return ASAAC_MOS_NII_OPEN_TCS;
 
-		nw->interface = interface_id;
 		nw->config_data = configuration_data;
 
 		return ASAAC_MOS_NII_CALL_COMPLETE;
@@ -446,28 +440,8 @@ ASAAC_NiiReturnStatus cMosNii::receiveNetwork(
 	fd_set rfds;
 	struct timeval tv;
 	int retval;
-	struct timespec tp;
 
-	if (clock_gettime(CLOCK_REALTIME, &tp))
-	{
-		perror("GET REALTIME CLOCK");
-		return ASAAC_MOS_NII_CALL_FAILED;
-	}
-
-	tv.tv_sec = time_out.sec - tp.tv_sec;
-	if (tp.tv_nsec > time_out.nsec)
-	{
-		if (tv.tv_sec > 0)
-		{
-			tv.tv_sec -= 1;
-			time_out.nsec += 1000000000;
-		}
-		else
-		{
-			time_out.nsec = tp.tv_nsec + 1000;
-		}
-	}
-	tv.tv_usec = (time_out.nsec - tp.tv_nsec) / 1000; //convert to microseconds
+	tv = TimeToTimeval(time_out);
 
 #ifdef _DEBUG_
 	cout << "cMosNii::receiveNetwork() has " << tv.tv_sec << " sec " << tv.tv_usec << " usec time to wait for socket events" << endl;
@@ -486,9 +460,9 @@ ASAAC_NiiReturnStatus cMosNii::receiveNetwork(
 			 (m_TcData[i].nw->id.port == network_id.port) )
 		{
 			//TC is valid and the Network is the same as required, then push file descriptor in set for select call
-			FD_SET(m_TcData[i].fd, &rfds)
+			FD_SET(m_TcData[i].fd, &rfds);
 			
-;			if (max_fd < m_TcData[i].fd)
+			if (max_fd < m_TcData[i].fd)
 				max_fd = m_TcData[i].fd;
 #ifdef _DEBUG_
 			cout << "cMosNii::receiveNetwork() adding TC " << m_TcData[i].id << " to selection " << endl;
@@ -857,7 +831,45 @@ void* cMosNii::streamTcThread(void* pTcData)
 
 void* cMosNii::listenThread(void* pTcData)
 {
+	fd_set rfds;
+	int max_fd = 0;
+
+	FD_ZERO(&rfds);
 	
+	cMosNii *Nii = cMosNii::getInstance();
+	
+	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
+	{
+		if ( Nii->m_TcData[i].valid == true )
+		{
+			//TC is valid and the Network is the same as required, then push file descriptor in set for select call
+			FD_SET(Nii->m_TcData[i].fd, &rfds);
+			
+			if (max_fd < Nii->m_TcData[i].fd)
+				max_fd = Nii->m_TcData[i].fd;
+		}
+	}	
+	
+	struct timeval tv = {1000,0}; //TODO: Shall be infinity
+	int retval = select(max_fd+1, &rfds, 0, 0, &tv);
+
+	if (retval == -1)
+	{
+		cerr << "cMosNii::listen thread() ERROR on select()" << endl;
+	}
+
+	for(unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
+	{
+		if ( Nii->m_TcData[i].valid == true )
+		{
+			if ( FD_ISSET(Nii->m_TcData[i].fd, &rfds) )
+			{
+				Nii->m_TcData[i].hasData = true;
+			}
+		}
+	}
+	
+	return NULL;
 }
 
 
