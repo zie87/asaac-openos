@@ -4,7 +4,7 @@
 <cproject>
 <storageModule moduleId="org.eclipse.cdt.core.settings">
 <cconfiguration id="cdt.managedbuild.config.gnu.lib.debug.407703950">
-<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.lib.debug.407703950" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" name="Debug" id="cdt.managedbuild.config.gnu.lib.debug.407703950" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/AsaacCLib"/>
@@ -16,11 +16,10 @@
 <extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.GASErrorParser"/>
 <extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.GCCErrorParser"/>
 <extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.MakeErrorParser"/>
-<extension point="org.eclipse.cdt.core.ErrorParser" id="org.eclipse.cdt.core.GLDErrorParser"/>
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.lib.debug.407703950" name="Debug" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.lib.debug" artifactName="AsaacC" artifactExtension="so" cleanCommand="rm -rf" prebuildStep="" postbuildStep="" preannouncebuildStep="" postannouncebuildStep="">
+<configuration id="cdt.managedbuild.config.gnu.lib.debug.407703950" name="Debug" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.debug" artifactName="AsaacC" artifactExtension="a" cleanCommand="rm -rf" prebuildStep="" postbuildStep="" preannouncebuildStep="" postannouncebuildStep="">
 <folderInfo id="cdt.managedbuild.config.gnu.lib.debug.407703950." name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.lib.debug" id="cdt.managedbuild.toolchain.gnu.lib.debug.1475335716" name="Linux GCC">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.lib.debug" id="cdt.managedbuild.target.gnu.platform.lib.debug.1639404118" name="Debug Platform"/>
@@ -40,14 +39,14 @@
 <inputType superClass="cdt.managedbuild.tool.gnu.c.compiler.input" id="cdt.managedbuild.tool.gnu.c.compiler.input.1309245124"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.c.linker.base" id="cdt.managedbuild.tool.gnu.c.linker.base.1116953587" name="GCC C Linker">
-<option superClass="gnu.c.link.option.shared" id="gnu.c.link.option.shared.2051340355" name="Shared (-shared)" defaultValue="true" valueType="boolean"/>
+<option superClass="gnu.c.link.option.shared" id="gnu.c.link.option.shared.2051340355" name="Shared (-shared)"/>
 <inputType superClass="cdt.managedbuild.tool.gnu.c.linker.input" id="cdt.managedbuild.tool.gnu.c.linker.input.1363883485">
 <additionalInput paths="$(USER_OBJS)" kind="additionalinputdependency"/>
 <additionalInput paths="$(LIBS)" kind="additionalinput"/>
 </inputType>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.base" id="cdt.managedbuild.tool.gnu.cpp.linker.base.1695105070" name="GCC C++ Linker">
-<option superClass="gnu.cpp.link.option.shared" id="gnu.cpp.link.option.shared.1069435484" name="Shared (-shared)" defaultValue="true" valueType="boolean"/>
+<option superClass="gnu.cpp.link.option.shared" id="gnu.cpp.link.option.shared.1069435484" name="Shared (-shared)"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug" id="cdt.managedbuild.tool.gnu.assembler.lib.debug.683390542" name="GCC Assembler">
 <inputType superClass="cdt.managedbuild.tool.gnu.assembler.input" id="cdt.managedbuild.tool.gnu.assembler.input.88899285"/>
@@ -312,7 +311,7 @@
 <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.lib.release.540644999">
-<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.lib.release.540644999" name="Release" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" name="Release" id="cdt.managedbuild.config.gnu.lib.release.540644999" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/AsaacCLib"/>
@@ -327,7 +326,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.lib.release.540644999" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.release" artifactName="AsaacCLib" artifactExtension="a" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.lib.release.540644999" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.release" artifactName="AsaacCLib" artifactExtension="a" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.lib.release.540644999." name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.lib.release" id="cdt.managedbuild.toolchain.gnu.lib.release.692336288" name="Linux GCC">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.lib.release" id="cdt.managedbuild.target.gnu.platform.lib.release.24061490" name="Debug Platform"/>
