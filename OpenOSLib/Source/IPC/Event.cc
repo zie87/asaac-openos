@@ -244,6 +244,9 @@ void Event::waitForEventStatus( bool Status, const ASAAC_Time& Timeout )
 	
 	if ( iErrorCode == ETIMEDOUT ) 
 		throw TimeoutException(LOCATION);
+
+	if ( iErrorCode != 0 ) 
+		throw OSException( strerror(iErrorCode), LOCATION );
 }
 
 
