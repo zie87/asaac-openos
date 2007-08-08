@@ -48,6 +48,7 @@ typedef struct
   ASAAC_TransferDirection           direction;    ///< Sender or Receiver TC
   ASAAC_TransferType                type;         ///< Message or Streaming TC
   TransferConfigurationData         config_data;  ///< Additional configuration data, such as streaming buffers
+  ASAAC_Bool 						trigger_callback;
   ASAAC_PublicId                    callback_id;  ///< Identifier of Callback
   pthread_t                         th;           ///< Thread handle whenever streaming is used
   int								hasData;      ///< Indicates if, new data is available

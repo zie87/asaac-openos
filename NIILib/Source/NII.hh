@@ -148,6 +148,11 @@ public:
 
 protected:
 
+	typedef struct {
+		pthread_cond_t	CallingThreadCondition;
+		pthread_mutex_t	CallingThreadMutex;
+	} CallingThreadData;
+
 	/////////////////////////////////////////////
 	/// This function is called as a new thread, which writes/reads data to/from a stream-based TC
 	/// The thread is executed as long as the valid flag in TcData is TRUE
@@ -156,7 +161,14 @@ protected:
 
 	static void* streamTcThread(void* pTcData);
 
-	static void* listenThread(void* pTcData);
+	static void* listenThread(void* Data);
+
+	ASAAC_TimedReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId &tc_id  );
+	ASAAC_TimedReturnStatus waitForDataOnTc( const ASAAC_Time time_out, const ASAAC_PublicId tc_id );
+	ASAAC_TimedReturnStatus waitForDataOnNw( const ASAAC_Time time_out, const ASAAC_NetworkDescriptor& network_id );
+	
+	void startListening();
+	void stopListening();
 
 	/////////////////////////////////////////////
 	/// Returns TRUE, if network descriptor is available and associated with a valid interface and socket
@@ -164,7 +176,7 @@ protected:
 	/// @param network_id a unique value to identify the network
 	/// @return TRUE if network_id was already configured and index could be specified
 
-	bool getIndex(unsigned long& index, const ASAAC_NetworkDescriptor& network_id);
+	long getNwIndex(const ASAAC_NetworkDescriptor& network_id);
 
 	/////////////////////////////////////////////
 	/// Returns TRUE, if the transfer connection is available and associated with a valid network interface
@@ -172,21 +184,21 @@ protected:
 	/// @param tc_id a unique value to identify the TC
 	/// @return TRUE if tc_id was already configured and index could be specified
 
-	bool getIndex(unsigned long& index, ASAAC_PublicId tc_id);
+	long getTcIndex(const ASAAC_PublicId tc_id);
 
 	/////////////////////////////////////////////
 	/// Returns TRUE, if an invalid, empty slot for a new connection was found and index is given as argument
 	/// @param Index that is where an invalid index to an entry is stored to
 	/// @return TRUE if another empty slot for storage of a new TC could be specified
 
-	bool getEmptyTc(unsigned long& index);
+	long getEmptyTc();
 
 	/////////////////////////////////////////////
 	/// Returns TRUE, if an invalid, empty slot for a new network socket was found and index is given as argument
 	/// @param Index that is where an invalid index to an entry is stored to
 	/// @return TRUE if another empty slot for storage of a new Network could be specified
 
-	bool getEmptyNw(unsigned long& index);
+	long getEmptyNw();
 
 private:
 
@@ -206,7 +218,19 @@ private:
 	char 			m_ReceiveBuffer[NII_MAX_NUMBER_OF_RECEIVEBUFFERS][NII_MAX_SIZE_OF_RECEIVEBUFFER]; 
 	//< Currently used buffer for received data
 	unsigned int 	m_CurrentBuffer; 
-
+	
+	pthread_t       m_ListeningThread;
+	int				m_LoopBackFileDescriptor;
+	
+	pthread_cond_t	m_ListeningThreadCondition;
+	pthread_mutex_t	m_ListeningThreadMutex;
+	
+	pthread_cond_t	m_NewDataCondition;
+	pthread_mutex_t	m_NewDataMutex;
+	
+	int				m_IsListening;
+	
+	long			m_NewDataTcIndex;
 };
 
 #endif /*MOSNII_HH_*/
