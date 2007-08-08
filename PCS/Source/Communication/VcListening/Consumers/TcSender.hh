@@ -8,8 +8,6 @@
 
 #include "PcsHIncludes.hh"
 
-#include "NII.hh"
-
 class TcSender : public TcMessageConsumer
 {
 public:

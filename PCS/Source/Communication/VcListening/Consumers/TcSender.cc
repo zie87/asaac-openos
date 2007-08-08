@@ -32,7 +32,7 @@ ASAAC_ReturnStatus TcSender::processTcMessage( ASAAC_PublicId TcId, ASAAC_Addres
 #endif    
     ASAAC_NiiReturnStatus ret = ASAAC_MOS_sendTransfer(TcId, (ASAAC_CharAddress) Data, Length, &instantan);
 #ifdef _DEBUG_  
-    cout << "ASAAC_MOS_sendTransfer() returned " << cMosNii::spell(ret) << endl;
+    cout << "ASAAC_MOS_sendTransfer() returned " << endl;
 #endif
     if(  ret == ASAAC_MOS_NII_CALL_COMPLETE  || ret == ASAAC_MOS_NII_CALL_OK)
     {

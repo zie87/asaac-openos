@@ -4,7 +4,7 @@
 <cproject>
 <storageModule moduleId="org.eclipse.cdt.core.settings">
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.707694650">
-<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.exe.debug.707694650" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" name="Debug" id="cdt.managedbuild.config.gnu.exe.debug.707694650" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings/>
 <extensions>
 <extension point="org.eclipse.cdt.core.BinaryParser" id="org.eclipse.cdt.core.ELF"/>
@@ -22,11 +22,11 @@
 <builder superClass="cdt.managedbuild.target.gnu.builder.exe.debug" id="cdt.managedbuild.target.gnu.builder.exe.debug.837391145" name="Gnu Make Builder" keepEnvironmentInBuildfile="false" buildPath="${workspace_loc:/PCS/Debug}"/>
 <tool superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1962558748" name="GCC C++ Compiler">
 <option superClass="gnu.cpp.compiler.option.include.paths" id="gnu.cpp.compiler.option.include.paths.1099664287" name="Include paths (-I)" valueType="includePath">
-<listOptionValue value="&quot;${workspace_loc:/PCS}/Source&quot;" builtIn="false"/>
-<listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Source}&quot;" builtIn="false"/>
-<listOptionValue value="&quot;${workspace_loc:/NII}/Source&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/MOSLib/Source}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Source}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/OpenOSLib}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/PCS/Source}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.346070771" name="Defined symbols (-D)" valueType="definedSymbols">
 <listOptionValue value="_DEBUG_" builtIn="false"/>
@@ -38,19 +38,20 @@
 <tool superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.14886845" name="GCC C Compiler">
 <option superClass="gnu.c.compiler.exe.debug.option.optimization.level" id="gnu.c.compiler.exe.debug.option.optimization.level.405863638" name="Optimization Level" defaultValue="gnu.c.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.c.compiler.exe.debug.option.debugging.level" id="gnu.c.compiler.exe.debug.option.debugging.level.1738561836" name="Debug Level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+<option superClass="gnu.c.compiler.option.include.paths" id="gnu.c.compiler.option.include.paths.1240786352" name="Include paths (-I)" valueType="includePath"/>
 <inputType superClass="cdt.managedbuild.tool.gnu.c.compiler.input" id="cdt.managedbuild.tool.gnu.c.compiler.input.798114644"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug" id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1865140246" name="GCC C Linker"/>
 <tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.941904374" name="GCC C++ Linker">
 <option superClass="gnu.cpp.link.option.libs" id="gnu.cpp.link.option.libs.164078426" name="Libraries (-l)" valueType="libs">
-<listOptionValue value="NII" builtIn="false"/>
+<listOptionValue value="MOS" builtIn="false"/>
+<listOptionValue value="OpenOS" builtIn="false"/>
 <listOptionValue value="pthread" builtIn="false"/>
 <listOptionValue value="rt" builtIn="false"/>
-<listOptionValue value="OpenOS" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.link.option.paths" id="gnu.cpp.link.option.paths.535234695" name="Library search path (-L)" valueType="stringList">
+<listOptionValue value="&quot;${workspace_loc:/MOSLib/Debug}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Debug}&quot;" builtIn="false"/>
-<listOptionValue value="&quot;${workspace_loc:/NII/Debug}&quot;" builtIn="false"/>
 </option>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug" id="cdt.managedbuild.tool.gnu.assembler.exe.debug.16450803" name="GCC Assembler">

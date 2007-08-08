@@ -53,10 +53,10 @@ ASAAC_TimedReturnStatus TcListener::listen(const ASAAC_NetworkDescriptor& networ
 	if(tc_header != tc_id)
 	{
      	cerr << "TcListener::listen() wrong TC header " << tc_header << " while receiving data for TC " << tc_id << endl;
-		//return ASAAC_TM_ERROR;
+		//return ASAAC_TM_ERROR; //TODO: is this an error?
 	}
  
-    if(m_Consumer->processTcMessage(tc_header,(ASAAC_Address) (receive_data + 4),data_length-4) != ASAAC_SUCCESS)
+    if(m_Consumer->processTcMessage(tc_id,(ASAAC_Address) (receive_data + 4),data_length-4) != ASAAC_SUCCESS)
     {
      	cerr << "TcListener::listen() could not processTcMessage for TC " << tc_id << endl;
         return ASAAC_TM_ERROR;

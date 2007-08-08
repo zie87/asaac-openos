@@ -3,6 +3,7 @@
 
 #include "ASAAC.h"
 #include "PcsConstants.hh"
+#include "MOSConstants.hh"
 #include "OpenOSIncludes.hh"
 
 #endif /*PCSINCLUDES_HH_*/

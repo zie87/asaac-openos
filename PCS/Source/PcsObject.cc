@@ -1,12 +1,12 @@
 #include "PcsObject.hh"
-#include "NII.hh"
-
 #include "PcsCIncludes.hh"
+
 
 PCS::PCS()
 {
 
 }
+
 
 ASAAC_ReturnStatus PCS::configureInterface( const ASAAC_InterfaceData& if_config )
 {
@@ -15,7 +15,8 @@ ASAAC_ReturnStatus PCS::configureInterface( const ASAAC_InterfaceData& if_config
 #endif
 	
 	return ASAAC_ERROR;
-};	
+}	
+
 
 ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_description )
 {
@@ -26,13 +27,13 @@ ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_
 
 	ASAAC_InterfaceConfigurationData configuration_data;
 	
-	ASAAC_NiiReturnStatus niiRet = ASAAC_MOS_configureInterface(NII_IF_ETHERNET, &tc_description.network_descr, &configuration_data);
+	ASAAC_NiiReturnStatus niiRet = ASAAC_MOS_configureInterface(MOS_INTERFACE_ID_NII, &tc_description.network_descr, &configuration_data);
 	
 	if(niiRet == ASAAC_MOS_NII_CALL_COMPLETE)
 	{
-		#ifdef _DEBUG_       
+#ifdef _DEBUG_       
 		cout << "PCS::initialize() configured Ethernet interface with network " << tc_description.network_descr.network << " and port " << tc_description.network_descr.port << endl;
-		#endif
+#endif
 		
 		if(m_Configuration.addNetwork(tc_description.network_descr) == ASAAC_ERROR)
 		{
@@ -72,7 +73,7 @@ ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_
 	}
 	else
 	{
-		cerr << "PCS::createTransferConnection() failed to configure transfer connection " << tc_description.tc_id << " with status " << cMosNii::spell(niiRet) << endl;
+		cerr << "PCS::createTransferConnection() failed to configure transfer connection " << tc_description.tc_id << endl;
 		return ASAAC_ERROR;
 	}			
 	
@@ -83,7 +84,8 @@ ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_
 	m_Limiter.setRateLimit( tc_description.tc_id, defaultTcRateLimit );
 	
 	return ASAAC_SUCCESS;
-};
+}
+
 
 ASAAC_ReturnStatus PCS::getTransferConnectionDescription( ASAAC_PublicId tc_id, ASAAC_TcDescription& tc_description )
 {
@@ -110,14 +112,15 @@ ASAAC_ReturnStatus PCS::destroyTransferConnection( ASAAC_PublicId tc_id, const A
   	}
   	else
   	{
-		#ifdef _DEBUG_
+#ifdef _DEBUG_
 		cerr << "PCS handleDestroyTransferConnection() failed in ASAAC_MOS_destroyTransfer" << endl;
-		#endif
+#endif
     	return ASAAC_ERROR;
   	}
 	
 	return ASAAC_ERROR;
-};	
+}	
+
 
 ASAAC_ReturnStatus PCS::getNetworkPortStatus( const ASAAC_NetworkDescriptor& network_descriptor, ASAAC_NetworkPortStatus& status )
 {
@@ -172,7 +175,8 @@ ASAAC_ReturnStatus PCS::attachTransferConnectionToVirtualChannel( const ASAAC_Vc
 	}
 	
 	return ASAAC_SUCCESS;
-};
+}
+
 
 ASAAC_ReturnStatus PCS::detachTransferConnectionFromVirtualChannel( ASAAC_PublicId vc_id, ASAAC_PublicId tc_id )
 {
@@ -181,7 +185,8 @@ ASAAC_ReturnStatus PCS::detachTransferConnectionFromVirtualChannel( ASAAC_Public
 #endif
 	
 	return ASAAC_ERROR;
-};
+}
+
 
 ASAAC_TimedReturnStatus PCS::getPMData(unsigned long max_len, ASAAC_Time timeout, ASAAC_PublicId snd_vc, ASAAC_PublicId& vc_id)
 {
@@ -200,9 +205,9 @@ ASAAC_TimedReturnStatus PCS::getPMData(unsigned long max_len, ASAAC_Time timeout
 	{
 		if(length > max_len)
 		{
-		#ifdef _DEBUG_       
+#ifdef _DEBUG_       
 			cerr << "PCS::getPMData() received data length " << length << " is greater than max length " << max_len << endl;		 			
-		#endif
+#endif
 			
 			return ASAAC_TM_ERROR;	
 		}
@@ -245,7 +250,8 @@ ASAAC_TimedReturnStatus PCS::getPMData(unsigned long max_len, ASAAC_Time timeout
 	}
 	
 	return getMsgStatus;
-};
+}
+
 
 ASAAC_ReturnStatus PCS::returnPMData(ASAAC_PublicId vc_id, ASAAC_PublicId rec_vc, ASAAC_ReturnStatus sm_return_status)
 {
@@ -272,9 +278,7 @@ ASAAC_ReturnStatus PCS::returnPMData(ASAAC_PublicId vc_id, ASAAC_PublicId rec_vc
 	}
 	
 	return ASAAC_ERROR;
-};
-
-
+}
 
 
 void PCS::initialize()
@@ -399,6 +403,7 @@ void PCS::initialize()
 	}
 }
 
+
 void PCS::deinitialize()
 {	
 	m_Configuration.deinitialize();
@@ -419,6 +424,7 @@ void PCS::deinitialize()
 	m_GlobalVcSend.deinitialize();
 	m_Sender.deinitialize();
 }
+
 
 void PCS::loopVcListener()
 {
@@ -442,15 +448,14 @@ void PCS::loopVcListener()
 			cerr << e.getFullMessage() << endl;
 		}
 	}
-};
+}
+
 
 void PCS::loopTcListener()
 {
 	ASAAC_NetworkDescriptor* networks = 0;
 	unsigned long number = 0;
 	
-	
-	ASAAC_PublicId localNetwork = cMosNii::getInstance()->getLocalNetwork();
 	
 	ASAAC_TimeInterval network_gap = {0,10000}; //CAUTION.SBS> causes a DELAY between network receives!!!!!!!
 	ASAAC_TimeInterval unavailable = {1,0}; //COMMENT.SBS> if their are no networks configured, wait til next try
@@ -463,29 +468,25 @@ void PCS::loopTcListener()
 		
 			if(networks == 0)
 			{
-				#ifdef _DEBUG_       
+#ifdef _DEBUG_       
 				//cerr << "PCS::tcListener() Invalid pointer to network array" << endl;
-				#endif
+#endif
 				ASAAC_APOS_sleep(&unavailable);
 				continue;	
 			}
 			
 			for(unsigned long n = 0; n < number; ++n)
 			{
-				if(networks[n].network == localNetwork)
-				{
-					#ifdef _DEBUG_       
-		        	cout << "PCS::tcListener() on Network " << n << endl;
-					#endif
-					
-					
-					if(m_NiiReceiver.listen(networks[n],number == 1 ? TimeIntervalInfinity : network_gap) == ASAAC_TM_SUCCESS)
-					{
-						#ifdef _DEBUG_       
-		        		cout << "PCS::tcListener() successfully processed incoming messages on netork " << n << endl;  fflush(stdout);
-						#endif			
-					}
+#ifdef _DEBUG_       
+	        	cout << "PCS::tcListener() on Network " << n << endl;
+#endif
 				
+				
+				if(m_NiiReceiver.listen(networks[n],number == 1 ? TimeIntervalInfinity : network_gap) == ASAAC_TM_SUCCESS)
+				{
+#ifdef _DEBUG_       
+	        		cout << "PCS::tcListener() successfully processed incoming messages on netork " << n << endl;  fflush(stdout);
+#endif			
 				}
 			}
 		}
@@ -494,7 +495,8 @@ void PCS::loopTcListener()
 			cerr << e.getFullMessage() << endl;
 		}
 	}
-};
+}
+
 
 void PCS::loopRateLimiter()
 {
@@ -505,7 +507,7 @@ void PCS::loopRateLimiter()
 		{
 			ret = m_Limiter.processNextMessage();
 #ifdef _DEBUG_
-			if(ret == ASAAC_SUCCESS)
+			if (ret == ASAAC_SUCCESS)
 			{       
 	    		cout << "PCS::rateLimiter() processed enqueued message " << endl; fflush(stdout);
 			}
@@ -516,4 +518,4 @@ void PCS::loopRateLimiter()
 			cerr << e.getFullMessage() << endl;
 		}
 	}
-};
+}
