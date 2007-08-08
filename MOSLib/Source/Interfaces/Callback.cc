@@ -1,4 +1,4 @@
-#include "MOSIncludes.h"
+#include "MOSIncludes.hh"
 
 
 /***********************************************************************************/
@@ -13,7 +13,7 @@ typedef struct {
 } CallbackData;
 
 CallbackData CallbackArray[MOS_MAX_NUMBER_OF_CALLBACKS];
-unsigned long CallbackArraySize = 0;
+long CallbackArraySize = 0;
 
 
 /***********************************************************************************/
@@ -139,8 +139,9 @@ void ASAAC_MOS_callbackHandler(const ASAAC_EventType event_type, const ASAAC_Pub
 	pthread_attr_init( &ThreadAttributes );
 	
 	//TODO: define thread attributes here
-	
-	pthread_create( &Thread, &ThreadAttributes, CallbackArray[Index].callback, event_info_data );
+	typedef void*(*CallbackType)(void*);
+	CallbackType Callback = reinterpret_cast<CallbackType>(CallbackArray[Index].callback);
+	pthread_create( &Thread, &ThreadAttributes, Callback, event_info_data );
 }
 
 

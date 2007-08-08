@@ -3,10 +3,12 @@
 
 #include "ASAAC.h"
 #include "AsaacCLib.h"
+#include "NII.hh"
 
-#include "MOSConstants.h"
+#include "MOSConstants.hh"
 
 #include <string.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 #endif /*MOSINCLUDES_H_*/

@@ -1,5 +1,4 @@
-#include "MOSIncludes.h"
-#include "NII.hh"
+#include "MOSIncludes.hh"
 
 ASAAC_NiiReturnStatus ASAAC_MOS_configureInterface(
 		const ASAAC_PublicId interface_id,
@@ -10,7 +9,6 @@ ASAAC_NiiReturnStatus ASAAC_MOS_configureInterface(
 	{
 		case MOS_INTERFACE_ID_NII: 	
 			return cMosNii::getInstance()->configureInterface(
-				interface_id, 
 				*network_id,
 				*configuration_data);
 			break;

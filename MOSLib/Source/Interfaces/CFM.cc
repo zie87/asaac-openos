@@ -1,4 +1,4 @@
-#include "MOSIncludes.h"
+#include "MOSIncludes.hh"
 
 
 ASAAC_CfmParameterReturnStatus ASAAC_MOS_getCfmInfo(ASAAC_CfmInfo* cfm_info)
@@ -9,7 +9,7 @@ ASAAC_CfmParameterReturnStatus ASAAC_MOS_getCfmInfo(ASAAC_CfmInfo* cfm_info)
 
 ASAAC_CfmStatusReturnStatus ASAAC_MOS_getCfmStatus(ASAAC_CfmStatus* cfm_status)
 {
-	return ASAAC_CFM_INFO_CALL_FAILED;
+	return ASAAC_CFM_STATUS_CALL_FAILED;
 }
 
 

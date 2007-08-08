@@ -59,8 +59,8 @@
 <listOptionValue value="AsaacC" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.link.option.paths" id="gnu.cpp.link.option.paths.1727568305" name="Library search path (-L)" valueType="libPaths">
-<listOptionValue value="&quot;${workspace_loc:/AsaacCLib/Debug}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/NIILib/Debug}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/AsaacCLib/Debug}&quot;" builtIn="false"/>
 </option>
 <inputType superClass="cdt.managedbuild.tool.gnu.cpp.linker.input" id="cdt.managedbuild.tool.gnu.cpp.linker.input.1902893075">
 <additionalInput paths="$(USER_OBJS)" kind="additionalinputdependency"/>

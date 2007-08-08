@@ -1,9 +1,9 @@
-#include "MOSIncludes.h"
+#include "MOSIncludes.hh"
 
 
 ASAAC_TimerReturnStatus ASAAC_MOS_getAbsoluteLocalTime(ASAAC_Time* ac_system_time)
 {
-	timespec TimeNow;
+	struct timespec TimeNow;
 	
 	if ( clock_gettime( CLOCK_REALTIME, &TimeNow ) != 0 )
 		return ASAAC_MOS_TIMER_CALL_FAILED;
@@ -17,7 +17,7 @@ ASAAC_TimerReturnStatus ASAAC_MOS_getAbsoluteLocalTime(ASAAC_Time* ac_system_tim
 
 ASAAC_TimerReturnStatus ASAAC_MOS_getRelativeLocalTime(ASAAC_Time* cfm_time)
 {
-	timespec TimeNow;
+	struct timespec TimeNow;
 	
 	if ( clock_gettime( CLOCK_REALTIME, &TimeNow ) != 0 )
 		return ASAAC_MOS_TIMER_CALL_FAILED;
@@ -31,7 +31,7 @@ ASAAC_TimerReturnStatus ASAAC_MOS_getRelativeLocalTime(ASAAC_Time* cfm_time)
 
 ASAAC_TimerReturnStatus ASAAC_MOS_getAbsoluteGlobalTime(ASAAC_Time* absolute_global_time)
 {
-	timespec TimeNow;
+	struct timespec TimeNow;
 	
 	if ( clock_gettime( CLOCK_REALTIME, &TimeNow ) != 0 )
 		return ASAAC_MOS_TIMER_CALL_FAILED;
