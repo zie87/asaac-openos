@@ -52,6 +52,8 @@ ASAAC_THREAD(MainThread)
         ASAAC_SMOS_runProcess( entityConfiguration.ProcessConfiguration.List[p].Description.global_pid );
     }
 	
+    ASAAC_APOS_suspendSelf();
+    
     return 0;
 }
 

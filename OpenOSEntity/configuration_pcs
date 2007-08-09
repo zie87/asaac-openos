@@ -13,7 +13,6 @@ process
 	programme_file_name:PCS/Debug/PCS  
 	cpu_id:0 
 	thread(thread_id:1 entry_point:MainThread)
-	thread(thread_id:2 entry_point:TcListenThread)
-	thread(thread_id:3 entry_point:VcListenThread)
-	thread(thread_id:4 entry_point:RateLimiterThread)
+	thread(thread_id:2 entry_point:VcListenThread)
+	thread(thread_id:3 entry_point:RateLimiterThread)
 )
