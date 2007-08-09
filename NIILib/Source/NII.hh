@@ -102,11 +102,7 @@ public:
 
 	//NiiReturnStatus getNetworkPortStatus();
 
-	ASAAC_NiiReturnStatus listenNetwork(
-			const ASAAC_NetworkDescriptor& network_id,
-			ASAAC_PublicId& tc_id);
-	
-	
+
 	/////////////////////////////////////////////
 	/// Receive data on every TC connected to a specific network
 	/// (STANAG 4626 Part II - 11.5.1.3.7)
@@ -126,26 +122,6 @@ public:
 			ASAAC_PublicId& tc_id, 
 			ASAAC_Time time_out);
 
-	/////////////////////////////////////////////
-	/// Returns a character string representation of the return status code
-
-	static char* spell(ASAAC_NiiReturnStatus status);
-
-	/////////////////////////////////////////////
-	/// Returns a multicast address based on a network identifier between 3-255
-
-	ASAAC_PublicId networkGroup(char address);
-
-	/////////////////////////////////////////////
-	/// Returns a network address based on an IP4 address format X.X.X.X
-
-	ASAAC_PublicId networkAddress(const char* ip_addr);
-
-	/////////////////////////////////////////////
-	/// Returns a network address based on an IP4 address 127,0.0.1
-
-	ASAAC_PublicId getLocalNetwork();
-
 protected:
 
 	typedef struct {
@@ -159,16 +135,19 @@ protected:
 	/// @param pTcData si a pointer to TcData which is passed as void*
 	/// @see TcData
 
-	static void* streamTcThread(void* pTcData);
+	void handleStreamingTc(TcData pTcData);
 
-	static void* listenThread(void* Data);
+	static void* ServiceThread(void* Data);
 
-	ASAAC_TimedReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId &tc_id  );
-	ASAAC_TimedReturnStatus waitForDataOnTc( const ASAAC_Time time_out, const ASAAC_PublicId tc_id );
-	ASAAC_TimedReturnStatus waitForDataOnNw( const ASAAC_Time time_out, const ASAAC_NetworkDescriptor& network_id );
+	ASAAC_NiiReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId &tc_id  );
+	ASAAC_NiiReturnStatus receiveData( 		
+			const ASAAC_PublicId tc_id, 
+			const ASAAC_CharAddress receive_data, 
+			const unsigned long data_length_available, 
+			unsigned long& data_length);
 	
-	void startListening();
-	void stopListening();
+	void startServices();
+	void stopServices();
 
 	/////////////////////////////////////////////
 	/// Returns TRUE, if network descriptor is available and associated with a valid interface and socket
@@ -214,23 +193,17 @@ private:
 	///< This is the current local port to open new sockets. It is inkremented from each time and initialized in constructor @see cMosNii()
 	ASAAC_PublicId 	m_NiiLocalPort; 
 
-	//< Buffer for received data
-	char 			m_ReceiveBuffer[NII_MAX_NUMBER_OF_RECEIVEBUFFERS][NII_MAX_SIZE_OF_RECEIVEBUFFER]; 
-	//< Currently used buffer for received data
-	unsigned int 	m_CurrentBuffer; 
+	pthread_t       m_ServiceThread;
+	int				m_ServiceFileDescriptor;
 	
-	pthread_t       m_ListeningThread;
-	int				m_LoopBackFileDescriptor;
-	
-	pthread_cond_t	m_ListeningThreadCondition;
-	pthread_mutex_t	m_ListeningThreadMutex;
+	pthread_cond_t	m_ServiceThreadCondition;
+	pthread_mutex_t	m_ServiceThreadMutex;
 	
 	pthread_cond_t	m_NewDataCondition;
 	pthread_mutex_t	m_NewDataMutex;
-	
-	int				m_IsListening;
-	
 	long			m_NewDataTcIndex;
+	
+	int				m_IsListening;	
 };
 
 #endif /*MOSNII_HH_*/

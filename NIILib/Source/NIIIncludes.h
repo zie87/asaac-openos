@@ -1,7 +1,7 @@
 #ifndef NIIINCLUDES_H_
 #define NIIINCLUDES_H_
 
-#include "ASAAC.h"
+#include "ASAAC_ENH.h"
 #include "AsaacCLib.h"
 
 #include "NIITypes.h"

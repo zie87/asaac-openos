@@ -21,37 +21,36 @@ cMosNii::cMosNii()
 		m_NwData[i].valid = 0;
 	
 	m_NiiLocalPort = 55500;
-	m_CurrentBuffer = 0;
 
 	pthread_condattr_t CondAttr;
 	pthread_condattr_init( &CondAttr );
 	pthread_condattr_setpshared( &CondAttr, PTHREAD_PROCESS_PRIVATE );
 
-	
 	pthread_mutexattr_t MutexAttr;
 	pthread_mutexattr_init( &MutexAttr );    
 	pthread_mutexattr_setpshared( &MutexAttr, PTHREAD_PROCESS_PRIVATE );
 	
-	pthread_cond_init( &m_ListeningThreadCondition, &CondAttr );
-	pthread_mutex_init( &m_ListeningThreadMutex, &MutexAttr ); 	
+	pthread_cond_init( &m_ServiceThreadCondition, &CondAttr );
+	pthread_mutex_init( &m_ServiceThreadMutex, &MutexAttr ); 	
 	pthread_cond_init( &m_NewDataCondition, &CondAttr );
 	pthread_mutex_init( &m_NewDataMutex, &MutexAttr ); 
 	
 	m_NewDataTcIndex = -1;
 	m_IsListening = 1;
-	m_LoopBackFileDescriptor = socket(AF_INET, SOCK_DGRAM, 0);
-	pthread_create( &m_ListeningThread, NULL, cMosNii::listenThread, NULL );
+	
+	m_ServiceFileDescriptor = socket(AF_INET, SOCK_DGRAM, 0);
+	pthread_create( &m_ServiceThread, NULL, ServiceThread, NULL );
 }
 
 
 // Destroys all configurations and open transfer channels
 cMosNii::~cMosNii()
 {
-	pthread_cancel( m_ListeningThread );
-	close(m_LoopBackFileDescriptor);
+	pthread_cancel( m_ServiceThread );
+	close(m_ServiceFileDescriptor);
 
-	pthread_cond_destroy( &m_ListeningThreadCondition );
-	pthread_mutex_destroy( &m_ListeningThreadMutex );
+	pthread_cond_destroy( &m_ServiceThreadCondition );
+	pthread_mutex_destroy( &m_ServiceThreadMutex );
 	pthread_cond_destroy( &m_NewDataCondition );
 	pthread_mutex_destroy( &m_NewDataMutex );
 	
@@ -112,8 +111,6 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
 		ASAAC_Bool trigger_callback,
 		ASAAC_PublicId callback_id)
 {
-	NwData nw;
-	TcData tc;
 	struct sockaddr_in addr;
 #ifdef UDP_MULTICAST         
 	struct ip_mreq multi;
@@ -140,9 +137,8 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
 #ifdef _DEBUG_
 			cerr << "cMosNii::configureTransfer(" << tc_idx << ") setup TC" << endl;
 #endif
-			tc = m_TcData[tc_idx];
-			nw = m_NwData[nw_idx];
-
+			TcData tc = m_TcData[tc_idx];
+			tc.valid = 1;
 			tc.hasData = 0;
 			tc.id = tc_id;
 			tc.nw = &m_NwData[nw_idx];
@@ -150,6 +146,8 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
 			tc.type = message_streaming;
 			tc.trigger_callback = trigger_callback;
 			tc.callback_id = callback_id;
+
+			NwData nw = m_NwData[nw_idx];
 
 			switch (message_streaming)
 			{
@@ -174,10 +172,8 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
 					return ASAAC_MOS_NII_CALL_FAILED;
 				}
 
-				tc.config_data.data_length
-						= configuration_data.conf_data.tcpip.buffer_length;
-				tc.config_data.stream_buffer
-						= (char*) configuration_data.conf_data.tcpip.stream_buffer;
+				tc.config_data.data_length   = configuration_data.conf_data.tcpip.buffer_length;
+				tc.config_data.stream_buffer = (char*) configuration_data.conf_data.tcpip.stream_buffer;
 
 #ifdef _DEBUG_
 				cerr << "cMosNii::configureTransfer(" << tc_idx << ") create stream socket" << endl;
@@ -209,12 +205,12 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
 #endif
 				addr.sin_port = htons(nw.id.port);
 #ifdef UDP_MULTICAST         
-				if(tc->type == ASAAC_TRANSFER_TYPE_MESSAGE)
+				if (tc.type == ASAAC_TRANSFER_TYPE_MESSAGE)
 				{
-					setsockopt(tc->fd,SOL_SOCKET,SO_REUSEADDR , &option_on, sizeof(int));
-					multi.imr_multiaddr.s_addr = nw->id.network;
+					setsockopt(tc.fd,SOL_SOCKET,SO_REUSEADDR , &option_on, sizeof(int));
+					multi.imr_multiaddr.s_addr = nw.id.network;
 					multi.imr_interface.s_addr = INADDR_ANY;
-					setsockopt(tc->fd,IPPROTO_IP,IP_ADD_MEMBERSHIP , &multi, sizeof(ip_mreq));
+					setsockopt(tc.fd,IPPROTO_IP,IP_ADD_MEMBERSHIP , &multi, sizeof(ip_mreq));
 				}
 #else
 				cerr << "CAUTION: no special treatment of socket for Multicast UDP Messages" << endl;
@@ -232,7 +228,7 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
 
 			nw.open_tcs += 1;
 
-			if(tc.type == ASAAC_TRANSFER_TYPE_MESSAGE)
+			if (tc.type == ASAAC_TRANSFER_TYPE_MESSAGE)
 			{
 #ifdef _DEBUG_
 				cerr << "cMosNii::configureTransfer(" << tc_idx << ") set nonblocking IO " << endl;
@@ -241,31 +237,16 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
 				fcntl(tc.fd, F_SETFL, val | O_NONBLOCK); //COMMENT.SMS> add this flag for asynchronous signalling | O_ASYNC
 				//COMMENT.SMS> fcntl(tc->fd, F_SETOWN, getpid()); //set owner for asynchronous signalling
 			}
-			else
-			{
-#ifdef _DEBUG_
-				cerr << "cMosNii::configureTransfer(" << tc_idx << ") create thread for streaming IO " << endl;
-#endif
-				if((pthread_create(&(tc.th), NULL, streamTcThread, (void *) &m_TcData[tc_idx])) !=0)
-				{
-#ifdef _DEBUG_
-					perror("pthread_create() : ");
-#endif
-					return ASAAC_MOS_NII_CALL_FAILED;
-				}
-			}
 
 #ifdef _DEBUG_
 			cerr << "cMosNii::configureTransfer() : done" << endl;
 #endif
 		
 			// Now the TC can be stored
-			stopListening();			
+			stopServices();			
 			m_TcData[tc_idx] = tc;
-			m_TcData[tc_idx].valid = 1;
 			m_NwData[nw_idx] = nw;
-			m_NwData[nw_idx].valid = 1;
-			startListening();			
+			startServices();			
 
 			return ASAAC_MOS_NII_CALL_COMPLETE;
 		}
@@ -290,8 +271,6 @@ ASAAC_NiiReturnStatus cMosNii::sendTransfer(
 		unsigned long data_length, 
 		ASAAC_Time time_out)
 {
-	TcData* tc = 0;
-
 	long tc_idx = getTcIndex(tc_id);
 	
 	if ( tc_idx == -1 ) //TC not established yet
@@ -300,7 +279,7 @@ ASAAC_NiiReturnStatus cMosNii::sendTransfer(
 	}
 	else
 	{
-		tc = &m_TcData[tc_idx];
+		TcData* tc = &m_TcData[tc_idx];
 
 		if (tc->type != ASAAC_TRANSFER_TYPE_MESSAGE)
 		{
@@ -324,8 +303,6 @@ ASAAC_NiiReturnStatus cMosNii::sendTransfer(
 		addr.sin_addr.s_addr = tc->nw->id.network;
 		addr.sin_port = htons(tc->nw->id.port);
 
-		struct timespec tp;
-
 		do
 		{
 			bytes = sendto(tc->fd, transmit_data, data_length, 0,
@@ -347,20 +324,17 @@ ASAAC_NiiReturnStatus cMosNii::sendTransfer(
 			}
 			else
 			{
+				static EventInfoData_BufferReceived EventInfoData;
+				EventInfoData.status = ASAAC_MOS_NII_CALL_COMPLETE;
+				EventInfoData.tc_id = tc->id;
+
 				if (tc->trigger_callback == ASAAC_BOOL_TRUE)
-					ASAAC_MOS_callbackHandler( ASAAC_COMMS_EV_BUFFER_SEND, tc->callback_id, NULL );
+					ASAAC_MOS_callbackHandler( ASAAC_COMMS_EV_BUFFER_SEND, tc->callback_id, &EventInfoData );
 				
 				return ASAAC_MOS_NII_CALL_OK;
 			}
-
-			if(clock_gettime(CLOCK_REALTIME, &tp))
-			{
-				perror("GET REALTIME CLOCK :");
-				return ASAAC_MOS_NII_CALL_FAILED;
-			}
-
 		}
-		while( lower(TimespecToTime(tp), time_out) ); //loop until time is over
+		while( lower(TimeInstant(), time_out) ); //loop until time is over
 
 	}//TC installed
 
@@ -376,76 +350,21 @@ ASAAC_NiiReturnStatus cMosNii::receiveTransfer(
 		unsigned long& data_length, 
 		ASAAC_Time time_out)
 {
-	if (data_length_available > NII_MAX_SIZE_OF_RECEIVEBUFFER)
-	{
-		cerr << "ASAAC_MOS_receiveTransfer() "<< data_length_available
-			 << " >  NII_RECEIVE_BUFFER_SIZE"<< endl;
-		return ASAAC_MOS_NII_CALL_FAILED;
-	}
-
-	m_CurrentBuffer = (m_CurrentBuffer + 1) % NII_MAX_NUMBER_OF_RECEIVEBUFFERS;
-
-	receive_data = m_ReceiveBuffer[m_CurrentBuffer];
-
-	TcData* tc = 0;
-
-	long tc_idx = getTcIndex(tc_id);
-	
-	if (tc_idx == -1) //TC not established yet
-	{
+	if (getTcIndex(tc_id) == -1) //TC not established yet
 		return ASAAC_MOS_NII_TC_NOT_CONFIGURED;
-	}
-	else
+
+	ASAAC_PublicId ReceivedTcId;
+	
+	do
 	{
-		tc = &m_TcData[tc_idx];
-
-		if (tc->type != ASAAC_TRANSFER_TYPE_MESSAGE)
-		{
-#ifdef _DEBUG_
-			cerr << "ERROR: no message TC " << endl;
-#endif
-			return ASAAC_MOS_NII_CALL_FAILED;
-		}
-
-		if (tc->direction != ASAAC_TRANSFER_DIRECTION_RECEIVE)
-		{
-#ifdef _DEBUG_
-			cerr << "ERROR: no receive TC " << endl;
-#endif
-			return ASAAC_MOS_NII_CALL_FAILED;
-		}
-
-		int bytes = 0;
-
-		struct sockaddr_in addr;
-		socklen_t length = (socklen_t) sizeof(addr);
-
-		struct timespec tp;
-
-		waitForData(time_out, tc_id);
+		ASAAC_NiiReturnStatus Result = waitForData( time_out, ReceivedTcId );
 		
-		bytes = recvfrom(tc->fd, receive_data, data_length_available, 0, (struct sockaddr *) &addr, &length);
-
-		if( bytes < 0)
-		{
-			if(errno != EWOULDBLOCK)
-			{
-				perror("RECEIVE FROM SOCKET :");
-				return ASAAC_MOS_NII_CALL_FAILED;
-			}
-		}
-		else
-		{
-			data_length = bytes;
-#ifdef _DEBUG_
-			cout << "RECEIVE " << bytes << " BYTE ON TC " << tc_id << endl;
-#endif
-
-			return ASAAC_MOS_NII_CALL_COMPLETE;
-		}
-	}//TC installed
-
-	return ASAAC_MOS_NII_CALL_FAILED;
+		if ( Result != ASAAC_MOS_NII_CALL_COMPLETE )
+			return Result;
+	}	
+	while ( ReceivedTcId != tc_id );
+	
+	return receiveData(tc_id, receive_data, data_length_available, data_length);
 }
 
 
@@ -457,29 +376,38 @@ ASAAC_NiiReturnStatus cMosNii::receiveNetwork(
 		ASAAC_PublicId& tc_id, 
 		ASAAC_Time time_out)
 {
-	if (data_length_available > NII_MAX_SIZE_OF_RECEIVEBUFFER)
+	if ( getNwIndex(network_id) == -1 ) //TC not established yet
+		return ASAAC_MOS_NII_TC_NOT_CONFIGURED;
+	
+	long 		   			ReceivedTcIndex;
+	ASAAC_NetworkDescriptor ReceivedNetworkId;
+	
+	do
 	{
-		cerr << "ASAAC_MOS_receiveTransfer() "<< data_length_available
-				<< " >  NII_MAX_SIZE_OF_RECEIVEBUFFER"<< endl;
-		return ASAAC_MOS_NII_CALL_FAILED;
-	}
-
-	m_CurrentBuffer = (m_CurrentBuffer + 1) % NII_MAX_NUMBER_OF_RECEIVEBUFFERS;
-
-	receive_data = m_ReceiveBuffer[m_CurrentBuffer];
-
-	waitForDataOnNw(time_out, network_id);
-
-	return receiveTransfer(tc_id, receive_data, data_length_available, data_length, time_out);
+		ASAAC_NiiReturnStatus Result = waitForData( time_out, tc_id );
+		
+		if ( Result != ASAAC_MOS_NII_CALL_COMPLETE )
+			return Result;
+		
+		ReceivedTcIndex = getTcIndex( tc_id );
+		
+		if (ReceivedTcIndex == -1) //TC not established yet
+			return ASAAC_MOS_NII_CALL_FAILED;
+		
+		ReceivedNetworkId = m_TcData[ReceivedTcIndex].nw->id;
+	}	
+	while ( ( ReceivedNetworkId.network != network_id.network ) || 
+			( ReceivedNetworkId.port != network_id.port ) );
+	
+	return receiveData(tc_id, receive_data, data_length_available, data_length);
 }
+
 
 // Release local resources previously allocated to handle the transmission or reception of information over a TC
 ASAAC_NiiReturnStatus cMosNii::destroyTransfer(
 		ASAAC_PublicId tc_id,
 		const ASAAC_NetworkDescriptor& network_id)
 {
-	TcData* tc = NULL;
-
 	long tc_idx = getTcIndex(tc_id);
 	
 	if (tc_idx == -1) //TC not established yet
@@ -488,15 +416,15 @@ ASAAC_NiiReturnStatus cMosNii::destroyTransfer(
 	}
 	else
 	{
-		stopListening();
+		stopServices();
 		
-		tc = &m_TcData[tc_idx];
+		TcData* tc = &m_TcData[tc_idx];
 
 		tc->valid = 0;
 		tc->nw->open_tcs -= 1;
 		close(tc->fd);
 
-		startListening();
+		startServices();
 		
 		return ASAAC_MOS_NII_CALL_COMPLETE;
 	}
@@ -520,11 +448,9 @@ long cMosNii::getNwIndex(const ASAAC_NetworkDescriptor& network_id)
 {
 	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
 	{
-		if (m_NwData[i].valid && memcmp(&m_NwData[i].id, &network_id,
-				sizeof(ASAAC_NetworkDescriptor)) == 0)
-		{
+		if ( (m_NwData[i].valid == 1) && 
+			 (memcmp(&m_NwData[i].id, &network_id, sizeof(ASAAC_NetworkDescriptor)) == 0) )
 			return i;
-		};
 	}
 	
 	return -1;
@@ -537,9 +463,7 @@ long cMosNii::getTcIndex(const ASAAC_PublicId tc_id)
 	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
 	{
 		if (m_TcData[i].valid && m_TcData[i].id == tc_id)
-		{
 			return i;
-		};
 	}
 	
 	return -1;
@@ -552,9 +476,7 @@ long cMosNii::getEmptyTc()
 	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
 	{
 		if (m_TcData[i].valid == 0)
-		{
 			return i;
-		};
 	}
 	
 	return -1;
@@ -567,230 +489,163 @@ long cMosNii::getEmptyNw()
 	for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_NETWORKS; ++i)
 	{
 		if (m_NwData[i].valid == 0)
-		{
 			return i;
-		};
 	}
 	
 	return -1;
 }
 
 
-// Returns a character string representation of the return status code
-char* cMosNii::spell(ASAAC_NiiReturnStatus status)
-{
-	switch (status)
-	{
-	case ASAAC_MOS_NII_CALL_FAILED:
-		return "ASAAC_MOS_NII_CALL_FAILED";
-	case ASAAC_MOS_NII_CALL_COMPLETE:
-		return "ASAAC_MOS_NII_CALL_COMPLETE";
-	case ASAAC_MOS_NII_CALL_OK:
-		return "ASAAC_MOS_NII_CALL_OK";
-	case ASAAC_MOS_NII_INVALID_INTERFACE:
-		return "ASAAC_MOS_NII_INVALID_INTERFACE";
-	case ASAAC_MOS_NII_INVALID_CONFIG:
-		return "ASAAC_MOS_NII_INVALID_CONFIG";
-	case ASAAC_MOS_NII_INVALID_NETWORK:
-		return "ASAAC_MOS_NII_INVALID_NETWORK";
-	case ASAAC_MOS_NII_INVALID_TC:
-		return "ASAAC_MOS_NII_INVALID_TC";
-	case ASAAC_MOS_NII_INVALID_MESSAGE_SIZE:
-		return "ASAAC_MOS_NII_INVALID_MESSAGE_SIZE";
-	case ASAAC_MOS_NII_OPEN_TCS:
-		return "ASAAC_MOS_NII_OPEN_TCS";
-	case ASAAC_MOS_NII_ALREADY_CONFIGURED:
-		return "ASAAC_MOS_NII_ALREADY_CONFIGURED";
-	case ASAAC_MOS_NII_TC_NOT_CONFIGURED:
-		return "ASAAC_MOS_NII_TC_NOT_CONFIGURED";
-	case ASAAC_MOS_NII_STORAGE_FAULT:
-		return "ASAAC_MOS_NII_STORAGE_FAULT";
-	case ASAAC_MOS_NII_BUFFER_EMPTY:
-		return "ASAAC_MOS_NII_BUFFER_EMPTY";
-	case ASAAC_MOS_NII_BUFFER_NOT_READY:
-		return "ASAAC_MOS_NII_BUFFER_NOT_READY";
-	case ASAAC_MOS_NII_STATUS_ERROR:
-		return "ASAAC_MOS_NII_STATUS_ERROR";
-	case ASAAC_MOS_NII_STATUS_INIT:
-		return "ASAAC_MOS_NII_STATUS_INIT";
-	case ASAAC_MOS_NII_STATUS_OK:
-		return "ASAAC_MOS_NII_STATUS_OK";
-
-	default:
-		return "MOS NII ERROR: undefined return status";
-	}
-}
-
 // This function is called as a new thread, which writes/reads data to/from a stream-based TC
-void* cMosNii::streamTcThread(void* pTcData)
+void cMosNii::handleStreamingTc(TcData pTcData)
 {
 #ifdef _DEBUG_
-	cerr << "streamTcThread: starting" << endl;
+	cerr << "handleStreamingTc: starting" << endl;
 #endif
 
-	void* nothing = (void*) 0;
-
-	if (pTcData == 0)
+	if (pTcData.type == ASAAC_TRANSFER_TYPE_MESSAGE)
 	{
 #ifdef _DEBUG_
-		cerr << "streamTcThread: wrong argument. Must be of type TcData*" << endl;
+		cerr << "handleStreamingTc: wrong type of TC. Must be of type NII_TC_STREAM" << endl;
 #endif
-		pthread_exit(nothing);
+		return;
 	}
 
-	TcData* tc = static_cast<TcData*>(pTcData );
-
-	if (tc->type == ASAAC_TRANSFER_TYPE_MESSAGE)
-	{
-#ifdef _DEBUG_
-		cerr << "streamTcThread: wrong type of TC. Must be of type NII_TC_STREAM" << endl;
-#endif
-		pthread_exit(nothing);
-	}
-
-	if (tc->direction == ASAAC_TRANSFER_DIRECTION_SEND)
+	if (pTcData.direction == ASAAC_TRANSFER_DIRECTION_SEND)
 	{
 		struct sockaddr_in server;
 		server.sin_family = AF_INET;
-		server.sin_addr.s_addr = tc->nw->id.network;
-		server.sin_port = htons(tc->nw->id.port);
+		server.sin_addr.s_addr = pTcData.nw->id.network;
+		server.sin_port = htons(pTcData.nw->id.port);
 		int written_bytes = 0; //actually written bytes
 		unsigned long os = 0; //offset in buffer
 
-		while (connect(tc->fd, (const sockaddr*) &server,
+		if (connect(pTcData.fd, (const sockaddr*) &server,
 				sizeof(struct sockaddr_in)) < 0)
 		{
 #ifdef _DEBUG_
 			cerr << "streamTcThread: ERROR while connecting to server" << endl;
 			cerr << "ERRNO: " << errno << endl;
 #endif
-			sleep(1);
+			return;
 		}
 
 #ifdef _DEBUG_
 		cerr << "streamTcThread: SUCCESSFULLY connecting to server" << endl;
 #endif
-		while (tc->valid == 1)
+		if (*pTcData.config_data.data_length > 0)
 		{
-			if (*tc->config_data.data_length > 0)
+#ifdef _DEBUG_
+			cerr << "streamTcThread: try to write " << *tc->config_data.data_length << " byte to socket " << endl;
+#endif
+			written_bytes = write(pTcData.fd, pTcData.config_data.stream_buffer+os,
+					*pTcData.config_data.data_length-os);
+			if (written_bytes < 0)
 			{
 #ifdef _DEBUG_
-				cerr << "streamTcThread: try to write " << *tc->config_data.data_length << " byte to socket " << endl;
+				cerr << "streamTcThread: FAILED to write" << *pTcData.config_data.data_length << " byte to socket " << endl;
+				cerr << "ERRNO: " << errno << endl;
 #endif
-				written_bytes = write(tc->fd, tc->config_data.stream_buffer+os,
-						*tc->config_data.data_length);
-				if (written_bytes < 0)
-				{
+			}//failed write to socket
+			else
+			{
 #ifdef _DEBUG_
-					cerr << "streamTcThread: FAILED to write" << *tc->config_data.data_length << " byte to socket " << endl;
-					cerr << "ERRNO: " << errno << endl;
+				cerr << "streamTcThread: wrote " << written_bytes << " byte to socket " << endl;
 #endif
-				}//failed write to socket
+				if (written_bytes < (long) *pTcData.config_data.data_length)
+				{
+					os += written_bytes;
+					*pTcData.config_data.data_length -= written_bytes;
+				}
 				else
 				{
+					os = 0;
+					*pTcData.config_data.data_length = 0;
+				}
 #ifdef _DEBUG_
-					cerr << "streamTcThread: wrote " << written_bytes << " byte to socket " << endl;
+				cerr << "streamTcThread: offset " << os << " byte on buffer and " << *tc->config_data.data_length << " byte left to write" << endl;
 #endif
-					if (written_bytes < (long) *tc->config_data.data_length)
-					{
-						os += written_bytes;
-						*tc->config_data.data_length -= written_bytes;
-					}
-					else
-					{
-						os = 0;
-						*tc->config_data.data_length = 0;
-					}
-#ifdef _DEBUG_
-					cerr << "streamTcThread: offset " << os << " byte on buffer and " << *tc->config_data.data_length << " byte left to write" << endl;
-#endif
-				}//successful written to socket
-			}//data available
-		}//tc valid
+			}//successful written to socket
+		}//data available
 	}//sender
-	else if (tc->direction == ASAAC_TRANSFER_DIRECTION_RECEIVE)
+	else // pTcData.direction == ASAAC_TRANSFER_DIRECTION_RECEIVE
 	{
 		struct sockaddr_in client;
 		int clnt_len;
 
-		listen(tc->fd, 5);
+		listen(pTcData.fd, 5);
 
-		while (tc->valid == 1)
+#ifdef _DEBUG_
+		cerr << "streamTcThread: accepting clients connection" << endl;
+#endif
+		int client_socket = accept(pTcData.fd, (sockaddr*) &client,
+				(socklen_t*) &clnt_len);
+		int read_bytes = -1;
+
+		if (client_socket < 0)
 		{
 #ifdef _DEBUG_
-			cerr << "streamTcThread: accepting clients connection" << endl;
+			cerr << "streamTcThread: ERROR while accepting client" << endl;
+			cerr << "ERRNO: " << errno << endl;
 #endif
-			int client_socket = accept(tc->fd, (sockaddr*) &client,
-					(socklen_t*) &clnt_len);
-			int read_bytes = -1;
-
-			if (client_socket < 0)
-			{
+			return;
+		}
+		else
+		{
 #ifdef _DEBUG_
-				cerr << "streamTcThread: ERROR while accepting client" << endl;
-				cerr << "ERRNO: " << errno << endl;
+			cerr << "streamTcThread: SUCCESSFULLY accepting client" << endl;
 #endif
-				pthread_exit(nothing);
-			}
-			else
+			while (read_bytes != 0)
 			{
-#ifdef _DEBUG_
-				cerr << "streamTcThread: SUCCESSFULLY accepting client" << endl;
-#endif
-				while (read_bytes != 0)
+				if (*pTcData.config_data.data_length == 0)
 				{
-					if (*tc->config_data.data_length == 0)
+#ifdef _DEBUG_
+					cerr << "streamTcThread: try to read from socket " << endl;
+#endif
+					read_bytes = read(client_socket,
+							pTcData.config_data.stream_buffer,
+							NII_MAX_SIZE_OF_STREAMBUFFER);
+					if (read_bytes < 0)
 					{
 #ifdef _DEBUG_
-						cerr << "streamTcThread: try to read from socket " << endl;
+						cerr << "streamTcThread: FAILED to read from socket " << endl;
+						cerr << "ERRNO: " << errno << endl;
 #endif
-						read_bytes = read(client_socket,
-								tc->config_data.stream_buffer,
-								NII_MAX_SIZE_OF_STREAMBUFFER);
-						if (read_bytes < 0)
-						{
+					}//failed to read from socket
+					else if (read_bytes > 0)
+					{
 #ifdef _DEBUG_
-							cerr << "streamTcThread: FAILED to read from socket " << endl;
-							cerr << "ERRNO: " << errno << endl;
+						cerr << "streamTcThread: read " << read_bytes << " byte from socket " << endl;
 #endif
-						}//failed to read from socket
-						else if (read_bytes > 0)
-						{
-#ifdef _DEBUG_
-							cerr << "streamTcThread: read " << read_bytes << " byte from socket " << endl;
-#endif
-							*tc->config_data.data_length = read_bytes;
-						}//successful read from socket
-						else
-						{
-							cerr << "ERRNO: "<< errno<< endl;
-						}
-					}//buffer empty
-				}//stilll bytes to read
-				close(client_socket);
-			}//accepted client to server
-		}//TC is valid
+						*pTcData.config_data.data_length = read_bytes;
+					}//successful read from socket
+					else
+					{
+						cerr << "ERRNO: "<< errno<< endl;
+					}
+				}//buffer empty
+			}//stilll bytes to read
+			close(client_socket);
+		}//accepted client to server
 	}//receiver
 
 #ifdef _DEBUG_
 	cerr << "streamTcThread: exit" << endl;
 #endif
-
-	pthread_exit(nothing);
 }
 
 
-void* cMosNii::listenThread(void* Data)
+void* cMosNii::ServiceThread(void* Data)
 {
 	cMosNii *Nii = cMosNii::getInstance();
 
 	for (;;)
 	{
 		fd_set rfds;
-		int max_fd = Nii->m_LoopBackFileDescriptor;
+		int max_fd = Nii->m_ServiceFileDescriptor;
 	
 		FD_ZERO(&rfds);
-		FD_SET(Nii->m_LoopBackFileDescriptor, &rfds);
+		FD_SET(Nii->m_ServiceFileDescriptor, &rfds);
 		
 		for (unsigned long i = 0; i < NII_MAX_NUMBER_OF_TC_CONNECTIONS; ++i)
 		{
@@ -814,7 +669,7 @@ void* cMosNii::listenThread(void* Data)
 			cerr << "cMosNii::listen thread() ERROR on select()" << endl;
 		}
 
-		if ( FD_ISSET(Nii->m_LoopBackFileDescriptor, &rfds) )
+		if ( FD_ISSET(Nii->m_ServiceFileDescriptor, &rfds) )
 		{
 			CallingThreadData Data;
 			unsigned long Length = sizeof(CallingThreadData);
@@ -829,12 +684,12 @@ void* cMosNii::listenThread(void* Data)
 			
 			size_t AddrLength = sizeof(struct sockaddr_in);
 			
-			recvfrom(Nii->m_LoopBackFileDescriptor, &Data, Length, 0, (struct sockaddr *) &Addr, &AddrLength); 
+			recvfrom(Nii->m_ServiceFileDescriptor, &Data, Length, 0, (struct sockaddr *) &Addr, &AddrLength); 
 			
 			pthread_cond_broadcast(&Data.CallingThreadCondition);			
 			
 			Nii->m_IsListening = 0;
-			pthread_cond_wait( &Nii->m_ListeningThreadCondition, &Nii->m_ListeningThreadMutex );
+			pthread_cond_wait( &Nii->m_ServiceThreadCondition, &Nii->m_ServiceThreadMutex );
 			Nii->m_IsListening = 1;
 		}
 		else
@@ -847,13 +702,24 @@ void* cMosNii::listenThread(void* Data)
 					if ( FD_ISSET(Nii->m_TcData[i].fd, &rfds) )
 					{
 						Nii->m_TcData[i].hasData = 1;
-						
-						if (Nii->m_TcData[i].trigger_callback == ASAAC_BOOL_TRUE)
-							ASAAC_MOS_callbackHandler( ASAAC_COMMS_EV_BUFFER_RECEIVED, Nii->m_TcData[i].callback_id, NULL );
-						
-						m_NewDataTcIndex = i;
-						
-						pthread_cond_broadcast(&Nii->m_NewDataCondition);			
+
+						if (Nii->m_TcData[i].type == ASAAC_TRANSFER_TYPE_STREAMING)
+						{
+							Nii->handleStreamingTc(Nii->m_TcData[i]);
+						}
+						else 
+						{
+							Nii->m_NewDataTcIndex = i;
+
+							static EventInfoData_BufferReceived EventInfoData;
+							EventInfoData.status = ASAAC_MOS_NII_CALL_COMPLETE;
+							EventInfoData.tc_id = Nii->m_TcData[i].id;
+							
+							if (Nii->m_TcData[i].trigger_callback == ASAAC_BOOL_TRUE)
+								ASAAC_MOS_callbackHandler( ASAAC_COMMS_EV_BUFFER_RECEIVED, Nii->m_TcData[i].callback_id, &EventInfoData );						
+							
+							pthread_cond_broadcast(&Nii->m_NewDataCondition);
+						}
 					}
 				}
 			}
@@ -864,81 +730,91 @@ void* cMosNii::listenThread(void* Data)
 }
 
 
-ASAAC_TimedReturnStatus cMosNii::waitForData( const ASAAC_Time time_out, ASAAC_PublicId &tc_id )
+ASAAC_NiiReturnStatus cMosNii::waitForData( const ASAAC_Time time_out, ASAAC_PublicId &tc_id )
 {
 	struct timespec TimespecTimeout = TimeToTimespec( time_out );
 	int iErrorCode = pthread_cond_timedwait( &m_NewDataCondition, &m_NewDataMutex, &TimespecTimeout );
 	
 	if ( iErrorCode == ETIMEDOUT )
-		return ASAAC_TM_TIMEOUT;
+		return ASAAC_MOS_NII_BUFFER_EMPTY;
 
 	if ( iErrorCode == -1 )
-		return ASAAC_TM_ERROR;
+		return ASAAC_MOS_NII_CALL_FAILED;
 	
-	tc_id = m_NewDataTcIndex;
+	if (m_NewDataTcIndex == -1)
+		return ASAAC_MOS_NII_CALL_FAILED;
 	
-	return ASAAC_TM_SUCCESS;
+	tc_id = m_TcData[m_NewDataTcIndex].id;
+	
+	return ASAAC_MOS_NII_CALL_COMPLETE;
 }
 
 
-ASAAC_TimedReturnStatus cMosNii::waitForDataOnTc( const ASAAC_Time time_out, const ASAAC_PublicId tc_id )
+ASAAC_NiiReturnStatus cMosNii::receiveData( 		
+		const ASAAC_PublicId tc_id, 
+		const ASAAC_CharAddress receive_data, 
+		const unsigned long data_length_available, 
+		unsigned long& data_length)
 {
-	if (getTcIndex(tc_id) == -1) //TC not established yet
-		return ASAAC_TM_ERROR;
+	long tc_idx = getTcIndex(tc_id);
+	
+	if (tc_idx == -1) //TC not established yet
+		return ASAAC_MOS_NII_TC_NOT_CONFIGURED;
 
-	ASAAC_PublicId ReceivedTcId;
-	
-	do
+	TcData* tc = &m_TcData[tc_idx];
+
+	if (tc->type != ASAAC_TRANSFER_TYPE_MESSAGE)
 	{
-		ASAAC_TimedReturnStatus Result = waitForData( time_out, ReceivedTcId );
-		
-		if ( Result != ASAAC_TM_SUCCESS )
-			return Result;
-	}	
-	while ( ReceivedTcId != tc_id );
+#ifdef _DEBUG_
+		cerr << "ERROR: no message TC " << endl;
+#endif
+		return ASAAC_MOS_NII_CALL_FAILED;
+	}
+
+	if (tc->direction != ASAAC_TRANSFER_DIRECTION_RECEIVE)
+	{
+#ifdef _DEBUG_
+		cerr << "ERROR: no receive TC " << endl;
+#endif
+		return ASAAC_MOS_NII_CALL_FAILED;
+	}
+
+	struct sockaddr_in addr;
+	socklen_t length = (socklen_t) sizeof(addr);
 	
-	return ASAAC_TM_SUCCESS;
+	long bytes_received = recvfrom(tc->fd, receive_data, data_length_available, 0, (struct sockaddr *) &addr, &length);
+
+	if( bytes_received < 0)
+	{
+		if (errno != EWOULDBLOCK)
+			perror("RECEIVE FROM SOCKET :");
+		
+		return ASAAC_MOS_NII_CALL_FAILED;
+	}
+
+	stopServices();
+	tc->hasData = 0;
+	startServices();
+	
+	data_length = bytes_received;
+#ifdef _DEBUG_
+		cout << "RECEIVE " << bytes << " BYTE ON TC " << tc_id << endl;
+#endif
+
+	return ASAAC_MOS_NII_CALL_COMPLETE;
 }
 
 
-ASAAC_TimedReturnStatus cMosNii::waitForDataOnNw( const ASAAC_Time time_out, const ASAAC_NetworkDescriptor& network_id )
-{
-	if ( getNwIndex(network_id) == -1 ) //TC not established yet
-		return ASAAC_TM_ERROR;
-	
-	ASAAC_PublicId 			ReceivedTcId;
-	long 		   			ReceivedTcIndex;
-	ASAAC_NetworkDescriptor ReceivedNetworkId;
-	
-	do
-	{
-		ASAAC_TimedReturnStatus Result = waitForData( time_out, ReceivedTcId );
-		
-		if ( Result != ASAAC_TM_SUCCESS )
-			return Result;
-		
-		ReceivedTcIndex = getTcIndex( ReceivedTcId );
-		if (ReceivedTcIndex == -1) //TC not established yet
-			return ASAAC_TM_ERROR;
-		
-		ReceivedNetworkId = m_TcData[ReceivedTcIndex].nw->id;
-	}	
-	while (( ReceivedNetworkId.network != network_id.network ) || ( ReceivedNetworkId.port != network_id.port ));
-	
-	return ASAAC_TM_SUCCESS;
-}
-
-
-void cMosNii::startListening()
+void cMosNii::startServices()
 {
 	if (m_IsListening == 1)
 		return;
 	
-	pthread_cond_broadcast(&m_ListeningThreadCondition);			
+	pthread_cond_broadcast(&m_ServiceThreadCondition);			
 }
 
 
-void cMosNii::stopListening()
+void cMosNii::stopServices()
 {	
 	if (m_IsListening == 0)
 		return;
@@ -964,38 +840,11 @@ void cMosNii::stopListening()
 	Addr.sin_addr = NetworkAddr;
 	Addr.sin_port = 0xffff;
 	
-	sendto(m_LoopBackFileDescriptor, &Data, Length, 0, (struct sockaddr *) &Addr, sizeof(Addr));
+	sendto(m_ServiceFileDescriptor, &Data, Length, 0, (struct sockaddr *) &Addr, sizeof(Addr));
 	
 	pthread_cond_wait( &Data.CallingThreadCondition, &Data.CallingThreadMutex );
 
 	pthread_cond_destroy( &Data.CallingThreadCondition );
 	pthread_mutex_destroy( &Data.CallingThreadMutex );
-}
-
-
-// Returns a network address based on an IP4 address format X.X.X.X
-ASAAC_PublicId cMosNii::networkAddress(const char* ip_addr)
-{
-#ifdef _DEBUG_    
-	cout << "networkAddress: " << ip_addr << endl;
-#endif
-	return inet_addr(ip_addr);
-}
-
-ASAAC_PublicId cMosNii::getLocalNetwork()
-{
-	return inet_addr("127.0.0.1");
-}
-
-// Returns a multicast address based on a network identifier between 3-255
-ASAAC_PublicId cMosNii::networkGroup(char address)
-{
-	char ip_addr[16];
-	sprintf(ip_addr, "224.0.0.%d", address);
-#ifdef _DEBUG_ 
-	cout << "networkGroup: " << ip_addr << endl;
-#endif
-
-	return inet_addr(ip_addr);
 }
 
