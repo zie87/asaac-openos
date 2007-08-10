@@ -88,7 +88,7 @@ typedef struct  {
 } ASAAC_TC_ConfigurationData;
 
 
-#define ASAAC_OS_MAX_STRING_SIZE 1200U
+#define ASAAC_OS_MAX_STRING_SIZE 512U
 
 // Character Sequence type copied from ASAAC.h
 // it is required for the ASAAC_DataRepresenation
