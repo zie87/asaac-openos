@@ -133,15 +133,10 @@ void ASAAC_MOS_callbackHandler(const ASAAC_EventType event_type, const ASAAC_Pub
 	if (CallbackArray[Index].enabled == ASAAC_BOOL_FALSE)
 		return;
 	 
-	pthread_t		Thread;
-	pthread_attr_t	ThreadAttributes;
+	typedef void*(*CallbackFunction)(void*);
+	CallbackFunction Callback = reinterpret_cast<CallbackFunction>(CallbackArray[Index].callback);
 	
-	pthread_attr_init( &ThreadAttributes );
-	
-	//TODO: define thread attributes here
-	typedef void*(*CallbackType)(void*);
-	CallbackType Callback = reinterpret_cast<CallbackType>(CallbackArray[Index].callback);
-	pthread_create( &Thread, &ThreadAttributes, Callback, event_info_data );
+	Callback( event_info_data );
 }
 
 
