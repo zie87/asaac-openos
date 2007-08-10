@@ -38,7 +38,14 @@ cMosNii::cMosNii()
 	m_NewDataTcIndex = -1;
 	m_IsListening = 1;
 	
-	m_ServiceFileDescriptor = socket(AF_INET, SOCK_DGRAM, 0);
+	struct sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = htons(0xffff);
+	
+	m_ServiceFileDescriptor = socket( AF_INET, SOCK_DGRAM, 0 );
+	bind( m_ServiceFileDescriptor, (struct sockaddr *)&addr, sizeof(addr) );
+	
 	pthread_create( &m_ServiceThread, NULL, ServiceThread, NULL );
 }
 
@@ -112,6 +119,7 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
 		ASAAC_PublicId callback_id)
 {
 	struct sockaddr_in addr;
+	
 #ifdef UDP_MULTICAST         
 	struct ip_mreq multi;
 	int option_on = 1;
@@ -120,148 +128,133 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(ASAAC_PublicId tc_id,
 	long nw_idx = getNwIndex(network_id);
 	
 	if (nw_idx == -1)//network not configured yet
-	{
 		return ASAAC_MOS_NII_INVALID_NETWORK;
-	}
-	else //network ready to establish transfer connections
+
+	long tc_idx = getTcIndex( tc_id );
+		
+	if (tc_idx != -1)
+		return ASAAC_MOS_NII_ALREADY_CONFIGURED;
+
+	tc_idx = getEmptyTc();
+		
+	if (tc_idx == -1)
+		return ASAAC_MOS_NII_STORAGE_FAULT;
+
+#ifdef _DEBUG_
+	cerr << "cMosNii::configureTransfer(" << tc_idx << ") setup TC" << endl;
+#endif
+	
+	TcData tc = m_TcData[tc_idx];
+	tc.valid            = 1;
+	tc.has_data         = 0;
+	tc.id               = tc_id;
+	tc.nw               = &m_NwData[nw_idx];
+	tc.direction        = send_receive;
+	tc.type             = message_streaming;
+	tc.trigger_callback = trigger_callback;
+	tc.callback_id      = callback_id;
+
+	NwData nw = m_NwData[nw_idx];
+
+	switch (message_streaming)
 	{
-		long tc_idx = getTcIndex( tc_id );
-		
-		if (tc_idx == -1) //TC not established yet
+	case ASAAC_TRANSFER_TYPE_MESSAGE:
+		tc.fd = socket(AF_INET, SOCK_DGRAM, 0);
+		if (tc.fd == -1)
 		{
-			tc_idx = getEmptyTc();
-			
-			if (tc_idx == -1)
-				return ASAAC_MOS_NII_STORAGE_FAULT;
-
+			perror("socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) : ");
+			return ASAAC_MOS_NII_CALL_FAILED;
+		}
 #ifdef _DEBUG_
-			cerr << "cMosNii::configureTransfer(" << tc_idx << ") setup TC" << endl;
-#endif
-			
-			TcData tc = m_TcData[tc_idx];
-			tc.valid            = 1;
-			tc.has_data         = 0;
-			tc.id               = tc_id;
-			tc.nw               = &m_NwData[nw_idx];
-			tc.direction        = send_receive;
-			tc.type             = message_streaming;
-			tc.trigger_callback = trigger_callback;
-			tc.callback_id      = callback_id;
-
-			NwData nw = m_NwData[nw_idx];
-
-			switch (message_streaming)
-			{
-			case ASAAC_TRANSFER_TYPE_MESSAGE:
-				tc.fd = socket(AF_INET, SOCK_DGRAM, 0);
-				if (tc.fd == -1)
-				{
-					perror("socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) : ");
-					return ASAAC_MOS_NII_CALL_FAILED;
-				}
-#ifdef _DEBUG_
-				cerr << "cMosNii::configureTransfer(" << tc_idx << ") create datagram socket" << endl;
+		cerr << "cMosNii::configureTransfer(" << tc_idx << ") create datagram socket" << endl;
 #endif   
-				break;
+		break;
 
-			case ASAAC_TRANSFER_TYPE_STREAMING:
-				tc.fd = socket(AF_INET, SOCK_STREAM, 0);
+	case ASAAC_TRANSFER_TYPE_STREAMING:
+		tc.fd = socket(AF_INET, SOCK_STREAM, 0);
 
-				if (tc.fd == -1)
-				{
-					perror("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) : ");
-					return ASAAC_MOS_NII_CALL_FAILED;
-				}
+		if (tc.fd == -1)
+		{
+			perror("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) : ");
+			return ASAAC_MOS_NII_CALL_FAILED;
+		}
 
-				tc.config_data.data_length   = configuration_data.conf_data.tcpip.buffer_length;
-				tc.config_data.stream_buffer = (char*) configuration_data.conf_data.tcpip.stream_buffer;
+		tc.config_data.data_length   = configuration_data.conf_data.tcpip.buffer_length;
+		tc.config_data.stream_buffer = (char*) configuration_data.conf_data.tcpip.stream_buffer;
 
 #ifdef _DEBUG_
-				cerr << "cMosNii::configureTransfer(" << tc_idx << ") create stream socket" << endl;
+		cerr << "cMosNii::configureTransfer(" << tc_idx << ") create stream socket" << endl;
 #endif   
-				break;
+		break;
 
-			default:
-				cerr <<"cMosNii::configureTransfer() unknown TransferType :"
-						<< message_streaming << endl;
-				return ASAAC_MOS_NII_CALL_FAILED;
-				break;
-			}
+	default:
+		cerr << "cMosNii::configureTransfer() unknown TransferType: " << message_streaming << endl;
+		return ASAAC_MOS_NII_CALL_FAILED;
+		break;
+	}
 
-			addr.sin_family = AF_INET;
-			addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
 
-			switch (tc.direction)
-			{
-			case ASAAC_TRANSFER_DIRECTION_SEND:
+	switch (tc.direction)
+	{
+	case ASAAC_TRANSFER_DIRECTION_SEND:
 #ifdef _DEBUG_
-				cerr << "cMosNii::configureTransfer(" << tc_idx << ") SEND -> local port " << m_NiiLocalPort << endl;
+		cerr << "cMosNii::configureTransfer(" << tc_idx << ") SEND -> local port " << m_NiiLocalPort << endl;
 #endif
-				addr.sin_port = htons(m_NiiLocalPort++);
+		addr.sin_port = htons(m_NiiLocalPort++);
 
-				break;
-			case ASAAC_TRANSFER_DIRECTION_RECEIVE:
+		break;
+	case ASAAC_TRANSFER_DIRECTION_RECEIVE:
 #ifdef _DEBUG_
-				cerr << "cMosNii::configureTransfer(" << tc_idx << ") RECEIVE -> local port " << nw.id.port << endl;
+		cerr << "cMosNii::configureTransfer(" << tc_idx << ") RECEIVE -> local port " << nw.id.port << endl;
 #endif
-				addr.sin_port = htons(nw.id.port);
+		addr.sin_port = htons(nw.id.port);
 #ifdef UDP_MULTICAST         
-				if (tc.type == ASAAC_TRANSFER_TYPE_MESSAGE)
-				{
-					setsockopt(tc.fd,SOL_SOCKET,SO_REUSEADDR , &option_on, sizeof(int));
-					multi.imr_multiaddr.s_addr = nw.id.network;
-					multi.imr_interface.s_addr = INADDR_ANY;
-					setsockopt(tc.fd,IPPROTO_IP,IP_ADD_MEMBERSHIP , &multi, sizeof(ip_mreq));
-				}
-#else
-				cerr << "CAUTION: no special treatment of socket for Multicast UDP Messages" << endl;
-#endif
-				break;
-			}
-
-			if (bind(tc.fd, (struct sockaddr *)&addr, sizeof(addr)) == -1)
-			{
-#ifdef _DEBUG_
-				perror("bind() on socket : ");
-#endif
-				return ASAAC_MOS_NII_CALL_FAILED;
-			}
-
-			nw.open_tcs += 1;
-
-			if (tc.type == ASAAC_TRANSFER_TYPE_MESSAGE)
-			{
-#ifdef _DEBUG_
-				cerr << "cMosNii::configureTransfer(" << tc_idx << ") set nonblocking IO " << endl;
-#endif
-				int val = fcntl(tc.fd, F_GETFL, 0);
-				fcntl(tc.fd, F_SETFL, val | O_NONBLOCK); //COMMENT.SMS> add this flag for asynchronous signalling | O_ASYNC
-				//COMMENT.SMS> fcntl(tc->fd, F_SETOWN, getpid()); //set owner for asynchronous signalling
-			}
-
-#ifdef _DEBUG_
-			cerr << "cMosNii::configureTransfer() : done" << endl;
-#endif
-		
-			// Now the TC can be stored
-			stopServices();			
-			m_TcData[tc_idx] = tc;
-			m_NwData[nw_idx] = nw;
-			startServices();			
-
-			return ASAAC_MOS_NII_CALL_COMPLETE;
-		}
-		else //TC already configured
+		if (tc.type == ASAAC_TRANSFER_TYPE_MESSAGE)
 		{
-			return ASAAC_MOS_NII_ALREADY_CONFIGURED;
+			setsockopt(tc.fd,SOL_SOCKET,SO_REUSEADDR , &option_on, sizeof(int));
+			multi.imr_multiaddr.s_addr = nw.id.network;
+			multi.imr_interface.s_addr = INADDR_ANY;
+			setsockopt(tc.fd,IPPROTO_IP,IP_ADD_MEMBERSHIP , &multi, sizeof(ip_mreq));
 		}
+#else
+		cerr << "CAUTION: no special treatment of socket for Multicast UDP Messages" << endl;
+#endif
+		break;
+	}
+
+	if (bind(tc.fd, (struct sockaddr *)&addr, sizeof(addr)) == -1)
+	{
+#ifdef _DEBUG_
+		perror("bind() on socket : ");
+#endif
+		return ASAAC_MOS_NII_CALL_FAILED;
+	}
+
+	nw.open_tcs += 1;
+
+	if (tc.type == ASAAC_TRANSFER_TYPE_MESSAGE)
+	{
+#ifdef _DEBUG_
+		cerr << "cMosNii::configureTransfer(" << tc_idx << ") set nonblocking IO " << endl;
+#endif
+		int val = fcntl(tc.fd, F_GETFL, 0);
+		fcntl(tc.fd, F_SETFL, val | O_NONBLOCK); //COMMENT.SMS> add this flag for asynchronous signalling | O_ASYNC
+		//COMMENT.SMS> fcntl(tc->fd, F_SETOWN, getpid()); //set owner for asynchronous signalling
 	}
 
 #ifdef _DEBUG_
-	perror("configureTransfer() : ");
+	cerr << "cMosNii::configureTransfer() : done" << endl;
 #endif
 
-	return ASAAC_MOS_NII_CALL_FAILED;
+	// Now the TC can be stored
+	stopServices();			
+	m_TcData[tc_idx] = tc;
+	m_NwData[nw_idx] = nw;
+	startServices();			
+
+	return ASAAC_MOS_NII_CALL_COMPLETE;
 }
 
 
@@ -941,8 +934,15 @@ void cMosNii::stopServices()
 	cout << "stopServices: send data via ServiceFileDescriptor" << endl;
 #endif
 	
-	sendto(m_ServiceFileDescriptor, &Data, Length, 0, (struct sockaddr *) &Addr, sizeof(Addr));
+	int result = sendto(m_ServiceFileDescriptor, &Data, Length, 0, (struct sockaddr *) &Addr, sizeof(Addr));
 
+	if (result == -1)
+	{
+#ifdef _DEBUG_
+		cerr << "stopServices: sendto(): " << strerror(errno) << endl;
+#endif
+	}
+	
 #ifdef _DEBUG_
 	cout << "stopServices: wait for calling_thread condition" << endl;
 #endif
