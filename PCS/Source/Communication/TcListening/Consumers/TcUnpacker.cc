@@ -94,7 +94,7 @@ ASAAC_ReturnStatus TcUnpacker::processTcMessage( ASAAC_PublicId TcId, ASAAC_Addr
 		
 		if ( Index == Number ) 
 		{
-			PcsException( TcId, GlobalVc, "Received Tc packet contains invalid Vc" );
+			throw PcsException( TcId, GlobalVc, "Received Tc packet contains invalid Vc" );
 			return ASAAC_ERROR;
 		}
 	}

@@ -15,7 +15,7 @@
 class MessageConsumer {
 	
 public:
-	virtual ASAAC_ReturnStatus processMessage( ASAAC_PublicId TcId, ASAAC_PublicId GlobalVc, ASAAC_Address Data, unsigned long Length ) = 0;
+	virtual ASAAC_ReturnStatus processMessage( ASAAC_PublicId TcId, ASAAC_PublicId GlobalVcId, ASAAC_Address Data, unsigned long Length ) = 0;
 	//!< process the message indicated by the parameters.
 	/*!< \param[in] TcId		PublicId of TransferConnection that this message relates to
 	 *   \param[in] GlobalVc	PublicId of Global VirtualChannel that this message relates to

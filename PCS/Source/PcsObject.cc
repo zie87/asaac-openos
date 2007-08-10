@@ -2,11 +2,252 @@
 #include "PcsCIncludes.hh"
 
 
+/**************************************************************************************/
+/*                        I N I T I A L I Z A T I O N                                 */
+/**************************************************************************************/
+
 PCS::PCS()
 {
 
 }
 
+
+PCS *PCS::getInstance()
+{
+	static PCS Instance;
+	return &Instance;
+}
+
+
+void PCS::initialize()
+{	
+#ifdef _DEBUG_       
+	cout << "PCS::PCS() initialization "<< endl;
+#endif
+	
+#ifdef _DEBUG_
+	short int word = 0x0001;
+  	char *byte = (char *) &word;
+  	if(byte[0] != 0)
+  	{
+  		cout << "PCS runs on LITTLE ENDIAN system" << endl;
+  	}
+  	else
+  	{
+   		cout << "PCS runs on BIG ENDIAN system" << endl;
+  	}
+#endif
+  	
+	try	
+	{	
+		m_Configuration.initialize();
+
+		m_Listener.initialize();
+		m_PmQueue.initialize();
+		m_OutgoingPmFilter.initialize();
+		m_Marshalling.initialize();
+		m_Switch.initialize();
+		m_Limiter.initialize();
+		m_Packer.initialize();
+	    m_NiiSender.initialize();
+		
+		m_NiiReceiver.initialize();
+		m_UnPacker.initialize();
+		m_UnMarshalling.initialize();
+		m_IncomingPmFilter.initialize();
+		m_GlobalVcSend.initialize();
+		m_Sender.initialize();
+		
+		
+		m_Marshalling.setConfiguration( m_Configuration );
+		m_Marshalling.setOutputConsumer( m_OutgoingPmFilter );
+		
+#ifdef _DEBUG_       
+        cout << "PCS::initialize() Setup Marshalling" << endl;
+#endif
+		
+		m_OutgoingPmFilter.setConfiguration( m_Configuration );
+		m_OutgoingPmFilter.setOutputConsumer( m_Switch );
+		m_OutgoingPmFilter.setQueue(m_PmQueue);
+			
+#ifdef _DEBUG_       
+        cout << "PCS::initialize() Setup outgoing PM Filter" << endl;
+#endif		
+
+		m_Switch.setConfiguration( m_Configuration );
+		m_Switch.setOutputConsumer( m_Packer );
+#ifdef _DEBUG_       
+	    cout << "PCS::initialize() Setup Switch" << endl;
+#endif
+       	
+		m_Packer.setConfiguration( m_Configuration );
+		m_Packer.setOutputConsumer( m_Limiter );
+#ifdef _DEBUG_       
+        cout << "PCS::initialize() Setup Packer" << endl;
+#endif
+		
+		m_Limiter.setConfiguration( m_Configuration );
+		m_Limiter.setOutputConsumer( m_NiiSender );
+#ifdef _DEBUG_       
+        cout << "PCS::initialize() Setup Limiter" << endl;
+#endif
+		
+        
+        ////////////////////////////////////////////
+        ///////////NII Users Start//////////////////
+        ////////////////////////////////////////////
+
+        
+        m_NiiReceiver.addListeningConsumer(m_UnPacker);
+#ifdef _DEBUG_       
+        cout << "PCS::initialize() Setup NiiReceiver" << endl;
+#endif
+        		
+        ////////////////////////////////////////////
+        ///////////NII Users End ///////////////////
+        ////////////////////////////////////////////
+        
+		m_UnPacker.setConfiguration( m_Configuration );
+		m_UnPacker.setOutputConsumer( m_IncomingPmFilter  );
+#ifdef _DEBUG_       
+        cout << "PCS::initialize() Setup UnPacker" << endl;
+#endif
+		
+		m_IncomingPmFilter.setConfiguration( m_Configuration );
+		m_IncomingPmFilter.setOutputConsumer( m_UnMarshalling );
+		m_IncomingPmFilter.setQueue(m_PmQueue);
+		
+#ifdef _DEBUG_       
+        cout << "PCS::initialize() Setup IncomingPmFilter" << endl;
+#endif
+		
+		m_UnMarshalling.setConfiguration( m_Configuration );
+		m_UnMarshalling.setOutputConsumer( m_GlobalVcSend );
+#ifdef _DEBUG_       
+         cout << "PCS::initialize() Setup UnMarshalling" << endl;
+#endif
+		
+		
+		m_GlobalVcSend.setConfiguration( m_Configuration );
+		m_GlobalVcSend.setOutputConsumer( m_Sender ); 
+#ifdef _DEBUG_       
+        cout << "PCS::initialize() Setup GlobalVcSend" << endl;
+#endif
+        
+        ASAAC_MOS_registerCallback( ASAAC_COMMS_EV_BUFFER_RECEIVED, PCS_CALLBACKID_TC, (ASAAC_Address)TcCallback);
+        ASAAC_MOS_enableCallback( ASAAC_COMMS_EV_BUFFER_RECEIVED, PCS_CALLBACKID_TC);
+
+	}
+	catch ( PcsException &e )
+	{
+		cerr << e.getFullMessage() << endl;
+	}
+}
+
+
+void PCS::deinitialize()
+{	
+	m_Configuration.deinitialize();
+
+	m_Listener.deinitialize();
+	m_PmQueue.deinitialize();
+	m_OutgoingPmFilter.deinitialize();
+	m_Marshalling.deinitialize();
+	m_Switch.deinitialize();
+	m_Limiter.deinitialize();
+	m_Packer.deinitialize();
+    m_NiiSender.deinitialize();
+	
+	m_NiiReceiver.deinitialize();
+	m_UnPacker.deinitialize();
+	m_UnMarshalling.deinitialize();
+	m_IncomingPmFilter.deinitialize();
+	m_GlobalVcSend.deinitialize();
+	m_Sender.deinitialize();
+}
+
+
+/**************************************************************************************/
+/*                              S E R V I C E S                                       */
+/**************************************************************************************/
+
+
+void PCS::loopVcListener()
+{
+	ASAAC_TimeInterval t = TimeIntervalInfinity;
+	
+	for(;;)
+	{
+		try
+		{
+#ifdef _DEBUG_       
+	        //cout << "PCS::vcListener()" << endl; fflush(stdout);
+#endif
+			if(m_Listener.listen(t) == ASAAC_TM_ERROR)
+			{
+				cerr << "PCS::vcListener() cannot listen to local VCs. Break loop. Good Bye!" << endl;
+				return;
+			}
+		}
+		catch ( PcsException &e )
+		{
+			cerr << e.getFullMessage() << endl;
+		}
+	}
+}
+
+
+void PCS::loopRateLimiter()
+{
+	ASAAC_ReturnStatus ret;
+	for(;;)
+	{
+		try
+		{
+			ret = m_Limiter.processNextMessage();
+#ifdef _DEBUG_
+			if (ret == ASAAC_SUCCESS)
+			{       
+	    		cout << "PCS::rateLimiter() processed enqueued message " << endl; fflush(stdout);
+			}
+#endif
+		}
+		catch ( PcsException &e )
+		{
+			cerr << e.getFullMessage() << endl;
+		}
+	}
+}
+
+
+ASAAC_Address PCS::getBuffer()
+{
+	m_MessageBufferIndex++;
+	m_MessageBufferIndex %= PCS_MAX_NUMBER_OF_BUFFER;
+	
+	return &(m_MessageBuffer[m_MessageBufferIndex]);
+}
+
+
+void PCS::TcCallback( ASAAC_Address event_info_data )		
+{
+	try
+	{
+		EventInfoData_BufferReceived *EventInfoData = static_cast<EventInfoData_BufferReceived*>(event_info_data);
+		
+		if (EventInfoData->status == ASAAC_MOS_NII_CALL_COMPLETE)
+			PCS::getInstance()->m_NiiReceiver.listen( EventInfoData->tc_id, PCS::getInstance()->getBuffer(), PCS_MAX_SIZE_OF_NWMESSAGE, TimeIntervalInstant );
+	}
+	catch ( PcsException &e )
+	{
+		cerr << e.getFullMessage() << endl;
+	}
+}
+
+
+/**************************************************************************************/
+/*                        A P O S - F U N C T I O N S                                 */
+/**************************************************************************************/
 
 ASAAC_ReturnStatus PCS::configureInterface( const ASAAC_InterfaceData& if_config )
 {
@@ -96,7 +337,8 @@ ASAAC_ReturnStatus PCS::getTransferConnectionDescription( ASAAC_PublicId tc_id, 
 	return m_Configuration.getTcDescription(tc_id, tc_description);
 	
 	return ASAAC_ERROR;
-};
+}
+
 
 ASAAC_ReturnStatus PCS::destroyTransferConnection( ASAAC_PublicId tc_id, const ASAAC_NetworkDescriptor& network_descriptor )
 {
@@ -129,7 +371,9 @@ ASAAC_ReturnStatus PCS::getNetworkPortStatus( const ASAAC_NetworkDescriptor& net
 #endif
 	
 	return ASAAC_ERROR;
-};	
+}
+
+
 ASAAC_ReturnStatus PCS::attachTransferConnectionToVirtualChannel( const ASAAC_VcDescription vc_description, ASAAC_PublicId tc_id, ASAAC_Bool is_data_representation )
 {
 #ifdef _DEBUG_       
@@ -281,241 +525,3 @@ ASAAC_ReturnStatus PCS::returnPMData(ASAAC_PublicId vc_id, ASAAC_PublicId rec_vc
 }
 
 
-void PCS::initialize()
-{	
-#ifdef _DEBUG_       
-	cout << "PCS::PCS() initialization "<< endl;
-#endif
-	
-#ifdef _DEBUG_
-	short int word = 0x0001;
-  	char *byte = (char *) &word;
-  	if(byte[0] != 0)
-  	{
-  		cout << "PCS runs on LITTLE ENDIAN system" << endl;
-  	}
-  	else
-  	{
-   		cout << "PCS runs on BIG ENDIAN system" << endl;
-  	}
-#endif
-  	
-	try	
-	{	
-		m_Configuration.initialize();
-
-		m_Listener.initialize();
-		m_PmQueue.initialize();
-		m_OutgoingPmFilter.initialize();
-		m_Marshalling.initialize();
-		m_Switch.initialize();
-		m_Limiter.initialize();
-		m_Packer.initialize();
-	    m_NiiSender.initialize();
-		
-		m_NiiReceiver.initialize();
-		m_UnPacker.initialize();
-		m_UnMarshalling.initialize();
-		m_IncomingPmFilter.initialize();
-		m_GlobalVcSend.initialize();
-		m_Sender.initialize();
-		
-		
-		m_Marshalling.setConfiguration( m_Configuration );
-		m_Marshalling.setOutputConsumer( m_OutgoingPmFilter );
-		
-#ifdef _DEBUG_       
-        cout << "PCS::initialize() Setup Marshalling" << endl;
-#endif
-		
-		m_OutgoingPmFilter.setConfiguration( m_Configuration );
-		m_OutgoingPmFilter.setOutputConsumer( m_Switch );
-		m_OutgoingPmFilter.setQueue(m_PmQueue);
-			
-#ifdef _DEBUG_       
-        cout << "PCS::initialize() Setup outgoing PM Filter" << endl;
-#endif		
-
-		m_Switch.setConfiguration( m_Configuration );
-		m_Switch.setOutputConsumer( m_Packer );
-#ifdef _DEBUG_       
-	    cout << "PCS::initialize() Setup Switch" << endl;
-#endif
-       	
-		m_Packer.setConfiguration( m_Configuration );
-		m_Packer.setOutputConsumer( m_Limiter );
-#ifdef _DEBUG_       
-        cout << "PCS::initialize() Setup Packer" << endl;
-#endif
-		
-		m_Limiter.setConfiguration( m_Configuration );
-		m_Limiter.setOutputConsumer( m_NiiSender );
-#ifdef _DEBUG_       
-        cout << "PCS::initialize() Setup Limiter" << endl;
-#endif
-		
-        
-        ////////////////////////////////////////////
-        ///////////NII Users Start//////////////////
-        ////////////////////////////////////////////
-
-        
-        m_NiiReceiver.addListeningConsumer(m_UnPacker);
-#ifdef _DEBUG_       
-        cout << "PCS::initialize() Setup NiiReceiver" << endl;
-#endif
-        		
-        ////////////////////////////////////////////
-        ///////////NII Users End ///////////////////
-        ////////////////////////////////////////////
-        
-		m_UnPacker.setConfiguration( m_Configuration );
-		m_UnPacker.setOutputConsumer( m_IncomingPmFilter  );
-#ifdef _DEBUG_       
-        cout << "PCS::initialize() Setup UnPacker" << endl;
-#endif
-		
-		m_IncomingPmFilter.setConfiguration( m_Configuration );
-		m_IncomingPmFilter.setOutputConsumer( m_UnMarshalling );
-		m_IncomingPmFilter.setQueue(m_PmQueue);
-		
-#ifdef _DEBUG_       
-        cout << "PCS::initialize() Setup IncomingPmFilter" << endl;
-#endif
-		
-		m_UnMarshalling.setConfiguration( m_Configuration );
-		m_UnMarshalling.setOutputConsumer( m_GlobalVcSend );
-#ifdef _DEBUG_       
-         cout << "PCS::initialize() Setup UnMarshalling" << endl;
-#endif
-		
-		
-		m_GlobalVcSend.setConfiguration( m_Configuration );
-		m_GlobalVcSend.setOutputConsumer( m_Sender ); 
-#ifdef _DEBUG_       
-        cout << "PCS::initialize() Setup GlobalVcSend" << endl;
-#endif
-
-	}
-	catch ( PcsException &e )
-	{
-		cerr << e.getFullMessage() << endl;
-	}
-}
-
-
-void PCS::deinitialize()
-{	
-	m_Configuration.deinitialize();
-
-	m_Listener.deinitialize();
-	m_PmQueue.deinitialize();
-	m_OutgoingPmFilter.deinitialize();
-	m_Marshalling.deinitialize();
-	m_Switch.deinitialize();
-	m_Limiter.deinitialize();
-	m_Packer.deinitialize();
-    m_NiiSender.deinitialize();
-	
-	m_NiiReceiver.deinitialize();
-	m_UnPacker.deinitialize();
-	m_UnMarshalling.deinitialize();
-	m_IncomingPmFilter.deinitialize();
-	m_GlobalVcSend.deinitialize();
-	m_Sender.deinitialize();
-}
-
-
-void PCS::loopVcListener()
-{
-	ASAAC_TimeInterval t = TimeIntervalInfinity;
-	
-	for(;;)
-	{
-		try
-		{
-#ifdef _DEBUG_       
-	        //cout << "PCS::vcListener()" << endl; fflush(stdout);
-#endif
-			if(m_Listener.listen(t) == ASAAC_TM_ERROR)
-			{
-				cerr << "PCS::vcListener() cannot listen to local VCs. Break loop. Good Bye!" << endl;
-				return;
-			}
-		}
-		catch ( PcsException &e )
-		{
-			cerr << e.getFullMessage() << endl;
-		}
-	}
-}
-
-
-void PCS::loopTcListener()
-{
-	ASAAC_NetworkDescriptor* networks = 0;
-	unsigned long number = 0;
-	
-	
-	ASAAC_TimeInterval network_gap = {0,10000}; //CAUTION.SBS> causes a DELAY between network receives!!!!!!!
-	ASAAC_TimeInterval unavailable = {1,0}; //COMMENT.SBS> if their are no networks configured, wait til next try
-	
-	for(;;)
-	{
-		try
-		{
-			m_Configuration.getNetworks(networks, number);
-		
-			if(networks == 0)
-			{
-#ifdef _DEBUG_       
-				//cerr << "PCS::tcListener() Invalid pointer to network array" << endl;
-#endif
-				ASAAC_APOS_sleep(&unavailable);
-				continue;	
-			}
-			
-			for(unsigned long n = 0; n < number; ++n)
-			{
-#ifdef _DEBUG_       
-	        	cout << "PCS::tcListener() on Network " << n << endl;
-#endif
-				
-				
-				if(m_NiiReceiver.listen(networks[n],number == 1 ? TimeIntervalInfinity : network_gap) == ASAAC_TM_SUCCESS)
-				{
-#ifdef _DEBUG_       
-	        		cout << "PCS::tcListener() successfully processed incoming messages on netork " << n << endl;  fflush(stdout);
-#endif			
-				}
-			}
-		}
-		catch ( PcsException &e )
-		{
-			cerr << e.getFullMessage() << endl;
-		}
-	}
-}
-
-
-void PCS::loopRateLimiter()
-{
-	ASAAC_ReturnStatus ret;
-	for(;;)
-	{
-		try
-		{
-			ret = m_Limiter.processNextMessage();
-#ifdef _DEBUG_
-			if (ret == ASAAC_SUCCESS)
-			{       
-	    		cout << "PCS::rateLimiter() processed enqueued message " << endl; fflush(stdout);
-			}
-#endif
-		}
-		catch ( PcsException &e )
-		{
-			cerr << e.getFullMessage() << endl;
-		}
-	}
-}

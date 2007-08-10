@@ -23,7 +23,6 @@ public:
 private:
 	MessageConsumer*		m_OutputConsumer;
 	PCSConfiguration*		m_Configuration;
-
 };
 
 #endif /*VCTCSWITCH_HH_*/

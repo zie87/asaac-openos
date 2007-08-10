@@ -32,15 +32,13 @@
 
 class PCS 
 {
-	
 	public:
-		PCS();
+		static PCS *getInstance();
 		
 		void initialize();
 		void deinitialize();
 		
 		void loopVcListener();
-		void loopTcListener();
 		void loopRateLimiter();
 		
 		ASAAC_ReturnStatus configureInterface( const ASAAC_InterfaceData& if_config );	
@@ -53,12 +51,14 @@ class PCS
 		ASAAC_TimedReturnStatus getPMData(unsigned long max_len, ASAAC_Time timeout, ASAAC_PublicId snd_vc, ASAAC_PublicId& vc_id);
 		ASAAC_ReturnStatus returnPMData(ASAAC_PublicId vc_id, ASAAC_PublicId rec_vc, ASAAC_ReturnStatus sm_return_status);
 		
-		
 	protected:
+		static void TcCallback( ASAAC_Address event_info_data );		
 	
-	
+		ASAAC_Address getBuffer();
+		
 	private:	
-	
+		PCS();
+
 		PCSConfiguration	m_Configuration;
 	
 		VcListener 			m_Listener;
@@ -81,7 +81,9 @@ class PCS
 		VcSender			m_Sender;
 		
 		PmFilter::Queue		m_PmQueue;
-	
+		
+		char 				m_MessageBuffer[PCS_MAX_NUMBER_OF_BUFFER][PCS_MAX_SIZE_OF_NWMESSAGE];
+		unsigned long		m_MessageBufferIndex;
 };
 
 #endif /*PCSOBJECT_HH_*/

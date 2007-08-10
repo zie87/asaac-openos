@@ -17,21 +17,8 @@ using namespace ASAAC::PCS;
 ASAAC_APPLICATION
 
 
-PCS 				pcs;
-PCSConfiguration    pcsConfig;
 ASAAC::PCS::Server 	pcsServer; 
 
-
-ASAAC_THREAD( TcListenThread )
-{
-#ifdef _DEBUG_
-	cout << "PCS: This is TcListenThread" << endl;
-#endif
-
-	pcs.loopTcListener();
-    
-    return 0;    
-};
 
 ASAAC_THREAD( VcListenThread )
 {
@@ -39,7 +26,7 @@ ASAAC_THREAD( VcListenThread )
 	cout << "PCS: This is VcListenThread" << endl;
 #endif
 
-	pcs.loopVcListener();
+	PCS::getInstance()->loopVcListener();
 
     return 0;
 };
@@ -50,7 +37,7 @@ ASAAC_THREAD( RateLimiterThread )
 	cout << " PCS: This is RateLimiterThread" << endl;
 #endif
 
-	pcs.loopRateLimiter();
+	PCS::getInstance()->loopRateLimiter();
 	
 	return 0;
 }
@@ -58,7 +45,7 @@ ASAAC_THREAD( RateLimiterThread )
 
 void initializePcs()
 {
-	pcs.initialize();
+	PCS::getInstance()->initialize();
 }
 
 
@@ -79,7 +66,7 @@ ASAAC_ReturnStatus handleCreateTransferConnection(ASAAC_PCS_MessageParameter &Pa
 	cout << "PCS: handleCreateTransferConnection" << endl;
 #endif
 	
-	Parameter._u.reply_create_connection.result = pcs.createTransferConnection(Parameter._u.request_create_connection.tc_description );
+	Parameter._u.reply_create_connection.result = PCS::getInstance()->createTransferConnection(Parameter._u.request_create_connection.tc_description );
      
     return ASAAC_SUCCESS;
  
@@ -93,7 +80,7 @@ ASAAC_ReturnStatus handleGetTransferConnectionDescription(ASAAC_PCS_MessageParam
     
     ASAAC_TcDescription tc_description;
       
-    Parameter._u.reply_tc_description.result = pcs.getTransferConnectionDescription(Parameter._u.request_tc_description.tc_id,tc_description);
+    Parameter._u.reply_tc_description.result = PCS::getInstance()->getTransferConnectionDescription(Parameter._u.request_tc_description.tc_id,tc_description);
       
     Parameter._u.reply_tc_description.tc_description = tc_description;
      
@@ -106,7 +93,7 @@ ASAAC_ReturnStatus handleDestroyTransferConnection(ASAAC_PCS_MessageParameter &P
 	cout << "PCS: handleDestroyTransferConnection" << endl;
 #endif
 	
-	Parameter._u.reply_destroy_connection.result = pcs.destroyTransferConnection(Parameter._u.request_destroy_connection.tc_id, Parameter._u.request_destroy_connection.network_descriptor );	
+	Parameter._u.reply_destroy_connection.result = PCS::getInstance()->destroyTransferConnection(Parameter._u.request_destroy_connection.tc_id, Parameter._u.request_destroy_connection.network_descriptor );	
 	
 	 return ASAAC_SUCCESS;
 }
@@ -126,7 +113,7 @@ ASAAC_ReturnStatus handleAttachTransferConnectionToVirtualChannel(ASAAC_PCS_Mess
 	cout << "PCS: handleAttachTransferConnectionToVirtualChannel" << endl;
 #endif
 	
-	Parameter._u.reply_attach_channel.result = pcs.attachTransferConnectionToVirtualChannel(Parameter._u.request_attach_channel.vc_description, Parameter._u.request_attach_channel.tc_id, Parameter._u.request_attach_channel.is_data_representation );
+	Parameter._u.reply_attach_channel.result = PCS::getInstance()->attachTransferConnectionToVirtualChannel(Parameter._u.request_attach_channel.vc_description, Parameter._u.request_attach_channel.tc_id, Parameter._u.request_attach_channel.is_data_representation );
 	
 	return ASAAC_SUCCESS;
 }
@@ -137,7 +124,7 @@ ASAAC_ReturnStatus handleDetachTransferConnectionFromVirtualChannel(ASAAC_PCS_Me
 	cout << "PCS: handleDetachTransferConnectionFromVirtualChannel" << endl;
 #endif
 
-	Parameter._u.reply_detach_channel.result = pcs.detachTransferConnectionFromVirtualChannel(Parameter._u.request_detach_channel.vc_id, Parameter._u.request_detach_channel.tc_id);
+	Parameter._u.reply_detach_channel.result = PCS::getInstance()->detachTransferConnectionFromVirtualChannel(Parameter._u.request_detach_channel.vc_id, Parameter._u.request_detach_channel.tc_id);
     
     return ASAAC_SUCCESS;
 }
@@ -146,7 +133,7 @@ ASAAC_ReturnStatus handleGetPMData(ASAAC_PCS_MessageParameter &Parameter)
 {		
 		ASAAC_PublicId vc_id;
 		
-		Parameter._u.reply_pm_data.result = pcs.getPMData(Parameter._u.request_pm_data.max_msg_length, Parameter._u.request_pm_data.timeout, Parameter._u.request_pm_data.sm_send_vc_id, vc_id);
+		Parameter._u.reply_pm_data.result = PCS::getInstance()->getPMData(Parameter._u.request_pm_data.max_msg_length, Parameter._u.request_pm_data.timeout, Parameter._u.request_pm_data.sm_send_vc_id, vc_id);
 		
 		Parameter._u.reply_pm_data.vc_id = vc_id;
 		
@@ -156,7 +143,7 @@ ASAAC_ReturnStatus handleGetPMData(ASAAC_PCS_MessageParameter &Parameter)
 
 ASAAC_ReturnStatus handleReturnPMData(ASAAC_PCS_MessageParameter &Parameter)
 {
-		Parameter._u.reply_return_pm_data.result = pcs.returnPMData(Parameter._u.request_return_pm_data.vc_id,Parameter._u.request_return_pm_data.sm_receive_vc_id, Parameter._u.request_return_pm_data.sm_return_status);
+		Parameter._u.reply_return_pm_data.result = PCS::getInstance()->returnPMData(Parameter._u.request_return_pm_data.vc_id,Parameter._u.request_return_pm_data.sm_receive_vc_id, Parameter._u.request_return_pm_data.sm_return_status);
 		
 		return ASAAC_SUCCESS;
 };
@@ -179,15 +166,12 @@ void initializePcsServer()
 	
   	pcsServer.registerHandler( ASAAC_PCS_GetPMData, handleGetPMData);
   	pcsServer.registerHandler( ASAAC_PCS_ReturnPMData, handleReturnPMData);
-	
-
 }
 
 void startPcsThreads()
 {
 	ASAAC_APOS_startThread(2);
 	ASAAC_APOS_startThread(3);
-	ASAAC_APOS_startThread(4);
 }
 
 
@@ -195,7 +179,6 @@ void stopPcsThreads()
 {
 	ASAAC_APOS_stopThread(2);
 	ASAAC_APOS_stopThread(3);
-	ASAAC_APOS_stopThread(4);
 }
 
 
@@ -245,7 +228,8 @@ ASAAC_THREAD( MainThread )
 #ifdef _DEBUG_       
 	cout << "PCS: Exit" << endl;
 #endif
-	return 0;
+	
+	return NULL;
 }
 
 

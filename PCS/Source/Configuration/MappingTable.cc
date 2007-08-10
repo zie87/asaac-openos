@@ -99,14 +99,13 @@ ASAAC_ReturnStatus	MappingTable::getVcMapping( ASAAC_PublicId TcId, ASAAC_Public
 
 	Number = MappingIndex;
 
-	if ( MappingIndex == 0 ) return ASAAC_ERROR;
-	
+	if ( MappingIndex == 0 ) 
+		return ASAAC_ERROR;
 	
 	for ( ; MappingIndex < ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE ; MappingIndex ++ )
 	{
 		VcMapping.vc_id[ MappingIndex ] = 0;
 	}
-
 
 	return ASAAC_SUCCESS;
 }

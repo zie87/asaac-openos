@@ -37,7 +37,7 @@ public:
      *                      ERROR is returned. Otherwise, SUCCESS.
      */
 
-    ASAAC_TimedReturnStatus  listen(const ASAAC_NetworkDescriptor& network_id, const ASAAC_TimeInterval& Timeout );
+    ASAAC_TimedReturnStatus  listen(const ASAAC_PublicId& tc_id, const ASAAC_Address buffer, const unsigned long max_length, const ASAAC_TimeInterval& Timeout );
     /*!< wait for a single incoming message on registered network.
      * 
      * @param[in] Timeout   maximum time interval to spend waiting for incoming messages
