@@ -124,7 +124,7 @@ private:
 	} DebugErrorInfo;
 	
 	//! static function to be called by Process's SimpleCommandInterface to activate the process' error handler
-	static void			activateErrorHandler( CommandBuffer Buffer );
+	static void			ActivateErrorHandler( CommandBuffer Buffer );
 
 	bool				m_IsInitialized;
 	

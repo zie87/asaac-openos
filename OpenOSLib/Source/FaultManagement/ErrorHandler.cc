@@ -47,7 +47,7 @@ void ErrorHandler::initialize()
 		m_HaveNewErrorInformation = false;
 		m_HaveErrorInformation = false;
 		
-		CurrentProcess->addCommandHandler( CMD_ACTIVATE_ERROR_HANDLER, ErrorHandler::activateErrorHandler );
+		CurrentProcess->addCommandHandler( CMD_ACTIVATE_ERROR_HANDLER, ErrorHandler::ActivateErrorHandler );
 
 		m_ErrorMessageQueue.initialize( false, OS_ERROR_QUEUE, CLIENTS_SEND );			
 		m_LoggingMessageQueue.initialize( false, OS_LOGGING_QUEUE, CLIENTS_SEND );
@@ -222,6 +222,8 @@ void ErrorHandler::terminateErrorHandler( ASAAC_ReturnStatus return_status )
 {
 	try
 	{
+		//TODO: This shall be a callback by the end/termination of an error handler thread
+		
 		m_ErrorHandlerReturnStatus = return_status;
 		
 		m_ErrorHandlerTrigger.trigger();
@@ -326,7 +328,7 @@ ASAAC_ReturnStatus ErrorHandler::logMessage( const ASAAC_CharacterSequence& log_
 // *******************************************************************************************
 
 	
-void ErrorHandler::activateErrorHandler( CommandBuffer Buffer )
+void ErrorHandler::ActivateErrorHandler( CommandBuffer Buffer )
 {
 	try
 	{
@@ -350,10 +352,13 @@ void ErrorHandler::activateErrorHandler( CommandBuffer Buffer )
 		Data->Result = ASAAC_ERROR;
 		
 		Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
-		if ( ThisProcess == 0 ) return;
+		
+		if ( ThisProcess == NULL ) 
+			return;
 		
 		Thread* ErrorThread = ThisProcess->getThread( 0 );
-		if ( ErrorThread == 0 ) 
+		
+		if ( ErrorThread == NULL ) 
 		{
 			cout << "No error handler thread found." << endl;
 			return;
