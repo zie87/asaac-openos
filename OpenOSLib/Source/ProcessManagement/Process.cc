@@ -64,7 +64,7 @@ size_t Process::predictSize()
 	CumulativeSize +=  OS_MAX_NUMBER_OF_THREADS * Thread::predictSize();
 				 
 	// m_EntryPoints
-	CumulativeSize +=  OS_MAX_NUMBER_OF_ENTRYPOINTS * Shared<EntryPoint>::predictSize();
+	CumulativeSize +=  OS_MAX_NUMBER_OF_THREADS * Shared<EntryPoint>::predictSize();
 	
 	//m_InternalCommandInterface
 	CumulativeSize +=  SimpleCommandInterface::predictSize();
@@ -108,7 +108,7 @@ void Process::initialize( bool IsServer, bool IsMaster, const ASAAC_ProcessDescr
 		m_LocalVCs.initialize( m_Allocator, OS_MAX_NUMBER_OF_LOCALVCS );	
 		m_Semaphore.initialize( m_Allocator, IsMaster );
 		m_InternalCommandInterface.initialize( m_Allocator, IsMaster );
-		m_EntryPoints.initialize( m_Allocator, OS_MAX_NUMBER_OF_ENTRYPOINTS );
+		m_EntryPoints.initialize( m_Allocator, OS_MAX_NUMBER_OF_THREADS );
 		m_ThreadIndex.initialize( m_Allocator, OS_MAX_NUMBER_OF_THREADS );
 		
 		for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
@@ -134,7 +134,7 @@ void Process::initialize( bool IsServer, bool IsMaster, const ASAAC_ProcessDescr
 				m_LocalVCs[ Index ].LocalVcId    = OS_UNUSED_ID;
 			}
 	
-			for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_ENTRYPOINTS; Index ++ )
+			for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index ++ )
 			{
 				m_EntryPoints[ Index ] = EmptyEntryPoint;
 			}
@@ -271,9 +271,9 @@ void Process::launch()
 			OliClient.storeCompleteFile(ProcessPath, m_ProcessData->Description.programme_file_name);
 		}
 		else ProcessPath = FileNameGenerator::getAsaacPath(m_ProcessData->Description.programme_file_name);
-		
-		m_PosixId = fork();
 
+		m_PosixId = fork();
+		
         if (m_PosixId == -1)
             throw OSException( strerror(errno), LOCATION );                
         
@@ -281,7 +281,9 @@ void Process::launch()
         if (m_PosixId == 0)
         {
             try
-            {            	
+            {        
+            	m_PosixId = getpid();
+            	
                 OpenOS::getInstance()->switchState( false, LAS_PROCESS_INIT, getId() );
 
 				// Enter main cycle of ProcessStarter
@@ -296,7 +298,7 @@ void Process::launch()
 					if ( CommandId == CMD_TERM_ENTITY )
 						break;
 					
-					if ( CommandId == CMD_RUN_PROCESS ) 
+					if ( CommandId == CMD_RUN_PROCESS )
 						FileManager::getInstance()->executeFile( ProcessPath, getAlias() );
 				} 
 	            
@@ -311,7 +313,7 @@ void Process::launch()
                 e.raiseError();
 
 				//TODO: To be able to deinitialize all objects switchState shall
-				//set Master/Server Flags of all objects to false
+				//set Master flags of all objects to false and correct the dedicated Server flags
 
                 AllocatorManager::getInstance()->deallocateAllObjects();
                 //OpenOS::getInstance()->deinitialize();
@@ -868,7 +870,7 @@ signed long	Process::getEntryPointIndex( ASAAC_CharacterSequence Name )
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
-	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_ENTRYPOINTS; Index++ )
+	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
 	{
 		if ( CharSeq(m_EntryPoints[ Index ].Name) == CharSeq(Name) ) 
 			return Index;

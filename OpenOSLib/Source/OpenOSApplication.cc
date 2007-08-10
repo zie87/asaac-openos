@@ -55,7 +55,7 @@ typedef struct {
 	EntryPointAddr	Address;	
 } BufferedEntryPoint;
 
-static BufferedEntryPoint BufferedEntryPoints[OS_MAX_NUMBER_OF_ENTRYPOINTS];
+static BufferedEntryPoint BufferedEntryPoints[OS_MAX_NUMBER_OF_THREADS];
 static unsigned long 	  BufferedEntryPointCounter = 0;
 
 
@@ -63,7 +63,7 @@ char bufferThread(char * name, EntryPointAddr address)
 {
 	try
 	{
-		if (BufferedEntryPointCounter == OS_MAX_NUMBER_OF_ENTRYPOINTS)
+		if (BufferedEntryPointCounter == OS_MAX_NUMBER_OF_THREADS)
 			throw OSException("No more free slots", LOCATION);
 
 		BufferedEntryPoints[BufferedEntryPointCounter].Name = name;

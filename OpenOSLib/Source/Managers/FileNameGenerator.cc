@@ -95,11 +95,13 @@ ASAAC_CharacterSequence FileNameGenerator::getRemoteInterfaceName( ASAAC_PublicI
 ASAAC_CharacterSequence FileNameGenerator::getLocalOliPath( ASAAC_PublicId ProcessId )
 {
 	CharacterSequence cs;
-	#ifdef _ELINOS_4_1_
+	
+#ifdef _ELINOS_4_1_
 	cs = "/bin";
-	#else
+#else
 	cs = getenv( "ASAAC_OS" );
-	#endif
+#endif
+	
 	cs += "/";	
 	cs += OS_TEMP;	
 	cs += "OliFile_";
@@ -113,11 +115,12 @@ const ASAAC_CharacterSequence FileNameGenerator::getAsaacPath( ASAAC_CharacterSe
 
 	CharacterSequence cs;
 	
-	#ifdef _ELINOS_4_1_
+#ifdef _ELINOS_4_1_
 	cs = "/bin";
-	#else
+#else
 	cs = getenv( "ASAAC_OS" );
-	#endif
+#endif
+	
 	cs += "/";
 	cs += path;
     

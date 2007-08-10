@@ -117,7 +117,7 @@ CharacterSequence & CharacterSequence::appendLineBreak()
 	return this->append(LineBreak());
 }
 
-CharacterSequence & CharacterSequence::assign( const ASAAC_CharacterSequence &data, unsigned long begin_pos, unsigned long len )
+CharacterSequence & CharacterSequence::assign( const ASAAC_CharacterSequence& data, unsigned long begin_pos, unsigned long len )
 {	
 	checkAsaacString( data );
 	
@@ -148,7 +148,7 @@ CharacterSequence & CharacterSequence::assign( const CharacterSequence &data, un
 
 CharacterSequence & CharacterSequence::assign( const char *data, unsigned long begin_pos, unsigned long len )
 {
-	if (!checkCharString(data))
+	if (checkCharString(data) == false)
 		return *this;	
 
 	ASAAC_CharacterSequence Seq;
@@ -157,7 +157,7 @@ CharacterSequence & CharacterSequence::assign( const char *data, unsigned long b
 	memcpy( Seq.data, data, Seq.size );
 
 	checkIntegrity();
-		
+	
 	return this->assign( Seq, begin_pos, len );
 }
 
@@ -853,7 +853,7 @@ bool CharacterSequence::checkAsaacString(const ASAAC_CharacterSequence data)
 
 bool CharacterSequence::checkCharString( const char * data )
 {
-	if (data != 0) return true;
+	if (data != NULL) return true;
 	return false;
 }
 

@@ -109,29 +109,20 @@ FileManager* FileManager::getInstance()
 
 void FileManager::executeFile( const ASAAC_CharacterSequence name, const ProcessAlias alias )
 {
-	
 	try
 	{
-	    // For APOS processes drop all privileges. set uid and gid == nobody
+    	CharacterSequence ErrorString;
+
+    	// For APOS processes drop all privileges. set uid and gid == nobody
 	    if ( alias == PROC_APOS )
 	    {
 	    	// It is important here first to set the group id and then the user id
 	    	
-	if (0)
-		{
 	        if (setgid( 65534 ) == -1)
-	        	{
-	        	CharacterSequence err = "setgid error: ";
-	        		err += strerror(errno);
-	        	throw OSException( err.c_str(), LOCATION );
-	        	}
+	        	throw OSException( (ErrorString << "setgid: " << strerror(errno)).c_str(), LOCATION );
+	        
 	        if (setuid( 65534 ) == -1)
-	        	{
-	        		CharacterSequence err = "setuid error:";
-	        		err += strerror(errno);
-	        	throw OSException( err.c_str(), LOCATION );
-	        	}
-		}
+	        	throw OSException( (ErrorString << "setuid: " << strerror(errno)).c_str(), LOCATION );
 	    } 
 	    
 	    deinitialize( true );
@@ -143,12 +134,7 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 	    execve( CharSeq(name).c_str(), 0, environ);
 	
 	    //if the last call returned, an error occured
-	    OSException e( strerror(errno), LOCATION );
-	        	{
-	        		CharacterSequence err = "execve error";
-	        		err += strerror(errno);
-	        		OSException e( err.c_str(), LOCATION );
-	        	}
+	    OSException e( (ErrorString << "execve: " << strerror(errno)).c_str(), LOCATION );
 
 		//reallocate all objects, because execve failed.
 	    AllocatorManager::getInstance()->reallocateAllObjects();
@@ -159,6 +145,7 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 	    }
 	    catch ( ASAAC_Exception &e2 )
 	    {
+	    	//TODO: add e2 messages to e
 	    	e.addPath("Reinitialization of FileManager failed.", LOCATION);
 	    }
 	    
