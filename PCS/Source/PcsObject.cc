@@ -233,10 +233,16 @@ void PCS::TcCallback( ASAAC_Address event_info_data )
 {
 	try
 	{
-		EventInfoData_BufferReceived *EventInfoData = static_cast<EventInfoData_BufferReceived*>(event_info_data);
+		EventInfoData *Data = static_cast<EventInfoData*>(event_info_data);
 		
-		if (EventInfoData->status == ASAAC_MOS_NII_CALL_COMPLETE)
-			PCS::getInstance()->m_NiiReceiver.listen( EventInfoData->tc_id, PCS::getInstance()->getBuffer(), PCS_MAX_SIZE_OF_NWMESSAGE, TimeIntervalInstant );
+		if (Data->comms_ev_buffer_received.status == ASAAC_MOS_NII_CALL_COMPLETE)
+		{
+			PCS::getInstance()->m_NiiReceiver.listen( 
+					Data->comms_ev_buffer_received.tc_id, 
+					PCS::getInstance()->getBuffer(), 
+					PCS_MAX_SIZE_OF_NWMESSAGE, 
+					TimeIntervalInstant );
+		}
 	}
 	catch ( PcsException &e )
 	{

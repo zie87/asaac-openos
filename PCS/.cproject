@@ -4,7 +4,7 @@
 <cproject>
 <storageModule moduleId="org.eclipse.cdt.core.settings">
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.707694650">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Debug" id="cdt.managedbuild.config.gnu.exe.debug.707694650" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.exe.debug.707694650" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings/>
 <extensions>
 <extension point="org.eclipse.cdt.core.BinaryParser" id="org.eclipse.cdt.core.ELF"/>
@@ -44,14 +44,14 @@
 <tool superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug" id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1865140246" name="GCC C Linker"/>
 <tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.941904374" name="GCC C++ Linker">
 <option superClass="gnu.cpp.link.option.libs" id="gnu.cpp.link.option.libs.164078426" name="Libraries (-l)" valueType="libs">
-<listOptionValue value="MOS" builtIn="false"/>
 <listOptionValue value="OpenOS" builtIn="false"/>
+<listOptionValue value="MOS" builtIn="false"/>
 <listOptionValue value="pthread" builtIn="false"/>
 <listOptionValue value="rt" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.link.option.paths" id="gnu.cpp.link.option.paths.535234695" name="Library search path (-L)" valueType="stringList">
-<listOptionValue value="&quot;${workspace_loc:/MOSLib/Debug}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Debug}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/MOSLib/Debug}&quot;" builtIn="false"/>
 </option>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug" id="cdt.managedbuild.tool.gnu.assembler.exe.debug.16450803" name="GCC Assembler">
