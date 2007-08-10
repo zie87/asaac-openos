@@ -29,10 +29,11 @@ typedef struct
 
 typedef struct 
 {
-  int                               valid;        ///< Valid flag
+  char                              valid;        ///< Valid flag
+  
   ASAAC_NetworkDescriptor           id;           ///< Network Identifier
   ASAAC_InterfaceConfigurationData  config_data;  ///< Additional configuration data
-  int                               open_tcs;     ///< Number of open Transfer Connections on Network
+  unsigned long                     open_tcs;     ///< Number of open Transfer Connections on Network
 } NwData;
 
 
@@ -41,17 +42,21 @@ typedef struct
 
 typedef struct
 {
-  int                               valid;        ///< Valid flag
+  char                              valid;        ///< Valid flag
+  
   ASAAC_PublicId                    id;           ///< TC Identifier
-  int                               fd;           ///< Socket File Descriptor
-  NwData*                           nw;           ///< Reference to associated Network
   ASAAC_TransferDirection           direction;    ///< Sender or Receiver TC
   ASAAC_TransferType                type;         ///< Message or Streaming TC
   TransferConfigurationData         config_data;  ///< Additional configuration data, such as streaming buffers
+
+  int                               fd;           ///< Socket File Descriptor
+  NwData*                           nw;           ///< Reference to associated Network
+  
   ASAAC_Bool 						trigger_callback;
   ASAAC_PublicId                    callback_id;  ///< Identifier of Callback
-  pthread_t                         th;           ///< Thread handle whenever streaming is used
-  int								hasData;      ///< Indicates if, new data is available
+  EventInfoData						event_info_data;
+  
+  char								has_data;     ///< Indicates if, new data is available
 } TcData;
 
 #endif

@@ -139,6 +139,8 @@ protected:
 
 	static void* ServiceThread(void* Data);
 
+	ASAAC_NiiReturnStatus hasData( const ASAAC_PublicId &tc_id );
+	ASAAC_NiiReturnStatus hasData( const ASAAC_NetworkDescriptor& network_id, ASAAC_PublicId &tc_id );
 	ASAAC_NiiReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId &tc_id  );
 	ASAAC_NiiReturnStatus receiveData( 		
 			const ASAAC_PublicId tc_id, 
