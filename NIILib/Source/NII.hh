@@ -25,8 +25,9 @@ public:
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
 	ASAAC_NiiReturnStatus configureInterface(
-			const ASAAC_NetworkDescriptor& network_id,
-			const ASAAC_InterfaceConfigurationData& configuration_data);
+			const ASAAC_PublicId interface_id,
+			const ASAAC_NetworkDescriptor *network_id,
+			const ASAAC_InterfaceConfigurationData *configuration_data);
 
 	/////////////////////////////////////////////
 	/// Configure the local resource to handle the transmission or reception of information over a Transfer Channel (TC)
@@ -41,13 +42,13 @@ public:
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
 	ASAAC_NiiReturnStatus configureTransfer(
-			ASAAC_PublicId tc_id,
-			const ASAAC_NetworkDescriptor& network_id,
-			ASAAC_TransferDirection send_receive, 
-			ASAAC_TransferType message_streaming,
-			ASAAC_TC_ConfigurationData configuration_data, 
-			ASAAC_Bool trigger_callback,
-			ASAAC_PublicId callback_id);
+			const ASAAC_PublicId tc_id,
+			const ASAAC_NetworkDescriptor network_id,
+			const ASAAC_TransferDirection send_receive, 
+			const ASAAC_TransferType message_streaming,
+			const ASAAC_TC_ConfigurationData configuration_data, 
+			const ASAAC_Bool trigger_callback,
+			const ASAAC_PublicId callback_id);
 
 	/////////////////////////////////////////////
 	/// Send a block of data on the given TC
@@ -59,10 +60,10 @@ public:
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
 	ASAAC_NiiReturnStatus sendTransfer(
-			ASAAC_PublicId tc_id, 
-			const char* transmit_data,
-			unsigned long data_length, 
-			ASAAC_Time time_out);
+			const ASAAC_PublicId tc_id, 
+			const char *transmit_data,
+			const unsigned long data_length, 
+			const ASAAC_Time time_out);
 
 	/////////////////////////////////////////////
 	/// Receive a block of data on the given TC
@@ -75,11 +76,11 @@ public:
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
 	ASAAC_NiiReturnStatus receiveTransfer(
-			ASAAC_PublicId tc_id, 
-			ASAAC_CharAddress& receive_data,
-			unsigned long data_length_available, 
-			unsigned long& data_length, 
-			ASAAC_Time time_out);
+			const ASAAC_PublicId tc_id, 
+			ASAAC_CharAddress *receive_data,
+			const unsigned long data_length_available, 
+			unsigned long *data_length, 
+			const ASAAC_Time time_out);
 
 	/////////////////////////////////////////////
 	/// Release local resources previously allocated to handle the transmission or reception of information over a TC
@@ -89,8 +90,8 @@ public:
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
 	ASAAC_NiiReturnStatus destroyTransfer(
-			ASAAC_PublicId tc_id,
-			const ASAAC_NetworkDescriptor& network_id);
+			const ASAAC_PublicId tc_id,
+			const ASAAC_NetworkDescriptor network_id);
 
 	/////////////////////////////////////////////
 	/// TBD
@@ -115,12 +116,12 @@ public:
 	/// @return MOS_NII_CALL_FAILED if call did not succeed
 
 	ASAAC_NiiReturnStatus receiveNetwork(
-			const ASAAC_NetworkDescriptor& network_id,
-			ASAAC_CharAddress& receive_data, 
-			unsigned long data_length_available,
-			unsigned long& data_length, 
-			ASAAC_PublicId& tc_id, 
-			ASAAC_Time time_out);
+			const ASAAC_NetworkDescriptor network_id,
+			ASAAC_CharAddress *receive_data, 
+			const unsigned long data_length_available,
+			unsigned long *data_length, 
+			ASAAC_PublicId *tc_id, 
+			const ASAAC_Time time_out);
 
 protected:
 
@@ -135,66 +136,67 @@ protected:
 	/// @param pTcData si a pointer to TcData which is passed as void*
 	/// @see TcData
 
-	void handleStreamingTc(TcData pTcData);
+	void handleStreamingTc(NwData *Nw);
+	void handleMessageTc(NwData *Nw);
 
 	static void* ServiceThread(void* Data);
 
-	ASAAC_NiiReturnStatus hasData( const ASAAC_PublicId &tc_id );
-	ASAAC_NiiReturnStatus hasData( const ASAAC_NetworkDescriptor& network_id, ASAAC_PublicId &tc_id );
-	ASAAC_NiiReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId &tc_id  );
+	ASAAC_NiiReturnStatus hasData( const ASAAC_PublicId *tc_id );
+	ASAAC_NiiReturnStatus hasData( const ASAAC_NetworkDescriptor network_id, ASAAC_PublicId *tc_id );
+	ASAAC_NiiReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId *tc_id  );
 	ASAAC_NiiReturnStatus receiveData( 		
 			const ASAAC_PublicId tc_id, 
 			const ASAAC_CharAddress receive_data, 
 			const unsigned long data_length_available, 
 			unsigned long& data_length);
 	
-	void startServices();
-	void stopServices();
+	void configureServices();
 
-	/////////////////////////////////////////////
-	/// Returns TRUE, if network descriptor is available and associated with a valid interface and socket
-	/// @param Index that is where a valid index to an entry is stored to
-	/// @param network_id a unique value to identify the network
-	/// @return TRUE if network_id was already configured and index could be specified
+	
+	char addNw(NwData Data);
+	char removeNw(const ASAAC_NetworkDescriptor network_id);
+	void removeAllNw();
+	
+	char getNw(const ASAAC_NetworkDescriptor network_id, NwData *Data);
+	char setNw(const ASAAC_NetworkDescriptor network_id, const NwData Data);
+	
+	long countNws();
 
-	long getNwIndex(const ASAAC_NetworkDescriptor& network_id);
+	
+	char addTc(TcData Data);
+	char removeTc(const ASAAC_PublicId tc_id);
+	void removeAllTc();
+	
+	char getTc(const ASAAC_PublicId tc_id, TcData *Data);
+	char setNw(const ASAAC_PublicId tc_id, const TcData Data);
+	
+	long countTcs();
+	long countTcs(const ASAAC_NetworkDescriptor network_id);
 
-	/////////////////////////////////////////////
-	/// Returns TRUE, if the transfer connection is available and associated with a valid network interface
-	/// @param Index that is where a valid index to an entry is stored to
-	/// @param tc_id a unique value to identify the TC
-	/// @return TRUE if tc_id was already configured and index could be specified
+	
+	char allocateBuffer(ASAAC_PrivateId *buffer_id);
+	void releaseBuffer(ASAAC_PrivateId buffer_id);
 
-	long getTcIndex(const ASAAC_PublicId tc_id);
-
-	/////////////////////////////////////////////
-	/// Returns TRUE, if an invalid, empty slot for a new connection was found and index is given as argument
-	/// @param Index that is where an invalid index to an entry is stored to
-	/// @return TRUE if another empty slot for storage of a new TC could be specified
-
-	long getEmptyTc();
-
-	/////////////////////////////////////////////
-	/// Returns TRUE, if an invalid, empty slot for a new network socket was found and index is given as argument
-	/// @param Index that is where an invalid index to an entry is stored to
-	/// @return TRUE if another empty slot for storage of a new Network could be specified
-
-	long getEmptyNw();
-
+	TcPacketData *getBuffer(ASAAC_PrivateId buffer_id);
+	
 private:
-
-	/////////////////////////////////////////////
-	/// Constructs a default object with no configured interfaces and no open transfer channels
 	cMosNii();
 
-	///< Used to associate a Transfer Connection with a Network
-	TcData 			m_TcData[NII_MAX_NUMBER_OF_TC_CONNECTIONS];
-	///< Used to associate an Interface with a Network
-	NwData 			m_NwData[NII_MAX_NUMBER_OF_NETWORKS]; 
+	long getIndexOfNw(const ASAAC_NetworkDescriptor network_id);
+	long getIndexOfTc(const ASAAC_PublicId tc_id);
+	
+	long receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor *network_id, char* data, const unsigned long length );
+	long sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, char* data, const unsigned long length );
+	
+	NwData 			m_NwList[NII_MAX_NUMBER_OF_NETWORKS]; 
+	long			m_NwListSize;
 
-	///< This is the current local port to open new sockets. It is inkremented from each time and initialized in constructor @see cMosNii()
-	ASAAC_PublicId 	m_NiiLocalPort; 
-
+	TcData 			m_TcList[NII_MAX_NUMBER_OF_TCS];
+	long			m_TcListSize;
+	
+	TcPacketData    m_TcBufferArray[NII_MAX_NUMBER_OF_TCS];
+	char			m_TcBufferArrayAllocated[NII_MAX_NUMBER_OF_TCS];
+	
 	pthread_t       m_ServiceThread;
 	int				m_ServiceFileDescriptor;
 	

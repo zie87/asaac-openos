@@ -4,6 +4,7 @@
 #include "ASAAC_ENH.h"
 #include "AsaacCLib.h"
 
+#include "NIIConstants.h"
 #include "NIITypes.h"
 
 #include <sys/types.h>

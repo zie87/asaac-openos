@@ -1,4 +1,4 @@
-/// @file nii_types.h
+/// @file NIITypes.h
 /// @brief Contains the declaration of types, enums, structs and defines for use in NII module
 
 // Created:   21.08.2004
@@ -8,20 +8,28 @@
 #ifndef NII_TYPES_H
 #define NII_TYPES_H
 
-#include <pthread.h>
-
 #include "ASAAC.h"
 #include "NIIConstants.h"
 
 
 /////////////////////////////////////////////
-/// Additional Data for TC configuration. Especially buffer for streaming transfer connections
+/// send or received Tc Data
 
-typedef struct 
+typedef struct  
 {
-    long* data_length;
-    char* stream_buffer;
-} TransferConfigurationData;
+	ASAAC_PublicId	                tc_id;
+	char		                    data[NII_MAX_SIZE_OF_BUFFER];
+} TcPacket;
+
+
+/////////////////////////////////////////////
+/// send or received Tc Data
+
+typedef struct  
+{
+	TcPacket    	                packet;
+	unsigned long                   data_length;
+} TcPacketData;
 
 
 /////////////////////////////////////////////
@@ -29,11 +37,12 @@ typedef struct
 
 typedef struct 
 {
-  char                              valid;        ///< Valid flag
-  
-  ASAAC_NetworkDescriptor           id;           ///< Network Identifier
-  ASAAC_InterfaceConfigurationData  config_data;  ///< Additional configuration data
-  unsigned long                     open_tcs;     ///< Number of open Transfer Connections on Network
+  ASAAC_PublicId 					interface_id;
+  ASAAC_NetworkDescriptor           network_id;   ///< Network Identifier
+  ASAAC_InterfaceConfigurationData  configuration_data;  ///< Additional configuration data
+
+  int                               fd;           ///< Socket File Descriptor
+  char								is_streaming;
 } NwData;
 
 
@@ -42,21 +51,16 @@ typedef struct
 
 typedef struct
 {
-  char                              valid;        ///< Valid flag
-  
-  ASAAC_PublicId                    id;           ///< TC Identifier
+  ASAAC_PublicId                    tc_id;        ///< TC Identifier
+  ASAAC_NetworkDescriptor           network_id;   ///< Reference to associated Network
   ASAAC_TransferDirection           direction;    ///< Sender or Receiver TC
   ASAAC_TransferType                type;         ///< Message or Streaming TC
-  TransferConfigurationData         config_data;  ///< Additional configuration data, such as streaming buffers
 
-  int                               fd;           ///< Socket File Descriptor
-  NwData*                           nw;           ///< Reference to associated Network
-  
   ASAAC_Bool 						trigger_callback;
   ASAAC_PublicId                    callback_id;  ///< Identifier of Callback
   EventInfoData						event_info_data;
   
-  char								has_data;     ///< Indicates if, new data is available
+  ASAAC_PublicId                    buffer_id;
 } TcData;
 
 #endif
