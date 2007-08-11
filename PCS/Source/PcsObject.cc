@@ -309,8 +309,8 @@ ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_
                                           send_receive, 
                                           message_streaming, 
                                           tc_configuration_data, 
-                                          ASAAC_BOOL_FALSE, 
-                                          0);
+                                          ASAAC_BOOL_TRUE, 
+                                          PCS_CALLBACKID_TC);
                                               
 	if(niiRet == ASAAC_MOS_NII_CALL_COMPLETE)
 	{

@@ -28,7 +28,7 @@ void VcSender::deinitialize()
 ASAAC_ReturnStatus VcSender::processVcMessage( ASAAC_PublicId LocalVc, ASAAC_Address Data, unsigned long Length )
 {
 #ifdef _DEBUG_
-    cout << "VcSender::processVcMessage("<<LocalVc<<", " << Data << ", " << Length << ")"<< endl;
+    cout << "VcSender::processVcMessage(" << LocalVc << ", " << Data << ", " << Length << ")" << endl;
 #endif
     
 	ASAAC_TimedReturnStatus Result = ASAAC_APOS_sendMessage( LocalVc, &m_Timeout, Data, Length );
@@ -42,7 +42,7 @@ ASAAC_ReturnStatus VcSender::processVcMessage( ASAAC_PublicId LocalVc, ASAAC_Add
 	
 	if ( Result == ASAAC_TM_TIMEOUT )
 	{
-		cerr << "VcSender::processVcMessage() Timeout occurred sending on LocalVc"<< endl;
+		cerr << "VcSender::processVcMessage() Timeout occurred sending on LocalVc" << endl;
 		throw PcsException( 0, LocalVc, "Timeout occurred sending on LocalVc." );
 	}
 	

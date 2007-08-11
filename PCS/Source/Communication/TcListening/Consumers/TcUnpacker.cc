@@ -68,14 +68,10 @@ ASAAC_ReturnStatus TcUnpacker::processTcMessage( ASAAC_PublicId TcId, ASAAC_Addr
 		else
 		{
 #ifdef _DEBUG_       
-		cout << "TcUnpacker::processTcMessage() not RAW VC" << GlobalVc << endl;
+		cout << "TcUnpacker::processTcMessage() handle Message VC" << GlobalVc << endl;
 #endif	
 		}
 	}
-
-#ifdef _DEBUG_       
-	cout << "TcUnpacker::processTcMessage() multiple VC for TC " << TcId<< endl;
-#endif
 
 	struct TcDataType {
 		ASAAC_PublicId	VcId;
@@ -90,14 +86,22 @@ ASAAC_ReturnStatus TcUnpacker::processTcMessage( ASAAC_PublicId TcId, ASAAC_Addr
 	// Check whether indicated GlobalVc
 	for ( unsigned long Index = 0;; Index ++ )
 	{
-		if ( ReceivingVcs.vc_id[ Index ] == GlobalVc ) break;
+		if ( ReceivingVcs.vc_id[ Index ] == GlobalVc ) 
+			break;
 		
 		if ( Index == Number ) 
 		{
+#ifdef _DEBUG_       
+		cout << "TcUnpacker::processTcMessage() Received Tc packet contains invalid Vc " << GlobalVc << endl;
+#endif	
 			throw PcsException( TcId, GlobalVc, "Received Tc packet contains invalid Vc" );
 			return ASAAC_ERROR;
 		}
 	}
+
+#ifdef _DEBUG_       
+		cout << "TcUnpacker::processTcMessage() process Message VC" << GlobalVc << endl;
+#endif	
 
 	return m_Consumer->processVcMessage(GlobalVc, TcData->Message,  Length-4 );
 }
