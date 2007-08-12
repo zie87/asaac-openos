@@ -9,8 +9,9 @@ ASAAC_NiiReturnStatus ASAAC_MOS_configureInterface(
 	{
 		case MOS_INTERFACE_ID_NII: 	
 			return cMosNii::getInstance()->configureInterface(
-				*network_id,
-				*configuration_data);
+				interface_id,
+				network_id,
+				configuration_data);
 			break;
 			
 		default: return ASAAC_MOS_NII_INVALID_INTERFACE; 
@@ -57,9 +58,9 @@ ASAAC_NiiReturnStatus ASAAC_MOS_receiveTransfer(
 {
 	return cMosNii::getInstance()->receiveTransfer(
 			tc_id, 
-			*receive_data,
+			receive_data,
 			data_length_available, 
-			*data_length, 
+			data_length, 
 			*time_out);
 
 }
@@ -89,10 +90,10 @@ ASAAC_NiiReturnStatus ASAAC_MOS_receiveNetwork(
 {
 	return cMosNii::getInstance()->receiveNetwork(
 			*network, 
-			*receive_data,
+			receive_data,
 			data_length_available, 
-			*data_length, 
-			*tc_id, 
+			data_length, 
+			tc_id, 
 			*time_out);
 }
 
