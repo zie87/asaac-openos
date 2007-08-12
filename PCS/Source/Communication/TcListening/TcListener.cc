@@ -50,15 +50,7 @@ ASAAC_TimedReturnStatus TcListener::listen(const ASAAC_PublicId& tc_id, const AS
     if(ret != ASAAC_MOS_NII_CALL_COMPLETE)
         return ASAAC_TM_TIMEOUT;
     
-    ASAAC_PublicId tc_header = ntohl(* ((long*)receive_data));
-	
-	if(tc_header != tc_id)
-	{
-     	cerr << "TcListener::listen() wrong TC header " << tc_header << " while receiving data for TC " << tc_id << endl;
-		//return ASAAC_TM_ERROR; //TODO: is this an error?
-	}
- 
-    if(m_Consumer->processTcMessage(tc_id,(ASAAC_Address) (receive_data + 4),data_length-4) != ASAAC_SUCCESS)
+    if(m_Consumer->processTcMessage(tc_id, (ASAAC_Address)receive_data, data_length) != ASAAC_SUCCESS)
     {
      	cerr << "TcListener::listen() could not processTcMessage for TC " << tc_id << endl;
         return ASAAC_TM_ERROR;

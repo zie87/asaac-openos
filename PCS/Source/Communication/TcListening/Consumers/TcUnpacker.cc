@@ -73,7 +73,8 @@ ASAAC_ReturnStatus TcUnpacker::processTcMessage( ASAAC_PublicId TcId, ASAAC_Addr
 		}
 	}
 
-	struct TcDataType {
+	struct TcDataType 
+	{
 		ASAAC_PublicId	VcId;
 		char		Message[];
 	};
