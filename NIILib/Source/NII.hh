@@ -125,55 +125,46 @@ public:
 
 protected:
 
-	typedef struct {
-		pthread_cond_t	CallingThreadCondition;
-		pthread_mutex_t	CallingThreadMutex;
-	} CallingThreadData;
-
-	/////////////////////////////////////////////
-	/// This function is called as a new thread, which writes/reads data to/from a stream-based TC
-	/// The thread is executed as long as the valid flag in TcData is TRUE
-	/// @param pTcData si a pointer to TcData which is passed as void*
-	/// @see TcData
-
-	void handleStreamingTc(NwData *Nw);
-	void handleMessageTc(NwData *Nw);
+	// Services
+	void handleStreamingTc(const ASAAC_NetworkDescriptor network_id, ASAAC_PublicId *tc_id);
+	void handleMessageTc(const ASAAC_NetworkDescriptor network_id, ASAAC_PublicId *tc_id);
 
 	static void* ServiceThread(void* Data);
 
-	ASAAC_NiiReturnStatus hasData( const ASAAC_PublicId *tc_id );
+	// Service synchronization
+	ASAAC_NiiReturnStatus hasData( const ASAAC_PublicId tc_id );
 	ASAAC_NiiReturnStatus hasData( const ASAAC_NetworkDescriptor network_id, ASAAC_PublicId *tc_id );
 	ASAAC_NiiReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId *tc_id  );
 	ASAAC_NiiReturnStatus receiveData( 		
 			const ASAAC_PublicId tc_id, 
 			const ASAAC_CharAddress receive_data, 
 			const unsigned long data_length_available, 
-			unsigned long& data_length);
+			unsigned long *data_length);
 	
 	void configureServices();
 
-	
-	char addNw(NwData Data);
+	// Network data access
+	char addNw(Network Data);
 	char removeNw(const ASAAC_NetworkDescriptor network_id);
 	void removeAllNw();
 	
-	char getNw(const ASAAC_NetworkDescriptor network_id, NwData *Data);
-	char setNw(const ASAAC_NetworkDescriptor network_id, const NwData Data);
+	char getNw(const ASAAC_NetworkDescriptor network_id, Network *Data);
+	char setNw(const ASAAC_NetworkDescriptor network_id, const Network Data);
 	
 	long countNws();
 
-	
-	char addTc(TcData Data);
+	// Transfer Connection data access
+	char addTc(TransferConnection Data);
 	char removeTc(const ASAAC_PublicId tc_id);
 	void removeAllTc();
 	
-	char getTc(const ASAAC_PublicId tc_id, TcData *Data);
-	char setNw(const ASAAC_PublicId tc_id, const TcData Data);
+	char getTc(const ASAAC_PublicId tc_id, TransferConnection *Data);
+	char setTc(const ASAAC_PublicId tc_id, const TransferConnection Data);
 	
 	long countTcs();
 	long countTcs(const ASAAC_NetworkDescriptor network_id);
 
-	
+	// Buffer handling
 	char allocateBuffer(ASAAC_PrivateId *buffer_id);
 	void releaseBuffer(ASAAC_PrivateId buffer_id);
 
@@ -185,29 +176,29 @@ private:
 	long getIndexOfNw(const ASAAC_NetworkDescriptor network_id);
 	long getIndexOfTc(const ASAAC_PublicId tc_id);
 	
-	long receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor *network_id, char* data, const unsigned long length );
-	long sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, char* data, const unsigned long length );
+	ASAAC_NiiReturnStatus receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor *network_id, ASAAC_PublicId *buffer_id );
+	ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, const ASAAC_Time time_out );
 	
-	NwData 			m_NwList[NII_MAX_NUMBER_OF_NETWORKS]; 
-	long			m_NwListSize;
+	Network 			m_NwList[NII_MAX_NUMBER_OF_NETWORKS]; 
+	long				m_NwListSize;
 
-	TcData 			m_TcList[NII_MAX_NUMBER_OF_TCS];
-	long			m_TcListSize;
+	TransferConnection  m_TcList[NII_MAX_NUMBER_OF_TCS];
+	long				m_TcListSize;
 	
-	TcPacketData    m_TcBufferArray[NII_MAX_NUMBER_OF_TCS];
-	char			m_TcBufferArrayAllocated[NII_MAX_NUMBER_OF_TCS];
+	TcPacketData    	m_TcBufferArray[NII_MAX_NUMBER_OF_TCS];
+	char				m_TcBufferArrayAllocated[NII_MAX_NUMBER_OF_TCS];
 	
-	pthread_t       m_ServiceThread;
-	int				m_ServiceFileDescriptor;
+	pthread_t       	m_ServiceThread;
+	int					m_ServiceFileDescriptor;
 	
-	pthread_cond_t	m_ServiceThreadCondition;
-	pthread_mutex_t	m_ServiceThreadMutex;
+	pthread_cond_t		m_ServiceThreadCondition;
+	pthread_mutex_t		m_ServiceThreadMutex;
 	
-	pthread_cond_t	m_NewDataCondition;
-	pthread_mutex_t	m_NewDataMutex;
-	long			m_NewDataTcIndex;
+	pthread_cond_t		m_NewDataCondition;
+	pthread_mutex_t		m_NewDataMutex;
+	long				m_NewDataTcId;
 	
-	int				m_IsListening;	
+	int					m_IsListening;	
 };
 
 #endif /*MOSNII_HH_*/

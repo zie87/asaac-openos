@@ -15,15 +15,26 @@
 /////////////////////////////////////////////
 /// send or received Tc Data
 
+
+typedef struct
+{
+	//Probably a header for data handling must be defined
+} NetworkHeader;
+
+typedef struct
+{
+	ASAAC_PublicId					tc_id;
+} TcHeader;
+
+
+typedef char TcData[NII_MAX_SIZE_OF_BUFFER];
+
 typedef struct  
 {
-	ASAAC_PublicId	                tc_id;
-	char		                    data[NII_MAX_SIZE_OF_BUFFER];
+	NetworkHeader					network_header;
+	TcHeader    	                tc_header;
+	TcData		                    data;
 } TcPacket;
-
-
-/////////////////////////////////////////////
-/// send or received Tc Data
 
 typedef struct  
 {
@@ -43,7 +54,8 @@ typedef struct
 
   int                               fd;           ///< Socket File Descriptor
   char								is_streaming;
-} NwData;
+  ASAAC_PublicId					tc_id_with_data;
+} Network;
 
 
 /////////////////////////////////////////////
@@ -61,6 +73,6 @@ typedef struct
   EventInfoData						event_info_data;
   
   ASAAC_PublicId                    buffer_id;
-} TcData;
+} TransferConnection;
 
 #endif
