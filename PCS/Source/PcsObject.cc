@@ -320,7 +320,7 @@ ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_
 	}
 	else
 	{
-		cerr << "PCS::createTransferConnection() failed to configure transfer connection " << tc_description.tc_id << endl;
+		cerr << "PCS::createTransferConnection() failed to configure transfer connection " << tc_description.tc_id << " Error: " << niiRet << endl;
 		return ASAAC_ERROR;
 	}			
 	
