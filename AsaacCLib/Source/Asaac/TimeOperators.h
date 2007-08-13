@@ -32,10 +32,12 @@ char greater(const ASAAC_Time Time1, const ASAAC_Time Time2);
 ASAAC_Time FloatToTime( double Value );
 ASAAC_Time TimespecToTime( struct timespec Value );
 ASAAC_Time TimevalToTime( struct timeval Value );
+ASAAC_Time IntervalToTime( ASAAC_TimeInterval Value );
 
 ASAAC_TimeInterval FloatToInterval( double Value );
 ASAAC_TimeInterval TimespecToInterval( struct timespec Value );
 ASAAC_TimeInterval TimevalToInterval( struct timeval Value );
+ASAAC_TimeInterval TimeToInterval( ASAAC_Time Value );
 
 double TimeToFloat( ASAAC_Time Value );
 struct timespec TimeToTimespec( ASAAC_Time Value );

@@ -16,8 +16,8 @@ ASAAC_Time addIntervalToTime(const ASAAC_Time Time, const ASAAC_TimeInterval Int
 {
 	ASAAC_Time thisTime;
 	
-	thisTime.nsec = Time.nsec + Interval.nsec;
 	thisTime.sec  = Time.sec  + Interval.sec;
+	thisTime.nsec = Time.nsec + Interval.nsec;
 	
 	if ( thisTime.nsec > 1000000000 )
 	{
@@ -32,14 +32,39 @@ ASAAC_Time addIntervalToTime(const ASAAC_Time Time, const ASAAC_TimeInterval Int
 
 ASAAC_TimeInterval addIntervalToInterval(const ASAAC_TimeInterval Interval1, const ASAAC_TimeInterval Interval2)
 {
+	ASAAC_TimeInterval thisInterval;
 	
+	thisInterval.sec  = Interval1.sec  + Interval2.sec;
+	thisInterval.nsec = Interval1.nsec + Interval2.nsec;
+	
+	if ( thisInterval.nsec > 1000000000 )
+	{
+		thisInterval.sec ++;
+		thisInterval.nsec -= 1000000000;
+	}
+	
+	return thisInterval;
 }
 
 
 
 ASAAC_Time subtractIntervalFromTime(const ASAAC_Time Time, const ASAAC_TimeInterval Interval)
 {
+	ASAAC_Time thisTime;
 	
+	thisTime.sec  = Time.sec;
+	thisTime.nsec = Time.nsec;
+	
+	if ( Interval.nsec > Time.nsec )
+	{
+		thisTime.sec --;
+		thisTime.nsec += 1000000000;
+	}
+
+	thisTime.sec  -= Interval.sec;
+	thisTime.nsec -= Interval.nsec;
+	
+	return thisTime;
 }
 
 
@@ -82,9 +107,14 @@ ASAAC_TimeInterval multiplyIntervalWithArg(const ASAAC_TimeInterval Interval, do
 
 
 
-ASAAC_TimeInterval devideIntervalByArg(const ASAAC_TimeInterval TimeInterval, double Arg )
+ASAAC_TimeInterval devideIntervalByArg(const ASAAC_TimeInterval Interval, double Arg )
 {
+	ASAAC_TimeInterval thisInterval;
 	
+	thisInterval.sec = Interval.sec / Arg;
+	thisInterval.nsec = Interval.nsec / Arg;
+	
+	return thisInterval;
 }
 
 
@@ -177,6 +207,15 @@ ASAAC_Time TimevalToTime( struct timeval Value )
 
 
 
+ASAAC_Time IntervalToTime( ASAAC_TimeInterval Value )
+{
+	ASAAC_Time Now = TimeInstant();
+	
+	return addIntervalToTime(Now, Value);
+}
+
+
+
 ASAAC_TimeInterval FloatToInterval( double Value )
 {
 	ASAAC_TimeInterval thisInterval;
@@ -207,6 +246,15 @@ ASAAC_TimeInterval TimevalToInterval( struct timeval Value )
 	thisInterval.nsec = Value.tv_usec * 1000;
 
 	return thisInterval;
+}
+
+
+
+ASAAC_TimeInterval TimeToInterval( ASAAC_Time Value )
+{
+	ASAAC_Time Now = TimeInstant();
+	
+	return subtractTimeFromTime(Value, Now);
 }
 
 
