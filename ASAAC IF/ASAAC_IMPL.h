@@ -37,8 +37,10 @@ typedef struct {
 typedef char* ASAAC_DataRepresentation;
 
 #define _ASAAC_InterfaceType_defined
-typedef struct {
-	unsigned long  filler ;
+typedef enum {
+	ASAAC_IT_IPEC,
+	ASAAC_IT_IMC,
+	ASAAC_IT_BMC
 } ASAAC_InterfaceType;
 
 #define _ASAAC_LoadInstructions_defined

@@ -3,14 +3,16 @@
 
 #include "ASAAC.h"
 
-typedef struct {
+typedef union {
+	struct {
 		ASAAC_NiiReturnStatus status;
 		ASAAC_PublicId tc_id;
-} EventInfoData_BufferSent;
+	} comms_ev_buffer_sent;
 
-typedef struct {
-	ASAAC_NiiReturnStatus status;
-	ASAAC_PublicId tc_id;
-} EventInfoData_BufferReceived;
+	struct {
+		ASAAC_NiiReturnStatus status;
+		ASAAC_PublicId tc_id;
+	} comms_ev_buffer_received;
+} EventInfoData;
 
 #endif /*ASAAC_ENH_H_*/
