@@ -278,7 +278,10 @@ ASAAC_NiiReturnStatus cMosNii::sendTransfer(
 	if ( Tc.trigger_callback == ASAAC_BOOL_TRUE )
 		ASAAC_MOS_callbackHandler( ASAAC_COMMS_EV_BUFFER_SEND, Tc.callback_id, &Tc.event_info_data );
 
-	return Tc.event_info_data.comms_ev_buffer_sent.status;
+	if ( Tc.event_info_data.comms_ev_buffer_sent.status != ASAAC_MOS_NII_CALL_OK )
+		return Tc.event_info_data.comms_ev_buffer_sent.status;
+	
+	return ASAAC_MOS_NII_CALL_COMPLETE;
 }
 
 
@@ -292,7 +295,7 @@ ASAAC_NiiReturnStatus cMosNii::receiveTransfer(
 {
 	ASAAC_NiiReturnStatus Result = hasData( tc_id );
 
-	if ( (Result != ASAAC_MOS_NII_CALL_COMPLETE) &&
+	if ( (Result != ASAAC_MOS_NII_CALL_OK) &&
 	     (Result != ASAAC_MOS_NII_BUFFER_EMPTY) )
 		return Result;
 	
@@ -304,13 +307,18 @@ ASAAC_NiiReturnStatus cMosNii::receiveTransfer(
 		{
 			ASAAC_NiiReturnStatus Result = waitForData( time_out, &ReceivedTcId );
 			
-			if ( Result != ASAAC_MOS_NII_CALL_COMPLETE )
+			if ( Result != ASAAC_MOS_NII_CALL_OK )
 				return Result;
 		}	
 		while ( ReceivedTcId != tc_id );
 	}
 	
-	return receiveData(tc_id, *receive_data, data_length_available, data_length);
+	Result = receiveData(tc_id, *receive_data, data_length_available, data_length);
+
+	if ( Result != ASAAC_MOS_NII_CALL_OK )
+	    return Result;
+	
+	return ASAAC_MOS_NII_CALL_COMPLETE;
 }
 
 
@@ -324,7 +332,7 @@ ASAAC_NiiReturnStatus cMosNii::receiveNetwork(
 {
 	ASAAC_NiiReturnStatus Result = hasData( network_id, tc_id );
 
-	if ( (Result != ASAAC_MOS_NII_CALL_COMPLETE) &&
+	if ( (Result != ASAAC_MOS_NII_CALL_OK) &&
 	     (Result != ASAAC_MOS_NII_BUFFER_EMPTY) )
 		return Result;
 	
@@ -336,7 +344,7 @@ ASAAC_NiiReturnStatus cMosNii::receiveNetwork(
 		{
 			ASAAC_NiiReturnStatus Result = waitForData( time_out, tc_id );
 			
-			if ( Result != ASAAC_MOS_NII_CALL_COMPLETE )
+			if ( Result != ASAAC_MOS_NII_CALL_OK )
 				return Result;
 			
 			if ( getTc( *tc_id, &Tc ) )
@@ -346,7 +354,12 @@ ASAAC_NiiReturnStatus cMosNii::receiveNetwork(
 				( Tc.network_id.port != network_id.port ) );
 	}	
 	
-	return receiveData(*tc_id, *receive_data, data_length_available, data_length);
+	Result = receiveData(*tc_id, *receive_data, data_length_available, data_length);
+
+	if ( Result != ASAAC_MOS_NII_CALL_OK )
+	    return Result;
+	
+	return ASAAC_MOS_NII_CALL_COMPLETE;
 }
 
 
@@ -373,7 +386,7 @@ ASAAC_NiiReturnStatus cMosNii::destroyTransfer(
 	
 	configureServices();
 
-	return ASAAC_MOS_NII_CALL_COMPLETE;
+	return ASAAC_MOS_NII_CALL_OK;
 }
 
 
@@ -388,17 +401,30 @@ ASAAC_NiiReturnStatus cMosNii::receiveFromNetwork( const int fd, ASAAC_NetworkDe
 	size_t NetworkAddrLength = sizeof(NetworkAddr);
 	
 	if ( allocateBuffer( buffer_id ) == 0 )
+	{
+#ifdef _DEBUG_
+		cerr << "receiveFromNetwork: Error allocating a buffer " << endl;
+#endif
 		return ASAAC_MOS_NII_CALL_FAILED;
-
+	}
+	
 	TcPacketData *Buffer = getBuffer( *buffer_id );
 	
 	if ( Buffer == NULL )
-		return ASAAC_MOS_NII_CALL_FAILED;		
+	{		
+#ifdef _DEBUG_
+		cerr << "receiveFromNetwork: buffer_id is invalid " << endl;
+#endif
+		return ASAAC_MOS_NII_CALL_FAILED;
+	}
 	
-	long bytes_received = recvfrom( fd, &Buffer->packet, sizeof(TcPacket), 0, (sockaddr*)&NetworkAddr, &NetworkAddrLength);
+	long ReceivedBytes = recvfrom( fd, &Buffer->packet, sizeof(TcPacket), 0, (sockaddr*)&NetworkAddr, &NetworkAddrLength);
 
-	if ( bytes_received == -1 )
+	if ( ReceivedBytes == -1 )
 	{
+#ifdef _DEBUG_
+		perror("recvfrom(");
+#endif
 		releaseBuffer( *buffer_id );
 		return ASAAC_MOS_NII_CALL_FAILED;
 	}
@@ -406,13 +432,17 @@ ASAAC_NiiReturnStatus cMosNii::receiveFromNetwork( const int fd, ASAAC_NetworkDe
 	network_id->network = NetworkAddr.sin_addr.s_addr;
 	network_id->port    = ntohs(NetworkAddr.sin_port);
 	
-	Buffer->data_length = bytes_received - sizeof(NetworkHeader) - sizeof(TcHeader);
+	Buffer->data_length = ReceivedBytes - sizeof(NetworkHeader) - sizeof(TcHeader);
 	Buffer->packet.tc_header.tc_id = ntohl( Buffer->packet.tc_header.tc_id );
 	
 	//TODO: depending on a network header, data shall be checked for completelyness
 	//maybe further several recvfrom's must be executed
+
+#ifdef _DEBUG_
+	cerr << "receiveFromNetwork: " << ReceivedBytes << " received." << endl;
+#endif
 	
-	return ASAAC_MOS_NII_CALL_COMPLETE;
+	return ASAAC_MOS_NII_CALL_OK;
 }
 
 
@@ -469,8 +499,12 @@ ASAAC_NiiReturnStatus cMosNii::sendToNetwork( const int fd, const ASAAC_NetworkD
 		Offset += SentBytes;
 	}
 	while ( SendBytes > 0 );
+
+#ifdef _DEBUG_
+	cerr << "sendToNetwork: " << SendBytes << " sent." << endl;
+#endif
 	
-	return ASAAC_MOS_NII_CALL_COMPLETE;
+	return ASAAC_MOS_NII_CALL_OK;
 }
 
 
@@ -790,7 +824,12 @@ void cMosNii::handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 	
 	Network Nw;	
 	if (getNw( port, &Nw ) == 0)
+	{
+#ifdef _DEBUG_
+		cerr << "handle message tc: Network not found" << endl;
+#endif
 		return;
+	}
 	
 	ASAAC_NetworkDescriptor NetworkId;
 	ASAAC_PublicId BufferId;
@@ -798,7 +837,12 @@ void cMosNii::handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 	ASAAC_NiiReturnStatus Result = receiveFromNetwork( Nw.fd, &NetworkId, &BufferId );
 	
 	if (Result != ASAAC_MOS_NII_CALL_OK)
+	{
+#ifdef _DEBUG_
+		cerr << "handle message tc: Data could not received" << endl;
+#endif
 		return;
+	}
 	
 	TcPacketData *Buffer = getBuffer(BufferId);
 	
@@ -808,6 +852,9 @@ void cMosNii::handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 	TransferConnection Tc;
 	if ( getTc(Buffer->packet.tc_header.tc_id, &Tc) == 0 )
 	{
+#ifdef _DEBUG_
+		cerr << "handle message tc: Tc not found" << endl;
+#endif
 		releaseBuffer(BufferId);
 		return;
 	}
@@ -934,7 +981,7 @@ ASAAC_NiiReturnStatus cMosNii::hasData( const ASAAC_PublicId tc_id )
 	if ( Tc.buffer_id == NII_UNUSED_ID )
 		return ASAAC_MOS_NII_BUFFER_EMPTY;
 	
-	return ASAAC_MOS_NII_CALL_COMPLETE;
+	return ASAAC_MOS_NII_CALL_OK;
 }
 
 
@@ -950,7 +997,7 @@ ASAAC_NiiReturnStatus cMosNii::hasData( const ASAAC_NetworkDescriptor network_id
 	
 	*tc_id = Nw.tc_id_with_data;
 	
-	return ASAAC_MOS_NII_CALL_COMPLETE;
+	return ASAAC_MOS_NII_CALL_OK;
 }
 
 
@@ -974,7 +1021,7 @@ ASAAC_NiiReturnStatus cMosNii::waitForData( const ASAAC_Time time_out, ASAAC_Pub
 	
 	*tc_id = m_NewDataTcId;
 	
-	return ASAAC_MOS_NII_CALL_COMPLETE;
+	return ASAAC_MOS_NII_CALL_OK;
 }
 
 
@@ -1031,7 +1078,7 @@ ASAAC_NiiReturnStatus cMosNii::receiveData(
 		cout << "RECEIVE " << data_length << " BYTE ON TC " << tc_id << endl;
 #endif
 
-	return ASAAC_MOS_NII_CALL_COMPLETE;
+	return ASAAC_MOS_NII_CALL_OK;
 }
 
 
