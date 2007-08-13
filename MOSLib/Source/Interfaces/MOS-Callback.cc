@@ -144,7 +144,7 @@ void ASAAC_MOS_callbackHandler(const ASAAC_EventType event_type, const ASAAC_Pub
 		return;
 	cout << "callbackHandler(" << event_type << ", " << callback_id << ") 3" << endl;
 	 
-	typedef void*(*CallbackFunction)(void*);
+	typedef void(*CallbackFunction)(const ASAAC_Address);
 	CallbackFunction Callback = reinterpret_cast<CallbackFunction>(CallbackArray[Index].callback);
 	
 	Callback( event_info_data );
