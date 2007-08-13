@@ -16,8 +16,6 @@ cMosNii::cMosNii()
 {
 	m_NewDataTcId = NII_UNUSED_ID;
 	
-	m_IsListening = 0;
-	
 	m_NwListSize = 0;
 	m_TcListSize = 0;
 	
@@ -53,7 +51,6 @@ cMosNii::cMosNii()
 	if (bind( m_ServiceFileDescriptor, (struct sockaddr *)&addr, sizeof(addr) ) == -1)
 		perror("bind: ");
 	
-	m_IsListening = 1;
 	if (pthread_create( &m_ServiceThread, NULL, ServiceThread, NULL ) == -1)
 		perror("pthread_create: ");
 }
@@ -82,12 +79,16 @@ ASAAC_NiiReturnStatus cMosNii::configureInterface(
 		const ASAAC_NetworkDescriptor *network_id,
 		const ASAAC_InterfaceConfigurationData *configuration_data)
 {
-	if (countTcs(*network_id) > 0)
+#ifdef _DEBUG_
+	cerr << "cMosNii::configureInterface with network: " << network_id->network << endl;
+#endif
+
+	if (countTcs(network_id->port) > 0)
 		return ASAAC_MOS_NII_OPEN_TCS;
 	
 	if ( interface_id == 0 )
 	{
-		if ( removeNw( *network_id ) == 0 )
+		if ( removeNw( network_id->port ) == 0 )
 			return ASAAC_MOS_NII_INVALID_NETWORK;
 		
 		return ASAAC_MOS_NII_CALL_COMPLETE;
@@ -105,14 +106,13 @@ ASAAC_NiiReturnStatus cMosNii::configureInterface(
 	
 	Network Nw;
 
-	Nw.interface_id       = interface_id;
-	Nw.network_id         = *network_id;
+	Nw.port               = network_id->port;
 	Nw.configuration_data = *configuration_data;
 	Nw.fd                 = -1;
 	Nw.is_streaming       = 0;
 	Nw.tc_id_with_data	  = NII_UNUSED_ID;
 
-	if (setNw( *network_id, Nw ) == 0)
+	if (setNw( network_id->port, Nw ) == 0)
 	{
 		if ( addNw( Nw ) == 0 )
 			return ASAAC_MOS_NII_STORAGE_FAULT;
@@ -138,13 +138,17 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(
 	
 	Network Nw;
 	
-	if ( getNw(network_id, &Nw) == 0 )	
+	if ( getNw(network_id.port, &Nw) == 0 )	
+	{
 		return ASAAC_MOS_NII_INVALID_NETWORK;
+	}
 
 	TransferConnection Tc;
 
 	if ( getTc( tc_id, &Tc ) == 1 )
+	{
 		return ASAAC_MOS_NII_ALREADY_CONFIGURED;
+	}
 
 	Tc.tc_id            = tc_id;
 	Tc.network_id       = network_id;
@@ -159,7 +163,9 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(
 	struct sockaddr_in NetworkAddr;	
 	NetworkAddr.sin_family = AF_INET;
 	NetworkAddr.sin_addr.s_addr = INADDR_ANY;
-	NetworkAddr.sin_port = htons(Nw.network_id.port);
+	NetworkAddr.sin_port = htons(Nw.port);
+	
+	cerr << "PORT: " << Nw.port << endl;
 	
 	switch ( Tc.type )
 	{
@@ -223,7 +229,7 @@ ASAAC_NiiReturnStatus cMosNii::configureTransfer(
 	if ( addTc( Tc ) == 0 )
 		return ASAAC_MOS_NII_STORAGE_FAULT;
 
-	setNw(network_id, Nw);
+	setNw(network_id.port, Nw);
 	
 	configureServices();			
 
@@ -261,10 +267,12 @@ ASAAC_NiiReturnStatus cMosNii::sendTransfer(
 
 	Network Nw;
 	
-	if ( getNw( Tc.network_id, &Nw ) == 0)
+	if ( getNw( Tc.network_id.port, &Nw ) == 0)
 		return ASAAC_MOS_NII_CALL_FAILED;
 
-	Tc.event_info_data.comms_ev_buffer_sent.status = sendToNetwork(Nw.fd, Nw.network_id, tc_id, transmit_data, data_length, time_out);
+	ASAAC_TimeInterval Interval = TimeToInterval( time_out );
+	
+	Tc.event_info_data.comms_ev_buffer_sent.status = sendToNetwork(Nw.fd, Tc.network_id, tc_id, transmit_data, data_length, Interval);
 	Tc.event_info_data.comms_ev_buffer_sent.tc_id  = Tc.tc_id;
 
 	if ( Tc.trigger_callback == ASAAC_BOOL_TRUE )
@@ -357,9 +365,9 @@ ASAAC_NiiReturnStatus cMosNii::destroyTransfer(
 
 	Network Nw;
 	
-	if (getNw( Tc.network_id, &Nw ) == 1)
+	if (getNw( Tc.network_id.port, &Nw ) == 1)
 	{
-		if (countTcs( Tc.network_id ) == 0)
+		if (countTcs( Tc.network_id.port ) == 0)
 			close(Nw.fd);
 	}
 	
@@ -370,7 +378,7 @@ ASAAC_NiiReturnStatus cMosNii::destroyTransfer(
 
 
 /*************************************************************************/
-/*                       D A T A   A C C E S S                           */
+/*                 N E T W O R K   A C C E S S                           */
 /*************************************************************************/
 
 ASAAC_NiiReturnStatus cMosNii::receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor *network_id, ASAAC_PublicId *buffer_id )
@@ -408,7 +416,7 @@ ASAAC_NiiReturnStatus cMosNii::receiveFromNetwork( const int fd, ASAAC_NetworkDe
 }
 
 
-ASAAC_NiiReturnStatus cMosNii::sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, const ASAAC_Time time_out )
+ASAAC_NiiReturnStatus cMosNii::sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, const ASAAC_TimeInterval time_out )
 {
 	if (length > NII_MAX_SIZE_OF_BUFFER)
 		return ASAAC_MOS_NII_CALL_FAILED;
@@ -434,6 +442,14 @@ ASAAC_NiiReturnStatus cMosNii::sendToNetwork( const int fd, const ASAAC_NetworkD
 	long SentBytes = 0;
 	long Offset = 0;
 	
+	fd_set wfds;
+	FD_ZERO( &wfds );
+	FD_SET( fd, &wfds );
+
+	struct timeval tv = IntervalToTimeval( time_out );
+	
+	select(fd+1, NULL, &wfds, NULL, &tv);
+	
 	do
 	{
 		SentBytes = sendto( fd, &BufferArray[Offset], SendBytes, 0, (struct sockaddr *) &NetworkAddr, NetworkAddrLength);
@@ -452,7 +468,7 @@ ASAAC_NiiReturnStatus cMosNii::sendToNetwork( const int fd, const ASAAC_NetworkD
 		SendBytes -= SentBytes;
 		Offset += SentBytes;
 	}
-	while (( SendBytes > 0 ) && ( lower(TimeInstant(), time_out) ));
+	while ( SendBytes > 0 );
 	
 	return ASAAC_MOS_NII_CALL_COMPLETE;
 }
@@ -462,14 +478,22 @@ ASAAC_NiiReturnStatus cMosNii::sendToNetwork( const int fd, const ASAAC_NetworkD
 /*                       D A T A   A C C E S S                           */
 /*************************************************************************/
 
-long cMosNii::getIndexOfNw(const ASAAC_NetworkDescriptor network_id)
+long cMosNii::getIndexOfNw(const ASAAC_PublicId port)
 {
 	for (long Index = 0; Index < m_NwListSize; Index++)
 	{
-		if ( (m_TcList[Index].network_id.port == network_id.port) &&
-			 (m_TcList[Index].network_id.network == network_id.network) )
+		if ( m_NwList[Index].port == port )
+		{
+#ifdef _DEBUG_
+			cerr << "Nw found: " << port << " with Index: " << Index << endl;
+#endif
 			return Index;
+		}
 	}
+
+#ifdef _DEBUG_
+		cerr << "Nw not found: " << port << endl;
+#endif
 	
 	return -1;
 }
@@ -477,22 +501,30 @@ long cMosNii::getIndexOfNw(const ASAAC_NetworkDescriptor network_id)
 
 char cMosNii::addNw(Network Data)
 {
-	if ( getIndexOfNw(Data.network_id) != -1 )
+#ifdef _DEBUG_
+	cerr << "addNw: " << Data.port << endl;
+#endif
+
+	if ( getIndexOfNw(Data.port) != -1 )
 		return 0;
 	
 	if ( m_NwListSize == NII_MAX_NUMBER_OF_NETWORKS)
 		return 0;
 	
-	m_NwListSize++;
 	m_NwList[m_NwListSize] = Data;
+	m_NwListSize++;
+
+#ifdef _DEBUG_
+	cerr << "addNw was successful" << endl;
+#endif
 	
 	return 1;
 }
 
 
-char cMosNii::removeNw(const ASAAC_NetworkDescriptor network_id)
+char cMosNii::removeNw(const ASAAC_PublicId port)
 {
-	long Index = getIndexOfNw(network_id);
+	long Index = getIndexOfNw(port);
 	
 	if ( Index == -1)
 		return 0;
@@ -517,9 +549,13 @@ long cMosNii::countNws()
 }
 
 
-char cMosNii::getNw(const ASAAC_NetworkDescriptor network_id, Network *Data)
+char cMosNii::getNw(const ASAAC_PublicId port, Network *Data)
 {
-	long Index = getIndexOfNw( network_id );
+#ifdef _DEBUG_
+	cerr << "getNw: " << port << endl;
+#endif
+
+	long Index = getIndexOfNw( port );
 	
 	if ( Index == -1 )
 		return 0;
@@ -530,17 +566,16 @@ char cMosNii::getNw(const ASAAC_NetworkDescriptor network_id, Network *Data)
 }
 
 
-char cMosNii::setNw(const ASAAC_NetworkDescriptor network_id, const Network Data)
+char cMosNii::setNw(const ASAAC_PublicId port, const Network Data)
 {
-	if ( ( Data.network_id.network != network_id.network ) ||
-	     ( Data.network_id.port != network_id.port ) )
+	if ( Data.port != port )
 		return 0;
 
-	long Index = getIndexOfNw(network_id);
+	long Index = getIndexOfNw(port);
 	
 	if ( Index == -1)
 		return 0;
-
+	
 	m_NwList[Index] = Data;
 	
 	return 1;
@@ -555,20 +590,32 @@ long cMosNii::getIndexOfTc(const ASAAC_PublicId tc_id)
 			return Index;
 	}
 	
+#ifdef _DEBUG_
+		cerr << "Tc not found: " << tc_id << endl;
+#endif
+
 	return -1;
 }
 
 
 char cMosNii::addTc(TransferConnection Data)
 {
+#ifdef _DEBUG_
+	cerr << "addTc: " << Data.tc_id << endl;
+#endif
+
 	if ( getIndexOfTc(Data.tc_id) != -1 )
 		return 0;
 	
 	if ( m_TcListSize == NII_MAX_NUMBER_OF_TCS)
 		return 0;
 	
-	m_TcListSize++;
 	m_TcList[m_TcListSize] = Data;
+	m_TcListSize++;
+
+#ifdef _DEBUG_
+	cerr << "addTc was successful." << endl;
+#endif
 	
 	return 1;
 }
@@ -601,14 +648,13 @@ long cMosNii::countTcs()
 }
 
 
-long cMosNii::countTcs(const ASAAC_NetworkDescriptor network_id)
+long cMosNii::countTcs(const ASAAC_PublicId port)
 {
 	long Result = 0;
 	
 	for (long Index = 0; Index < m_TcListSize; Index++)
 	{
-		if ( (m_TcList[Index].network_id.port == network_id.port) &&
-			 (m_TcList[Index].network_id.network == network_id.network) )
+		if (m_TcList[Index].network_id.port == port)
 			Result++;
 	}
 	
@@ -688,7 +734,7 @@ TcPacketData *cMosNii::getBuffer(ASAAC_PublicId buffer_id)
 /*                         S E R V I C E S                               */
 /*************************************************************************/
 
-void cMosNii::handleStreamingTc(const ASAAC_NetworkDescriptor network_id, ASAAC_PublicId *tc_id)
+void cMosNii::handleStreamingTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 {
 #ifdef _DEBUG_
 	cerr << "handle streaming tc: not completely implemented !!!" << endl;
@@ -697,7 +743,7 @@ void cMosNii::handleStreamingTc(const ASAAC_NetworkDescriptor network_id, ASAAC_
 	*tc_id = NII_UNUSED_ID;
 	
 	Network Nw;	
-	if (getNw( network_id, &Nw ) == 0)
+	if (getNw( port, &Nw ) == 0)
 		return;
 	
 	ASAAC_NetworkDescriptor NetworkId;
@@ -734,7 +780,7 @@ void cMosNii::handleStreamingTc(const ASAAC_NetworkDescriptor network_id, ASAAC_
 }
 
 
-void cMosNii::handleMessageTc(const ASAAC_NetworkDescriptor network_id, ASAAC_PublicId *tc_id)
+void cMosNii::handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 {
 #ifdef _DEBUG_
 	cout << "handle message tc" << endl;
@@ -743,7 +789,7 @@ void cMosNii::handleMessageTc(const ASAAC_NetworkDescriptor network_id, ASAAC_Pu
 	*tc_id = NII_UNUSED_ID;
 	
 	Network Nw;	
-	if (getNw( network_id, &Nw ) == 0)
+	if (getNw( port, &Nw ) == 0)
 		return;
 	
 	ASAAC_NetworkDescriptor NetworkId;
@@ -813,8 +859,12 @@ void* cMosNii::ServiceThread(void* Data)
 #endif
 
 		struct timeval tv = IntervalToTimeval( TimeIntervalInfinity );
-		int retval = select( max_fd+1, &rfds, 0, 0, &tv );
-	
+		tv.tv_sec = 10;
+		tv.tv_usec = 0;
+		int retval = select( max_fd+1, &rfds, NULL, NULL, &tv );
+		
+		perror("select(): ");	
+		
 #ifdef _DEBUG_
 		cout << "ServiceThread: return from select()" << endl;
 #endif
@@ -851,8 +901,8 @@ void* cMosNii::ServiceThread(void* Data)
 				ASAAC_PublicId TcId = NII_UNUSED_ID;
 				
 				if (Nii->m_NwList[Index].is_streaming == 1)
-					Nii->handleStreamingTc( Nii->m_NwList[Index].network_id, &TcId );
-				else Nii->handleMessageTc( Nii->m_NwList[Index].network_id, &TcId );
+					Nii->handleStreamingTc( Nii->m_NwList[Index].port, &TcId );
+				else Nii->handleMessageTc( Nii->m_NwList[Index].port, &TcId );
 				
 				if (TcId == NII_UNUSED_ID)
 					continue;
@@ -892,7 +942,7 @@ ASAAC_NiiReturnStatus cMosNii::hasData( const ASAAC_NetworkDescriptor network_id
 {
 	Network Nw;
 	
-	if ( getNw( network_id, &Nw ) )
+	if ( getNw( network_id.port, &Nw ) )
 		return ASAAC_MOS_NII_INVALID_NETWORK;
 
 	if (Nw.tc_id_with_data == NII_UNUSED_ID)
@@ -957,7 +1007,7 @@ ASAAC_NiiReturnStatus cMosNii::receiveData(
 	
 	Network Nw;
 	
-	if ( getNw( Tc.network_id, &Nw ) == 0 )
+	if ( getNw( Tc.network_id.port, &Nw ) == 0 )
 		return ASAAC_MOS_NII_CALL_FAILED;
 	
 	TcPacketData *Buffer = getBuffer(Tc.buffer_id);
@@ -972,7 +1022,7 @@ ASAAC_NiiReturnStatus cMosNii::receiveData(
 	releaseBuffer(Tc.buffer_id);
 	Tc.buffer_id = NII_UNUSED_ID;
 	
-	setNw( Nw.network_id, Nw );
+	setNw( Nw.port, Nw );
 	setTc( Tc.tc_id, Tc );
 	
 	configureServices();	
@@ -987,39 +1037,26 @@ ASAAC_NiiReturnStatus cMosNii::receiveData(
 
 void cMosNii::configureServices()
 {	
-	if (m_IsListening == 0)
-		return;
-	
 #ifdef _DEBUG_
-	cout << "stopServices: entry" << endl;
+	cout << "configureServices: entry" << endl;
 #endif
 
-	char * Data = "TestData";
-	unsigned long Length = strlen(Data);
-	
 	in_addr NetworkAddr;
 	inet_aton("127.0.0.1", &NetworkAddr);
 
-	struct sockaddr_in Addr;
-	Addr.sin_family = AF_INET;
-	Addr.sin_addr = NetworkAddr;
-	Addr.sin_port = 0xffff;
+	ASAAC_NetworkDescriptor NetworkId;
+
+	NetworkId.network = NetworkAddr.s_addr;
+	NetworkId.port = 0xffff;
 
 #ifdef _DEBUG_
-	cout << "stopServices: send data via ServiceFileDescriptor" << endl;
+	cout << "configureServices: send data via ServiceFileDescriptor" << endl;
 #endif
-	
-	int result = sendto(m_ServiceFileDescriptor, &Data, Length, 0, (struct sockaddr *) &Addr, sizeof(Addr));
 
-	if (result == -1)
-	{
-#ifdef _DEBUG_
-		perror("stopServices: sendto(): ");
-#endif
-	}
+	sendToNetwork(m_ServiceFileDescriptor, NetworkId, NII_UNUSED_ID, NULL, 0);
 	
 #ifdef _DEBUG_
-	cout << "stopServices: exit" << endl;
+	cout << "configureServices: exit" << endl;
 #endif
 }
 

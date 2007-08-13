@@ -48,11 +48,10 @@ typedef struct
 
 typedef struct 
 {
-  ASAAC_PublicId 					interface_id;
-  ASAAC_NetworkDescriptor           network_id;   ///< Network Identifier
+  ASAAC_PublicId                    port;                ///< Network Identifier
   ASAAC_InterfaceConfigurationData  configuration_data;  ///< Additional configuration data
 
-  int                               fd;           ///< Socket File Descriptor
+  int                               fd;                  ///< Socket File Descriptor
   char								is_streaming;
   ASAAC_PublicId					tc_id_with_data;
 } Network;

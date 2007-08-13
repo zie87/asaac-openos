@@ -126,8 +126,8 @@ public:
 protected:
 
 	// Services
-	void handleStreamingTc(const ASAAC_NetworkDescriptor network_id, ASAAC_PublicId *tc_id);
-	void handleMessageTc(const ASAAC_NetworkDescriptor network_id, ASAAC_PublicId *tc_id);
+	void handleStreamingTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id);
+	void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id);
 
 	static void* ServiceThread(void* Data);
 
@@ -145,11 +145,11 @@ protected:
 
 	// Network data access
 	char addNw(Network Data);
-	char removeNw(const ASAAC_NetworkDescriptor network_id);
+	char removeNw(const ASAAC_PublicId port);
 	void removeAllNw();
 	
-	char getNw(const ASAAC_NetworkDescriptor network_id, Network *Data);
-	char setNw(const ASAAC_NetworkDescriptor network_id, const Network Data);
+	char getNw(const ASAAC_PublicId port, Network *Data);
+	char setNw(const ASAAC_PublicId port, const Network Data);
 	
 	long countNws();
 
@@ -162,7 +162,7 @@ protected:
 	char setTc(const ASAAC_PublicId tc_id, const TransferConnection Data);
 	
 	long countTcs();
-	long countTcs(const ASAAC_NetworkDescriptor network_id);
+	long countTcs(const ASAAC_PublicId port);
 
 	// Buffer handling
 	char allocateBuffer(ASAAC_PrivateId *buffer_id);
@@ -173,11 +173,11 @@ protected:
 private:
 	cMosNii();
 
-	long getIndexOfNw(const ASAAC_NetworkDescriptor network_id);
+	long getIndexOfNw(const ASAAC_PublicId port);
 	long getIndexOfTc(const ASAAC_PublicId tc_id);
 	
 	ASAAC_NiiReturnStatus receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor *network_id, ASAAC_PublicId *buffer_id );
-	ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, const ASAAC_Time time_out );
+	ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, const ASAAC_TimeInterval time_out = TimeIntervalInstant );
 	
 	Network 			m_NwList[NII_MAX_NUMBER_OF_NETWORKS]; 
 	long				m_NwListSize;
@@ -197,8 +197,6 @@ private:
 	pthread_cond_t		m_NewDataCondition;
 	pthread_mutex_t		m_NewDataMutex;
 	long				m_NewDataTcId;
-	
-	int					m_IsListening;	
 };
 
 #endif /*MOSNII_HH_*/
