@@ -31,7 +31,7 @@ typedef char TcData[NII_MAX_SIZE_OF_BUFFER];
 
 typedef struct  
 {
-	NetworkHeader					network_header;
+	//NetworkHeader					network_header;
 	TcHeader    	                tc_header;
 	TcData		                    data;
 } TcPacket;

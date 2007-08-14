@@ -432,8 +432,19 @@ ASAAC_NiiReturnStatus cMosNii::receiveFromNetwork( const int fd, ASAAC_NetworkDe
 	network_id->network = NetworkAddr.sin_addr.s_addr;
 	network_id->port    = ntohs(NetworkAddr.sin_port);
 	
-	Buffer->data_length = ReceivedBytes - sizeof(NetworkHeader) - sizeof(TcHeader);
+	Buffer->data_length = ReceivedBytes /*- sizeof(NetworkHeader)*/ - sizeof(TcHeader);
 	Buffer->packet.tc_header.tc_id = ntohl( Buffer->packet.tc_header.tc_id );
+
+	typedef struct  
+	{
+		ASAAC_PublicId	VcId;
+		char		Message[];
+	} TcDataType;
+
+	TcDataType* Data = reinterpret_cast<TcDataType*>(&Buffer->packet.data[0]);
+	Data->VcId = ntohl(Data->VcId);
+	cerr << "receiveFromNetwork: VcId " << Data->VcId << endl;
+	
 	
 	//TODO: depending on a network header, data shall be checked for completelyness
 	//maybe further several recvfrom's must be executed
@@ -458,19 +469,58 @@ ASAAC_NiiReturnStatus cMosNii::sendToNetwork( const int fd, const ASAAC_NetworkD
 	
 	size_t NetworkAddrLength = sizeof(NetworkAddr);
 
+	if (data != NULL)
+	{
+	typedef struct  
+	{
+		ASAAC_PublicId	VcId;
+		char		Message[];
+	} TcDataType;
+
+	const TcDataType* Data = reinterpret_cast<const TcDataType*>(data);
+	cerr << "sendToNetwork: VcId " << ntohl(Data->VcId) << endl;
+	}	
+	
+	
 	static TcPacketData Buffer;
 	
 	Buffer.packet.tc_header.tc_id = htonl( tc_id );
 	memcpy(&Buffer.packet.data, data, length);
     //TODO: memcpy can may be exchanged by several sendto calls
+
+	if (data != NULL)
+	{
+	typedef struct  
+	{
+		ASAAC_PublicId	VcId;
+		char		Message[];
+	} TcDataType;
+
+	const TcDataType* Data = reinterpret_cast<const TcDataType*>(&Buffer.packet.data);
+	cerr << "sendToNetwork: Buffer VcId " << ntohl(Data->VcId) << endl;
+	}		
 	
-	Buffer.data_length = sizeof(NetworkHeader) + sizeof(TcHeader) + length;
-	
+	Buffer.data_length = /*sizeof(NetworkHeader) + */sizeof(TcHeader) + length;
+
 	long SendBytes = Buffer.data_length;
-	char *BufferArray = (char*)&Buffer.packet.data;
+	char *BufferArray = (char*)&Buffer.packet;
 
 	long SentBytes = 0;
 	long Offset = 0;
+
+	if (data != NULL)
+	{
+	typedef struct  
+	{
+		ASAAC_PublicId	TcId;
+		ASAAC_PublicId	VcId;
+		char		Message[];
+	} TcDataType;
+
+	const TcDataType* Data = reinterpret_cast<const TcDataType*>(&BufferArray[Offset]);
+	cerr << "sendToNetwork: BufferArray[0] VcId " << ntohl(Data->VcId) << endl;
+	}		
+	
 	
 	fd_set wfds;
 	FD_ZERO( &wfds );
@@ -501,7 +551,7 @@ ASAAC_NiiReturnStatus cMosNii::sendToNetwork( const int fd, const ASAAC_NetworkD
 	while ( SendBytes > 0 );
 
 #ifdef _DEBUG_
-	cerr << "sendToNetwork: " << SendBytes << " sent." << endl;
+	cerr << "sendToNetwork: " << SentBytes << " sent." << endl;
 #endif
 	
 	return ASAAC_MOS_NII_CALL_OK;
@@ -849,6 +899,8 @@ void cMosNii::handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 	if (Buffer == NULL)
 		return;
 	
+	Buffer->packet.tc_header.tc_id = 8;
+	
 	TransferConnection Tc;
 	if ( getTc(Buffer->packet.tc_header.tc_id, &Tc) == 0 )
 	{
@@ -861,9 +913,22 @@ void cMosNii::handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 
 	//Now the tc_id is validated
 	*tc_id = Buffer->packet.tc_header.tc_id;
+	Tc.event_info_data.comms_ev_buffer_received.tc_id = Tc.tc_id;
+
+	if (Tc.direction == ASAAC_TRANSFER_DIRECTION_SEND)
+	{
+#ifdef _DEBUG_
+		cerr << "handle message tc: Tc is configured for sending" << endl;
+#endif
+		Tc.event_info_data.comms_ev_buffer_received.status = ASAAC_MOS_NII_INVALID_TC;
+		setTc(Tc.tc_id, Tc);
+		
+		releaseBuffer(BufferId);
+		
+		return;		
+	}
 	
 	Tc.buffer_id = BufferId;	
-	Tc.event_info_data.comms_ev_buffer_received.tc_id = Tc.tc_id;
 	Tc.event_info_data.comms_ev_buffer_received.status = ASAAC_MOS_NII_CALL_OK;
 
 	setTc(Tc.tc_id, Tc);
@@ -959,7 +1024,7 @@ void* cMosNii::ServiceThread(void* Data)
 					continue;
 				
 				if (Tc.trigger_callback == ASAAC_BOOL_TRUE)
-					ASAAC_MOS_callbackHandler( ASAAC_COMMS_EV_BUFFER_RECEIVED, Tc.callback_id, &Tc.event_info_data );
+					ASAAC_MOS_callbackHandler( ASAAC_COMMS_EV_BUFFER_RECEIVED, Tc.callback_id, &(Tc.event_info_data) );
 
 				Nii->m_NewDataTcId = TcId;
 				pthread_cond_broadcast(&Nii->m_NewDataCondition);
@@ -1061,8 +1126,19 @@ ASAAC_NiiReturnStatus cMosNii::receiveData(
 	
 	if (Buffer == NULL)
 		return ASAAC_MOS_NII_CALL_FAILED;
-		
-	memcpy(receive_data, Buffer->packet.data, Buffer->data_length);
+
+	typedef struct  
+	{
+		ASAAC_PublicId	VcId;
+		char		Message[];
+	} TcDataType;
+
+	TcDataType* Data = reinterpret_cast<TcDataType*>(Buffer->packet.data);
+	Data->VcId = ntohl(Data->VcId);
+	
+	cout << "Data->VcId: " << Data->VcId << endl; 
+	
+	memcpy(receive_data, &Buffer->packet.data, Buffer->data_length);
 	*data_length = Buffer->data_length;
 	
 	Nw.tc_id_with_data = NII_UNUSED_ID;
@@ -1075,7 +1151,7 @@ ASAAC_NiiReturnStatus cMosNii::receiveData(
 	configureServices();	
 	
 #ifdef _DEBUG_
-		cout << "RECEIVE " << data_length << " BYTE ON TC " << tc_id << endl;
+		cout << "RECEIVE " << *data_length << " BYTES ON TC " << tc_id << endl;
 #endif
 
 	return ASAAC_MOS_NII_CALL_OK;
