@@ -22,7 +22,7 @@ ASAAC_ReturnStatus stopProcess(ASAAC_PublicId pid);
 
 ASAAC_ReturnStatus createVirtualChannel(
 	ASAAC_PublicId global_vc_id,
-	ASAAC_VirtualChannelType vc_type = ASAAC_Application_Header_VC,
+	ASAAC_VirtualChannelType vc_type = ASAAC_Application_Raw_VC,
 	unsigned long max_msg_length = 4096,
 	unsigned long max_number_of_buffers = 40,
 	unsigned long max_number_of_threads_attached = 8);
