@@ -29,7 +29,7 @@
 <listOptionValue value="&quot;${workspace_loc:/PCS/Source}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.346070771" name="Defined symbols (-D)" valueType="definedSymbols">
-<listOptionValue value="_DEBUG_" builtIn="false"/>
+<listOptionValue value="dont_DEBUG_" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" id="gnu.cpp.compiler.exe.debug.option.optimization.level.2056740741" name="Optimization Level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" id="gnu.cpp.compiler.exe.debug.option.debugging.level.1820508697" name="Debug Level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -38,7 +38,7 @@
 <tool superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.14886845" name="GCC C Compiler">
 <option superClass="gnu.c.compiler.exe.debug.option.optimization.level" id="gnu.c.compiler.exe.debug.option.optimization.level.405863638" name="Optimization Level" defaultValue="gnu.c.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.c.compiler.exe.debug.option.debugging.level" id="gnu.c.compiler.exe.debug.option.debugging.level.1738561836" name="Debug Level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-<option superClass="gnu.c.compiler.option.include.paths" id="gnu.c.compiler.option.include.paths.1240786352" name="Include paths (-I)" valueType="includePath"/>
+<option superClass="gnu.c.compiler.option.include.paths" id="gnu.c.compiler.option.include.paths.1240786352" name="Include paths (-I)"/>
 <inputType superClass="cdt.managedbuild.tool.gnu.c.compiler.input" id="cdt.managedbuild.tool.gnu.c.compiler.input.798114644"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug" id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1865140246" name="GCC C Linker"/>

@@ -229,19 +229,32 @@ ASAAC_Address PCS::getBuffer()
 }
 
 
-void PCS::TcCallback( ASAAC_Address event_info_data )		
+void PCS::TcCallback( const ASAAC_Address event_info_data )		
 {
+#ifdef _DEBUG_       
+	cout << "PCS::TcCallback()  " << endl;
+#endif
 	try
 	{
 		EventInfoData *Data = static_cast<EventInfoData*>(event_info_data);
+
+#ifdef _DEBUG_       
+			cout << "PCS::TcCallback()  comms_ev_buffer_received.tc_id: " << Data->comms_ev_buffer_received.tc_id << endl;
+#endif			
 		
-		if (Data->comms_ev_buffer_received.status == ASAAC_MOS_NII_CALL_COMPLETE)
+		if (Data->comms_ev_buffer_received.status == ASAAC_MOS_NII_CALL_OK)
 		{
 			PCS::getInstance()->m_NiiReceiver.listen( 
 					Data->comms_ev_buffer_received.tc_id, 
 					PCS::getInstance()->getBuffer(), 
 					PCS_MAX_SIZE_OF_NWMESSAGE, 
 					TimeIntervalInstant );
+		}
+		else
+		{
+#ifdef _DEBUG_       
+			cout << "PCS::TcCallback()  comms_ev_buffer_received.status: " << Data->comms_ev_buffer_received.status << endl;
+#endif			
 		}
 	}
 	catch ( PcsException &e )
@@ -289,7 +302,8 @@ ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_
 	}
 	else
 	{
-		cerr << "PCS::createTransferConnection() failed to configure interface with network " << tc_description.network_descr.network << " and port " << tc_description.network_descr.port << endl;
+		if (niiRet != ASAAC_MOS_NII_OPEN_TCS) 
+			cerr << "PCS::createTransferConnection() failed to configure interface with network " << tc_description.network_descr.network << " and port " << tc_description.network_descr.port << endl;
 	}			
 	
 	UdpConfiguration udp_conf;
