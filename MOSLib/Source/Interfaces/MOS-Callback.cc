@@ -68,24 +68,18 @@ void remove(const long Index)
 
 ASAAC_MSLStatus ASAAC_MOS_registerCallback(const ASAAC_EventType event_type, const ASAAC_PublicId callback_id, const ASAAC_Address callback)
 {
-	cout << "registerCallback(" << event_type << ", " << callback_id << ") 1" << endl;
-
 	if ( callback == NULL)
 		return ASAAC_MSL_CALLBACK_INVALID_PARAMETER;
-	cout << "registerCallback(" << event_type << ", " << callback_id << ") 2" << endl;
 
 	long Index = add();
-	cout << "registerCallback(" << event_type << ", " << callback_id << ") 3" << endl;
 	
 	if ( Index == -1 )
 		return ASAAC_MSL_CALLBACK_FAILED;
-	cout << "registerCallback(" << event_type << ", " << callback_id << ") 4" << endl;
 	
 	CallbackArray[Index].event_type = event_type;
 	CallbackArray[Index].callback_id = callback_id;
 	CallbackArray[Index].callback = callback;
 	CallbackArray[Index].enabled = ASAAC_BOOL_FALSE;
-	cout << "registerCallback(" << event_type << ", " << callback_id << ") 5" << endl;
 
 	return ASAAC_MSL_OK;
 }
@@ -134,21 +128,16 @@ void ASAAC_MOS_callbackHandler(const ASAAC_EventType event_type, const ASAAC_Pub
 {
 	long Index = indexOf( event_type, callback_id );
 	
-	cout << "callbackHandler(" << event_type << ", " << callback_id << ") 1" << endl;
-	
 	if (Index == -1)
 		return;
-	cout << "callbackHandler(" << event_type << ", " << callback_id << ") 2" << endl;
 	
 	if (CallbackArray[Index].enabled == ASAAC_BOOL_FALSE)
 		return;
-	cout << "callbackHandler(" << event_type << ", " << callback_id << ") 3" << endl;
 	 
 	typedef void(*CallbackFunction)(const ASAAC_Address);
 	CallbackFunction Callback = reinterpret_cast<CallbackFunction>(CallbackArray[Index].callback);
 	
 	Callback( event_info_data );
-	cout << "callbackHandler(" << event_type << ", " << callback_id << ") 4" << endl;
 }
 
 
