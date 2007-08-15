@@ -3,9 +3,9 @@
 
 #include "ASAAC.h"
 #include "AsaacCLib.h"
-#include "NII.hh"
+#include "NII.h"
 
-#include "MOSConstants.hh"
+#include "MOSConstants.h"
 
 #include <string.h>
 #include <pthread.h>

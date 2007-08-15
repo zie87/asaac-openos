@@ -1,4 +1,4 @@
-#include "MOSIncludes.hh"
+#include "MOSIncludes.h"
 
 
 ASAAC_ResourceReturnStatus ASAAC_MOS_readLogDevice(const ASAAC_LogMessageType message_type, const unsigned long log_id, ASAAC_CharacterSequence* log_message)

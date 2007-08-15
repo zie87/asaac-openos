@@ -1,6 +1,4 @@
-#include "MOSIncludes.hh"
-
-using namespace std;
+#include "MOSIncludes.h"
 
 /***********************************************************************************/
 /*                          DATA DEFINITIONS                                       */      
@@ -21,7 +19,7 @@ long CallbackArraySize = 0;
 /*                        DATA ACCESS FUNCTIONS                                    */      
 /***********************************************************************************/
 
-long add()
+long addCallback()
 {
 	if ( CallbackArraySize == MOS_MAX_NUMBER_OF_CALLBACKS)
 		return -1;
@@ -33,7 +31,7 @@ long add()
 	return Index;
 }
 
-long indexOf(const ASAAC_EventType event_type, const ASAAC_PublicId callback_id)
+long indexOfCallback(const ASAAC_EventType event_type, const ASAAC_PublicId callback_id)
 {
 	long Index = 0;
 	
@@ -47,7 +45,7 @@ long indexOf(const ASAAC_EventType event_type, const ASAAC_PublicId callback_id)
 	return -1;
 }
 
-void remove(const long Index)
+void removeCallback(const long Index)
 {
 	if ( Index < 0)
 		return;
@@ -71,7 +69,7 @@ ASAAC_MSLStatus ASAAC_MOS_registerCallback(const ASAAC_EventType event_type, con
 	if ( callback == NULL)
 		return ASAAC_MSL_CALLBACK_INVALID_PARAMETER;
 
-	long Index = add();
+	long Index = addCallback();
 	
 	if ( Index == -1 )
 		return ASAAC_MSL_CALLBACK_FAILED;
@@ -87,7 +85,7 @@ ASAAC_MSLStatus ASAAC_MOS_registerCallback(const ASAAC_EventType event_type, con
 
 ASAAC_MSLStatus ASAAC_MOS_enableCallback(const ASAAC_EventType event_type, const ASAAC_PublicId callback_id)
 {
-	long Index = indexOf( event_type, callback_id );
+	long Index = indexOfCallback( event_type, callback_id );
 	
 	if (Index == -1)
 		return ASAAC_MSL_CALLBACK_INVALID_PARAMETER;
@@ -100,7 +98,7 @@ ASAAC_MSLStatus ASAAC_MOS_enableCallback(const ASAAC_EventType event_type, const
 
 ASAAC_MSLStatus ASAAC_MOS_disableCallback(const ASAAC_EventType event_type, const ASAAC_PublicId callback_id)
 {
-	long Index = indexOf( event_type, callback_id );
+	long Index = indexOfCallback( event_type, callback_id );
 	
 	if (Index == -1)
 		return ASAAC_MSL_CALLBACK_INVALID_PARAMETER;
@@ -113,12 +111,12 @@ ASAAC_MSLStatus ASAAC_MOS_disableCallback(const ASAAC_EventType event_type, cons
 
 ASAAC_MSLStatus ASAAC_MOS_deleteCallback(const ASAAC_EventType event_type, const ASAAC_PublicId callback_id)
 {
-	long Index = indexOf( event_type, callback_id );
+	long Index = indexOfCallback( event_type, callback_id );
 	
 	if (Index == -1)
 		return ASAAC_MSL_CALLBACK_INVALID_PARAMETER;
 
-	remove( Index );
+	removeCallback( Index );
 	
 	return ASAAC_MSL_OK;
 }
@@ -126,7 +124,7 @@ ASAAC_MSLStatus ASAAC_MOS_deleteCallback(const ASAAC_EventType event_type, const
 
 void ASAAC_MOS_callbackHandler(const ASAAC_EventType event_type, const ASAAC_PublicId callback_id, const ASAAC_Address event_info_data)
 {
-	long Index = indexOf( event_type, callback_id );
+	long Index = indexOfCallback( event_type, callback_id );
 	
 	if (Index == -1)
 		return;
@@ -135,7 +133,7 @@ void ASAAC_MOS_callbackHandler(const ASAAC_EventType event_type, const ASAAC_Pub
 		return;
 	 
 	typedef void(*CallbackFunction)(const ASAAC_Address);
-	CallbackFunction Callback = reinterpret_cast<CallbackFunction>(CallbackArray[Index].callback);
+	CallbackFunction Callback = (CallbackFunction)CallbackArray[Index].callback;
 	
 	Callback( event_info_data );
 }

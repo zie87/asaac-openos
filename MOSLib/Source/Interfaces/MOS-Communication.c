@@ -1,4 +1,4 @@
-#include "MOSIncludes.hh"
+#include "MOSIncludes.h"
 
 ASAAC_NiiReturnStatus ASAAC_MOS_configureInterface(
 		const ASAAC_PublicId interface_id,
@@ -8,7 +8,7 @@ ASAAC_NiiReturnStatus ASAAC_MOS_configureInterface(
 	switch (interface_id)
 	{
 		case MOS_INTERFACE_ID_NII: 	
-			return cMosNii::getInstance()->configureInterface(
+			return NII_configureInterface(
 				interface_id,
 				network_id,
 				configuration_data);
@@ -26,7 +26,7 @@ ASAAC_NiiReturnStatus ASAAC_MOS_configureTransfer(const ASAAC_PublicId tc_id,
 		const ASAAC_TC_ConfigurationData configuration_data,
 		const ASAAC_Bool trigger_callback, const ASAAC_PublicId callback_id)
 {
-	return cMosNii::getInstance()->configureTransfer(
+	return NII_configureTransfer(
 			tc_id,
 			*network_id, 
 			send_receive, 
@@ -41,7 +41,7 @@ ASAAC_NiiReturnStatus ASAAC_MOS_sendTransfer(const ASAAC_PublicId tc_id,
 		const ASAAC_CharAddress transmit_data, const ASAAC_Length data_length,
 		const ASAAC_Time* time_out)
 {
-	return cMosNii::getInstance()->sendTransfer(
+	return NII_sendTransfer(
 			tc_id, 
 			transmit_data, 
 			data_length, 
@@ -56,7 +56,7 @@ ASAAC_NiiReturnStatus ASAAC_MOS_receiveTransfer(
 		ASAAC_Length* data_length,
 		const ASAAC_Time* time_out)
 {
-	return cMosNii::getInstance()->receiveTransfer(
+	return NII_receiveTransfer(
 			tc_id, 
 			receive_data,
 			data_length_available, 
@@ -69,7 +69,7 @@ ASAAC_NiiReturnStatus ASAAC_MOS_receiveTransfer(
 ASAAC_NiiReturnStatus ASAAC_MOS_destroyTransfer(const ASAAC_PublicId tc_id,
 		const ASAAC_NetworkDescriptor* network_id)
 {
-	return cMosNii::getInstance()->destroyTransfer(tc_id, *network_id);
+	return NII_destroyTransfer(tc_id, *network_id);
 }
 
 
@@ -88,7 +88,7 @@ ASAAC_NiiReturnStatus ASAAC_MOS_receiveNetwork(
 		const ASAAC_Length data_length_available, ASAAC_Length* data_length,
 		ASAAC_PublicId* tc_id, const ASAAC_Time* time_out)
 {
-	return cMosNii::getInstance()->receiveNetwork(
+	return NII_receiveNetwork(
 			*network, 
 			receive_data,
 			data_length_available, 
