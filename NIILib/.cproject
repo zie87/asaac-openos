@@ -20,7 +20,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.lib.debug.1041337535" name="Debug" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.debug" artifactName="NII" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="a" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.lib.debug.1041337535" name="Debug" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.debug" artifactName="NII" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="a" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1041337535.231645897" name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.lib.debug" id="cdt.managedbuild.toolchain.gnu.lib.debug.1538387860" name="GCC Tool Chain">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.lib.debug" id="cdt.managedbuild.target.gnu.platform.lib.debug.75235587" name="Debug Platform"/>
@@ -32,7 +32,7 @@
 <listOptionValue value="&quot;${workspace_loc:/NIILib/Source}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.869556973" name="Defined symbols (-D)" valueType="definedSymbols">
-<listOptionValue value="dont_DEBUG_" builtIn="false"/>
+<listOptionValue value="_DEBUG_" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.lib.debug.option.optimization.level" id="gnu.cpp.compiler.lib.debug.option.optimization.level.1140957342" name="Optimization Level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.cpp.compiler.lib.debug.option.debugging.level" id="gnu.cpp.compiler.lib.debug.option.debugging.level.1227365306" name="Debug Level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -46,6 +46,9 @@
 </option>
 <option superClass="gnu.c.compiler.lib.debug.option.optimization.level" id="gnu.c.compiler.lib.debug.option.optimization.level.262818263" name="Optimization Level" defaultValue="gnu.c.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.c.compiler.lib.debug.option.debugging.level" id="gnu.c.compiler.lib.debug.option.debugging.level.1287387284" name="Debug Level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+<option superClass="gnu.c.compiler.option.preprocessor.def.symbols" id="gnu.c.compiler.option.preprocessor.def.symbols.1070097156" valueType="definedSymbols">
+<listOptionValue value="_DEBUG_" builtIn="false"/>
+</option>
 <inputType superClass="cdt.managedbuild.tool.gnu.c.compiler.input" id="cdt.managedbuild.tool.gnu.c.compiler.input.208112386"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug" id="cdt.managedbuild.tool.gnu.archiver.lib.debug.865375635" name="GCC Archiver"/>
@@ -342,7 +345,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.lib.release.329010180" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.release" artifactName="NII" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="a" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.lib.release.329010180" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.release" artifactName="NII" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="a" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.lib.release.329010180.1079375209" name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.lib.release" id="cdt.managedbuild.toolchain.gnu.lib.release.838382075" name="GCC Tool Chain">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.lib.release" id="cdt.managedbuild.target.gnu.platform.lib.release.783971369" name="Debug Platform"/>
