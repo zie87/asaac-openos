@@ -1,16 +1,37 @@
 #include "TimeOperators.h"
 
+ASAAC_Time TimeZero()
+{
+	const ASAAC_Time Result = { 0, 0 };	
+	return Result;
+}
 
 ASAAC_Time TimeInstant()
 {
-	ASAAC_Time ac_system_time = TimeZero;
+	ASAAC_Time ac_system_time = TimeZero();
 	
 	ASAAC_MOS_getAbsoluteLocalTime( &ac_system_time );
 	
 	return ac_system_time;
 }
 
+ASAAC_Time TimeInfinity()
+{
+	const ASAAC_Time Result = { 2147483647, 999999999 };
+	return Result;
+}
 
+ASAAC_TimeInterval TimeIntervalInstant()
+{
+	const ASAAC_TimeInterval Result = { 0, 0 };	
+	return Result;
+}
+
+ASAAC_TimeInterval TimeIntervalInfinity()
+{
+	const ASAAC_TimeInterval Result = { 2147483647, 999999999 };	
+	return Result;
+}
 
 ASAAC_Time addIntervalToTime(const ASAAC_Time Time, const ASAAC_TimeInterval Interval)
 {

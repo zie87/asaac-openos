@@ -7,12 +7,12 @@
 extern "C" {
 #endif
 	
-const ASAAC_Time TimeZero = { 0, 0 };	
+ASAAC_Time TimeZero();	
 ASAAC_Time TimeInstant();	
-const ASAAC_Time TimeInfinity = { 2147483647, 999999999 };	
+ASAAC_Time TimeInfinity();	
 
-const ASAAC_TimeInterval TimeIntervalInstant = { 0, 0 };	
-const ASAAC_TimeInterval TimeIntervalInfinity = { 2147483647, 999999999 };	
+ASAAC_TimeInterval TimeIntervalInstant();	
+ASAAC_TimeInterval TimeIntervalInfinity();	
 	
 ASAAC_Time addIntervalToTime(const ASAAC_Time Time, const ASAAC_TimeInterval Interval);
 ASAAC_TimeInterval addIntervalToInterval(const ASAAC_TimeInterval Interval1, const ASAAC_TimeInterval Interval2);
