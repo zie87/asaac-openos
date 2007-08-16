@@ -134,7 +134,7 @@ void initializeConfiguration()
 		
 		entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.Count = 0;
 		
-		for (unsigned short t = 0; t < OS_MAX_NUMBER_OF_PROCESSES; t++)
+		for (unsigned short t = 0; t < OS_MAX_NUMBER_OF_THREADS; t++)
 		{
 			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.global_pid = OS_UNUSED_ID;
 			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.thread_id = OS_UNUSED_ID;
