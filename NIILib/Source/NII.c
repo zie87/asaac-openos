@@ -144,27 +144,48 @@ ASAAC_NiiReturnStatus NII_configureInterface(
 	initialize();
 	
 #ifdef _DEBUG_
-	printf("cMosNii::configureInterface with network: %lu \n", network_id->network);
+	printf("cMosNii::configureInterface with port: %lu \n", network_id->port);
 #endif
 
-	if (countTcs(network_id->port) > 0)
+	if (countTcsByPort(network_id->port) > 0)
+	{		
+#ifdef _DEBUG_
+		printf("cMosNii::configureInterface with port: %lu : ASAAC_MOS_NII_OPEN_TCS\n", network_id->port);
+#endif
 		return ASAAC_MOS_NII_OPEN_TCS;
+	}
 	
 	if ( interface_id == 0 )
 	{
 		if ( removeNw( network_id->port ) == 0 )
+		{		
+#ifdef _DEBUG_
+			printf("cMosNii::configureInterface with port: %lu, interface_id == 0: ASAAC_MOS_NII_INVALID_NETWORK\n", network_id->port);
+#endif
 			return ASAAC_MOS_NII_INVALID_NETWORK;
+		}
 		
+#ifdef _DEBUG_
+		printf("cMosNii::configureInterface with port: %lu, interface_id == 0: ASAAC_MOS_NII_CALL_COMPLETE\n", network_id->port);
+#endif
 		return ASAAC_MOS_NII_CALL_COMPLETE;
 	}
 	
 	if ( network_id->network == 0 )
 	{
 		if ( countTcs() > 0 )
+		{
+#ifdef _DEBUG_
+			printf("cMosNii::configureInterface with port: %lu, network_id == 0: ASAAC_MOS_NII_OPEN_TCS\n", network_id->port);
+#endif
 			return ASAAC_MOS_NII_OPEN_TCS;
+		}
 		
 		removeAllNw();
 		
+#ifdef _DEBUG_
+		printf("cMosNii::configureInterface with port: %lu, network_id == 0, ASAAC_MOS_NII_CALL_COMPLETE\n", network_id->port);
+#endif
 		return ASAAC_MOS_NII_CALL_COMPLETE;
 	}
 	
@@ -179,8 +200,17 @@ ASAAC_NiiReturnStatus NII_configureInterface(
 	if (setNw( network_id->port, Nw ) == 0)
 	{
 		if ( addNw( Nw ) == 0 )
+		{
+#ifdef _DEBUG_
+			printf("cMosNii::configureInterface with port: %lu ASAAC_MOS_NII_STORAGE_FAULT\n", network_id->port);
+#endif
 			return ASAAC_MOS_NII_STORAGE_FAULT;
+		}
 	}
+
+	#ifdef _DEBUG_
+	printf("cMosNii::configureInterface with port: %lu, ASAAC_MOS_NII_CALL_COMPLETE\n", network_id->port);
+#endif
 
 	return ASAAC_MOS_NII_CALL_COMPLETE;
 }
@@ -453,7 +483,14 @@ ASAAC_NiiReturnStatus NII_destroyTransfer(
 	if (getNw( Tc.network_id.port, &Nw ) == 1)
 	{
 		if (countTcs( Tc.network_id.port ) == 0)
+		{
 			close(Nw.fd);
+			
+			Nw.fd = -1;
+			Nw.tc_id_with_data = NII_UNUSED_ID;
+			
+			setNw(Nw.port, Nw);
+		}
 	}
 	
 	configureServices();
@@ -982,14 +1019,21 @@ void* ServiceThread(void* Data)
 		
 		long Index;
 		for (Index = 0; Index < m_NwListSize; Index++)
-		{
-			if ( m_NwList[Index].tc_id_with_data == NII_UNUSED_ID )
-			{
-				FD_SET( m_NwList[Index].fd, &rfds );
-				
-				if ( max_fd < m_NwList[Index].fd )
-					max_fd = m_NwList[Index].fd;
-			}
+		{			
+			if ( m_NwList[Index].fd == -1 )
+				continue;
+			
+			if ( m_NwList[Index].tc_id_with_data != NII_UNUSED_ID )
+				continue;
+			
+#ifdef _DEBUG_
+			printf("ServiceThread: Collect file descriptors for select(): index:%ld fd:%d\n", Index, m_NwList[Index].fd );
+#endif			
+
+			FD_SET( m_NwList[Index].fd, &rfds );
+			
+			if ( max_fd < m_NwList[Index].fd )
+				max_fd = m_NwList[Index].fd;
 		}	
 		
 #ifdef _DEBUG_
@@ -999,6 +1043,7 @@ void* ServiceThread(void* Data)
 		struct timeval tv = IntervalToTimeval( TimeIntervalInfinity() );
 		tv.tv_sec = 10;
 		tv.tv_usec = 0;
+
 		int retval = select( max_fd+1, &rfds, NULL, NULL, &tv );
 		
 #ifdef _DEBUG_
@@ -1032,6 +1077,12 @@ void* ServiceThread(void* Data)
 			long Index;
 			for (Index = 0; Index < m_NwListSize; Index++)
 			{
+				if ( m_NwList[Index].fd == -1 )
+					continue;
+				
+				if ( m_NwList[Index].tc_id_with_data != NII_UNUSED_ID )
+					continue;
+
 				if ( FD_ISSET(m_NwList[Index].fd, &rfds) == 0 )
 					continue;
 				
