@@ -265,27 +265,31 @@ ASAAC_NiiReturnStatus NII_configureTransfer(
 	{
 		case ASAAC_TRANSFER_TYPE_MESSAGE:
 		{
+			if (Nw.fd != -1)
+				break;
+
+			if (Tc.direction == ASAAC_TRANSFER_DIRECTION_SEND)
+				break;
+			
+			Nw.is_streaming = 0;
+			Nw.fd = socket( AF_INET, SOCK_DGRAM, 0 );
+			
 			if (Nw.fd == -1)
 			{
-				Nw.is_streaming = 0;
-				Nw.fd = socket( AF_INET, SOCK_DGRAM, 0 );
-				
-				if (Nw.fd == -1)
-				{
-					perror("socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) : ");
-					return ASAAC_MOS_NII_CALL_FAILED;
-				}
-				
-				if ( bind( Nw.fd, (struct sockaddr *)&NetworkAddr, sizeof(NetworkAddr)) == -1 )
-				{
-					perror("bind() on socket : ");
-					return ASAAC_MOS_NII_CALL_FAILED;
-				}
-
-				//Necessary for sendTransfer()
-				int val = fcntl(Nw.fd, F_GETFL, 0);
-				fcntl(Nw.fd, F_SETFL, val | O_NONBLOCK);
+				perror("socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) : ");
+				return ASAAC_MOS_NII_CALL_FAILED;
 			}
+			
+			if ( bind( Nw.fd, (struct sockaddr *)&NetworkAddr, sizeof(NetworkAddr)) == -1 )
+			{
+				perror("bind() on socket : ");
+				close(Nw.fd);
+				return ASAAC_MOS_NII_CALL_FAILED;
+			}
+
+			//Necessary for sendTransfer()
+			int val = fcntl(Nw.fd, F_GETFL, 0);
+			fcntl(Nw.fd, F_SETFL, val | O_NONBLOCK);
 		}
 		break;
 		
@@ -368,7 +372,7 @@ ASAAC_NiiReturnStatus NII_sendTransfer(
 
 	ASAAC_TimeInterval Interval = TimeToInterval( time_out );
 	
-	Tc.event_info_data.comms_ev_buffer_sent.status = sendToNetwork(Nw.fd, Tc.network_id, tc_id, transmit_data, data_length, Interval);
+	Tc.event_info_data.comms_ev_buffer_sent.status = sendToNetwork(m_ServiceFileDescriptor, Tc.network_id, tc_id, transmit_data, data_length, Interval);
 	Tc.event_info_data.comms_ev_buffer_sent.tc_id  = Tc.tc_id;
 
 	if ( Tc.trigger_callback == ASAAC_BOOL_TRUE )
