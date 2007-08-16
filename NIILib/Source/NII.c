@@ -144,7 +144,7 @@ ASAAC_NiiReturnStatus NII_configureInterface(
 	initialize();
 	
 #ifdef _DEBUG_
-	printf("cMosNii::configureInterface with network: %lu", network_id->network);
+	printf("cMosNii::configureInterface with network: %lu \n", network_id->network);
 #endif
 
 	if (countTcs(network_id->port) > 0)
@@ -199,7 +199,7 @@ ASAAC_NiiReturnStatus NII_configureTransfer(
 	initialize();
 	
 #ifdef _DEBUG_
-	printf("cMosNii::configureTransfer(%lu) setup", tc_id);
+	printf("cMosNii::configureTransfer(%lu) setup\n", tc_id);
 #endif
 	
 	Network Nw;
@@ -283,7 +283,7 @@ ASAAC_NiiReturnStatus NII_configureTransfer(
 		
 		default:
 		{
-			printf("configureTransfer() unknown TransferType: %d", message_streaming);
+			printf("configureTransfer() unknown TransferType: %d\n", message_streaming);
 			return ASAAC_MOS_NII_CALL_FAILED;
 		}
 		break;
@@ -318,7 +318,7 @@ ASAAC_NiiReturnStatus NII_sendTransfer(
 	if (Tc.type != ASAAC_TRANSFER_TYPE_MESSAGE)
 	{
 #ifdef _DEBUG_
-		printf("ERROR: not a message TC ");
+		printf("ERROR: not a message TC \n");
 #endif
 		return ASAAC_MOS_NII_CALL_FAILED;
 	}
@@ -326,7 +326,7 @@ ASAAC_NiiReturnStatus NII_sendTransfer(
 	if (Tc.direction != ASAAC_TRANSFER_DIRECTION_SEND)
 	{
 #ifdef _DEBUG_
-		printf("ERROR: not a sending TC ");
+		printf("ERROR: not a sending TC\n ");
 #endif
 		return ASAAC_MOS_NII_CALL_FAILED;
 	}
@@ -475,7 +475,7 @@ ASAAC_NiiReturnStatus receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor 
 	if ( allocateBuffer( buffer_id ) == 0 )
 	{
 #ifdef _DEBUG_
-		printf("receiveFromNetwork: Error allocating a buffer ");
+		printf("receiveFromNetwork: Error allocating a buffer \n");
 #endif
 		return ASAAC_MOS_NII_CALL_FAILED;
 	}
@@ -485,7 +485,7 @@ ASAAC_NiiReturnStatus receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor 
 	if ( Buffer == NULL )
 	{		
 #ifdef _DEBUG_
-		printf("receiveFromNetwork: buffer_id is invalid ");
+		printf("receiveFromNetwork: buffer_id is invalid \n");
 #endif
 		return ASAAC_MOS_NII_CALL_FAILED;
 	}
@@ -495,7 +495,7 @@ ASAAC_NiiReturnStatus receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor 
 	if ( ReceivedBytes == -1 )
 	{
 #ifdef _DEBUG_
-		perror("recvfrom(");
+		perror("recvfrom()");
 #endif
 		releaseBuffer( *buffer_id );
 		return ASAAC_MOS_NII_CALL_FAILED;
@@ -511,7 +511,7 @@ ASAAC_NiiReturnStatus receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor 
 	//maybe further several recvfrom's must be executed
 
 #ifdef _DEBUG_
-	printf("receiveFromNetwork: %ld received.", ReceivedBytes);
+	printf("receiveFromNetwork: %ld received.\n", ReceivedBytes);
 #endif
 	
 	return ASAAC_MOS_NII_CALL_OK;
@@ -573,7 +573,7 @@ ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor
 	while ( SendBytes > 0 );
 
 #ifdef _DEBUG_
-	printf("sendToNetwork: %ld sent.", SentBytes);
+	printf("sendToNetwork: %ld sent.\n", SentBytes);
 #endif
 	
 	return ASAAC_MOS_NII_CALL_OK;
@@ -592,14 +592,14 @@ long getIndexOfNw(const ASAAC_PublicId port)
 		if ( m_NwList[Index].port == port )
 		{ 
 #ifdef _DEBUG_
-			printf("Nw found: %ld with Index: %lu", port, Index);
+			printf("Nw found: %ld with Index: %lu\n", port, Index);
 #endif
 			return Index;
 		}
 	}
 
 #ifdef _DEBUG_
-	printf("Nw not found: %lu", port);
+	printf("Nw not found: %lu\n", port);
 #endif
 	
 	return -1;
@@ -609,7 +609,7 @@ long getIndexOfNw(const ASAAC_PublicId port)
 char addNw(Network Data)
 {
 #ifdef _DEBUG_
-	printf("addNw: %lu",  Data.port);
+	printf("addNw: %lu\n",  Data.port);
 #endif
 
 	if ( getIndexOfNw(Data.port) != -1 )
@@ -622,7 +622,7 @@ char addNw(Network Data)
 	m_NwListSize++;
 
 #ifdef _DEBUG_
-	printf("addNw was successful");
+	printf("addNw was successful\n");
 #endif
 	
 	return 1;
@@ -659,7 +659,7 @@ long countNws()
 char getNw(const ASAAC_PublicId port, Network *Data)
 {
 #ifdef _DEBUG_
-	printf("getNw: %lu", port);
+	printf("getNw: %lu\n", port);
 #endif
 
 	long Index = getIndexOfNw( port );
@@ -699,7 +699,7 @@ long getIndexOfTc(const ASAAC_PublicId tc_id)
 	}
 	
 #ifdef _DEBUG_
-	printf("Tc not found: %lu", tc_id);
+	printf("Tc not found: %lu\n", tc_id);
 #endif
 
 	return -1;
@@ -709,7 +709,7 @@ long getIndexOfTc(const ASAAC_PublicId tc_id)
 char addTc(TransferConnection Data)
 {
 #ifdef _DEBUG_
-	printf("addTc: %lu", Data.tc_id);
+	printf("addTc: %lu\n", Data.tc_id);
 #endif
 
 	if ( getIndexOfTc(Data.tc_id) != -1 )
@@ -722,7 +722,7 @@ char addTc(TransferConnection Data)
 	m_TcListSize++;
 
 #ifdef _DEBUG_
-	printf("addTc was successful.");
+	printf("addTc was successful.\n");
 #endif
 	
 	return 1;
@@ -850,7 +850,7 @@ TcPacketData *getBuffer(ASAAC_PublicId buffer_id)
 void handleStreamingTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 {
 #ifdef _DEBUG_
-	printf("handle streaming tc: not completely implemented !!!");
+	printf("handle streaming tc: not completely implemented !!!\n");
 #endif
 	
 	*tc_id = NII_UNUSED_ID;
@@ -896,7 +896,7 @@ void handleStreamingTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 {
 #ifdef _DEBUG_
-	printf("handle message tc");
+	printf("handle message tc\n");
 #endif
 	
 	*tc_id = NII_UNUSED_ID;
@@ -905,7 +905,7 @@ void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 	if (getNw( port, &Nw ) == 0)
 	{
 #ifdef _DEBUG_
-		printf("handle message tc: Network not found");
+		printf("handle message tc: Network not found\n");
 #endif
 		return;
 	}
@@ -918,7 +918,7 @@ void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 	if (Result != ASAAC_MOS_NII_CALL_OK)
 	{
 #ifdef _DEBUG_
-		printf("handle message tc: Data could not received");
+		printf("handle message tc: Data could not received\n");
 #endif
 		return;
 	}
@@ -932,7 +932,7 @@ void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 	if ( getTc(Buffer->packet.tc_header.tc_id, &Tc) == 0 )
 	{
 #ifdef _DEBUG_
-		printf("handle message tc: Tc not found");
+		printf("handle message tc: Tc not found\n");
 #endif
 		releaseBuffer(BufferId);
 		return;
@@ -945,7 +945,7 @@ void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 	if (Tc.direction == ASAAC_TRANSFER_DIRECTION_SEND)
 	{
 #ifdef _DEBUG_
-		printf("handle message tc: Tc is configured for sending");
+		printf("handle message tc: Tc is configured for sending\n");
 #endif
 		Tc.event_info_data.comms_ev_buffer_received.status = ASAAC_MOS_NII_INVALID_TC;
 		setTc(Tc.tc_id, Tc);
@@ -965,7 +965,7 @@ void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 void* ServiceThread(void* Data)
 {
 #ifdef _DEBUG_
-	printf("ServiceThread: Entry");
+	printf("ServiceThread: Entry\n");
 #endif
 
 	for (;;)
@@ -977,7 +977,7 @@ void* ServiceThread(void* Data)
 		FD_SET( m_ServiceFileDescriptor, &rfds );
 
 #ifdef _DEBUG_
-		printf("ServiceThread: Collect file descriptors for select()");
+		printf("ServiceThread: Collect file descriptors for select()\n");
 #endif
 		
 		long Index;
@@ -993,7 +993,7 @@ void* ServiceThread(void* Data)
 		}	
 		
 #ifdef _DEBUG_
-		printf("ServiceThread: execute select()");
+		printf("ServiceThread: execute select()\n");
 #endif
 
 		struct timeval tv = IntervalToTimeval( TimeIntervalInfinity() );
@@ -1002,19 +1002,19 @@ void* ServiceThread(void* Data)
 		int retval = select( max_fd+1, &rfds, NULL, NULL, &tv );
 		
 #ifdef _DEBUG_
-		printf("ServiceThread: return from select()");
+		printf("ServiceThread: return from select()\n");
 #endif
 
 		if (retval == -1)
 		{
-			printf("cMosNii::listen thread() ERROR on select()");
+			printf("cMosNii::listen thread() ERROR on select()\n");
 		}
 
 		if ( FD_ISSET(m_ServiceFileDescriptor, &rfds) )
 		{
 
 #ifdef _DEBUG_
-			printf("ServiceThread: ServiceFileDescriptor triggered this event");
+			printf("ServiceThread: ServiceFileDescriptor triggered this event\n");
 #endif
 
 			ASAAC_NetworkDescriptor NetworkId;
@@ -1026,7 +1026,7 @@ void* ServiceThread(void* Data)
 		else
 		{
 #ifdef _DEBUG_
-			printf("ServiceThread: A TC triggered this event");
+			printf("ServiceThread: A TC triggered this event\n");
 #endif
 
 			long Index;
@@ -1094,7 +1094,7 @@ ASAAC_NiiReturnStatus hasNetworkData( const ASAAC_NetworkDescriptor network_id, 
 ASAAC_NiiReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId *tc_id )
 {
 #ifdef _DEBUG_
-	printf("waitForData: wait for new_data condition");
+	printf("waitForData: wait for new_data condition\n");
 #endif
 
 	struct timespec TimespecTimeout = TimeToTimespec( time_out );
@@ -1129,7 +1129,7 @@ ASAAC_NiiReturnStatus receiveData(
 	if (Tc.type != ASAAC_TRANSFER_TYPE_MESSAGE)
 	{
 #ifdef _DEBUG_
-		printf("ERROR: not a message TC ");
+		printf("ERROR: not a message TC \n");
 #endif
 		return ASAAC_MOS_NII_CALL_FAILED;
 	}
@@ -1137,7 +1137,7 @@ ASAAC_NiiReturnStatus receiveData(
 	if (Tc.direction != ASAAC_TRANSFER_DIRECTION_RECEIVE)
 	{
 #ifdef _DEBUG_
-		printf("ERROR: not a receiving TC ");
+		printf("ERROR: not a receiving TC \n");
 #endif
 		return ASAAC_MOS_NII_CALL_FAILED;
 	}
@@ -1165,7 +1165,7 @@ ASAAC_NiiReturnStatus receiveData(
 	configureServices();	
 	
 #ifdef _DEBUG_
-	printf("RECEIVE %lu BYTES ON TC %lu", *data_length, tc_id );
+	printf("RECEIVE %lu BYTES ON TC %lu\n", *data_length, tc_id );
 #endif
 
 	return ASAAC_MOS_NII_CALL_OK;
@@ -1175,7 +1175,7 @@ ASAAC_NiiReturnStatus receiveData(
 void configureServices()
 {	
 #ifdef _DEBUG_
-	printf("configureServices: entry");
+	printf("configureServices: entry\n");
 #endif
 
 	struct in_addr NetworkAddr;
@@ -1187,13 +1187,13 @@ void configureServices()
 	NetworkId.port = 0xffff;
 
 #ifdef _DEBUG_
-	printf("configureServices: send data via ServiceFileDescriptor");
+	printf("configureServices: send data via ServiceFileDescriptor\n");
 #endif
 
 	sendToNetwork(m_ServiceFileDescriptor, NetworkId, NII_UNUSED_ID, NULL, 0, TimeIntervalInstant());
 	
 #ifdef _DEBUG_
-	printf("configureServices: exit");
+	printf("configureServices: exit\n");
 #endif
 }
 
