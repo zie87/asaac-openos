@@ -119,10 +119,12 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 	    	// It is important here first to set the group id and then the user id
 	    	
 	        if (setgid( 65534 ) == -1)
-	        	throw OSException( (ErrorString << "setgid: " << strerror(errno)).c_str(), LOCATION );
+	        	OSException( (ErrorString << "setgid: " << strerror(errno)).c_str(), LOCATION ).raiseError();
+
+	        ErrorString.erase();
 	        
 	        if (setuid( 65534 ) == -1)
-	        	throw OSException( (ErrorString << "setuid: " << strerror(errno)).c_str(), LOCATION );
+	        	OSException( (ErrorString << "setuid: " << strerror(errno)).c_str(), LOCATION ).raiseError();
 	    } 
 	    
 	    deinitialize( true );
