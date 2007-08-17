@@ -25,14 +25,11 @@ long				m_NewDataTcId = NII_UNUSED_ID;
 
 
 /***********************************************************************************/
-/*                       FUNCTION DEFINITIONS                                      */      
+/*                              DATA ACCESS                                        */      
 /***********************************************************************************/
 
-// Services
-void handleStreamingTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id);
-void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id);
-
-static void* ServiceThread(void* Data);
+void lockAccess();
+void releaseAccess();
 
 // Service synchronization
 ASAAC_NiiReturnStatus hasTcData( const ASAAC_PublicId tc_id );
@@ -44,7 +41,6 @@ ASAAC_NiiReturnStatus receiveData(
 		const unsigned long data_length_available, 
 		unsigned long *data_length);
 
-void configureServices();
 
 // Network data access
 char addNw(Network Data);
@@ -78,6 +74,18 @@ long getIndexOfTc(const ASAAC_PublicId tc_id);
 
 ASAAC_NiiReturnStatus receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor *network_id, ASAAC_PublicId *buffer_id );
 ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, const ASAAC_TimeInterval time_out );
+
+
+/***********************************************************************************/
+/*                              SERVICES                                           */      
+/***********************************************************************************/
+
+void handleStreamingTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id);
+void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id);
+
+static void* ServiceThread(void* Data);
+
+void configureServices();
 
 
 /***********************************************************************************/
@@ -310,6 +318,7 @@ ASAAC_NiiReturnStatus NII_configureTransfer(
 			if ( bind( Nw.fd, (struct sockaddr *)&NetworkAddr, sizeof(NetworkAddr)) == -1 )
 			{
 				perror("bind() on socket : ");
+				close(Nw.fd);
 				return ASAAC_MOS_NII_CALL_FAILED;
 			}
 		}
@@ -323,11 +332,11 @@ ASAAC_NiiReturnStatus NII_configureTransfer(
 		break;
 	}
 
+	setNw(network_id.port, Nw);
+
 	// Now the TC can be stored
 	if ( addTc( Tc ) == 0 )
 		return ASAAC_MOS_NII_STORAGE_FAULT;
-
-	setNw(network_id.port, Nw);
 	
 	configureServices();			
 
@@ -490,7 +499,8 @@ ASAAC_NiiReturnStatus NII_destroyTransfer(
 		{
 			close(Nw.fd);
 			
-			Nw.fd = -1;
+			Nw.fd              = -1;
+			Nw.is_streaming    = 0;
 			Nw.tc_id_with_data = NII_UNUSED_ID;
 			
 			setNw(Nw.port, Nw);
@@ -499,7 +509,7 @@ ASAAC_NiiReturnStatus NII_destroyTransfer(
 	
 	configureServices();
 
-	return ASAAC_MOS_NII_CALL_OK;
+	return ASAAC_MOS_NII_CALL_COMPLETE;
 }
 
 
@@ -624,6 +634,18 @@ ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor
 /*************************************************************************/
 /*                       D A T A   A C C E S S                           */
 /*************************************************************************/
+
+void lockAccess()
+{
+	
+}
+
+
+void releaseAccess()
+{
+	
+}
+
 
 long getIndexOfNw(const ASAAC_PublicId port)
 {
@@ -1021,6 +1043,8 @@ void* ServiceThread(void* Data)
 		printf("ServiceThread: Collect file descriptors for select()\n");
 #endif
 		
+		lockAccess();
+		
 		long Index;
 		for (Index = 0; Index < m_NwListSize; Index++)
 		{			
@@ -1039,6 +1063,8 @@ void* ServiceThread(void* Data)
 			if ( max_fd < m_NwList[Index].fd )
 				max_fd = m_NwList[Index].fd;
 		}	
+		
+		releaseAccess();
 		
 #ifdef _DEBUG_
 		printf("ServiceThread: execute select()\n");
@@ -1078,6 +1104,8 @@ void* ServiceThread(void* Data)
 			printf("ServiceThread: A TC triggered this event\n");
 #endif
 
+			lockAccess();
+			
 			long Index;
 			for (Index = 0; Index < m_NwListSize; Index++)
 			{
@@ -1109,6 +1137,8 @@ void* ServiceThread(void* Data)
 				m_NewDataTcId = TcId;
 				pthread_cond_broadcast(&m_NewDataCondition);
 			}
+			
+			releaseAccess();
 		}
 	}
 	
