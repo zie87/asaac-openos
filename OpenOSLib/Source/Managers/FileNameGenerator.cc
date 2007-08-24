@@ -110,7 +110,7 @@ ASAAC_CharacterSequence FileNameGenerator::getLocalOliPath( ASAAC_PublicId Proce
 	return cs.asaac_str();
 }
 
-const ASAAC_CharacterSequence FileNameGenerator::getAsaacPath( ASAAC_CharacterSequence path )
+ASAAC_CharacterSequence FileNameGenerator::getAsaacPath( ASAAC_CharacterSequence path )
 {
 
 	CharacterSequence cs;
@@ -127,7 +127,10 @@ const ASAAC_CharacterSequence FileNameGenerator::getAsaacPath( ASAAC_CharacterSe
 	return cs.asaac_str();
 }
 
-static const ASAAC_CharacterSequence getCurrentPath( ASAAC_CharacterSequence path )
+ASAAC_CharacterSequence FileNameGenerator::getCurrentPath( ASAAC_CharacterSequence path )
 {
-    
+	//TODO: implement this function
+	
+    ASAAC_CharacterSequence cs;
+    return cs;
 }

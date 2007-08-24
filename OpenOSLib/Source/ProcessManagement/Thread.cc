@@ -178,7 +178,7 @@ void Thread::update()
 	    if (m_ParentProcess->isServer() == false)
 			throw OSException( "Cannot remote thread update", LOCATION);	
 	    
-	    int Policy = OS_POLICY;
+	    //int Policy = OS_POLICY;
 			
 		sched_param Parameter;
 		Parameter.__sched_priority = 1;

@@ -848,7 +848,11 @@ mode_t FileManager::AccessRightsToMode( ASAAC_AccessRights AccessRights ) const
 
 ASAAC_AccessRights FileManager::ModeToAccessRights( mode_t Mode ) const
 {
-    
+	//TODO: implement this function
+
+	ASAAC_AccessRights ar;
+	
+	return ar;
 }
 
 

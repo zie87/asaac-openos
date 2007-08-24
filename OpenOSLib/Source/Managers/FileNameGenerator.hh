@@ -15,8 +15,8 @@ public:
 	static ASAAC_CharacterSequence getCommunicationManagerName();
 	static ASAAC_CharacterSequence getRemoteInterfaceName( ASAAC_PublicId SlotId );
 	static ASAAC_CharacterSequence getLocalOliPath( ASAAC_PublicId ProcessId );
-    static const ASAAC_CharacterSequence getAsaacPath( ASAAC_CharacterSequence path );
-    static const ASAAC_CharacterSequence getCurrentPath( ASAAC_CharacterSequence path );
+    static ASAAC_CharacterSequence getAsaacPath( ASAAC_CharacterSequence path );
+    static ASAAC_CharacterSequence getCurrentPath( ASAAC_CharacterSequence path );
 
 	virtual ~FileNameGenerator();
 	
