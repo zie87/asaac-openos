@@ -222,11 +222,12 @@ void Thread::start()
 		
 		if ( m_ThreadData->Status != ASAAC_DORMANT )
 			throw OSException("Process is in state: DORMANT", LOCATION);	
-	
+
+		if (m_ThreadData->Description.stack_size < OS_SIZE_OF_STACK_LIMIT)
+			OSException( (ErrorString << "Stacksize could be too small: " 
+					<< m_ThreadData->Description.stack_size).c_str(), LOCATION).logMessage(ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE);
+		
 		EntryPoint *ThisEntryPoint = m_ParentProcess->getEntryPoint( m_ThreadData->Description.entry_point );
-	
-		if ( ThisEntryPoint == NULL ) 
-			throw OSException( (ErrorString << "EntryPoint not found: '" << m_ThreadData->Description.entry_point << "' ").c_str() , LOCATION);	
 	
 		int Result;
 

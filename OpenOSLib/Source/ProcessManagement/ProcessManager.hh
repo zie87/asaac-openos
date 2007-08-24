@@ -57,7 +57,7 @@ public:
 	ASAAC_PublicId getProcessId( pid_t PosixId );
 
 	//! get process instance
-	Process* getProcess( ASAAC_PublicId ProcessId, const bool do_throw = true );
+	Process* getProcess( ASAAC_PublicId ProcessId );
 	/*!< This function returns a reference to the process instance handling
 	 *   the process with the indicated ProcessId, if such a process is
 	 *   a slave of the current process, or the current process itself.
@@ -77,7 +77,7 @@ public:
     void     setCurrentProcess( ASAAC_PublicId ProcessId );
 	
 	//! get reference to current process' controlling Process instance
-	Process* getCurrentProcess(  const bool do_throw = true );
+	Process* getCurrentProcess();
 	
 	//! forward for SimpleCommandInterface::addCommandHandler()
 	void 	 addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler );

@@ -419,36 +419,25 @@ signed long	Process::getThreadIndex( ASAAC_PublicId ThreadId )
 }
 
 
-Thread* Process::getThread( ASAAC_PublicId ThreadId, const bool do_throw )
+Thread* Process::getThread( ASAAC_PublicId ThreadId )
 {
 	if (m_IsInitialized == false)
-	{
-		if (do_throw == true)
-			throw UninitializedObjectException(LOCATION);
-		else return NULL;
-	}
+		throw UninitializedObjectException(LOCATION);
 
 	signed long	Index = getThreadIndex( ThreadId );
 	
 	if (Index == -1) 
-	{
-		if (do_throw == true)
-			throw OSException("Thread object could not be found", LOCATION);
-		else return NULL;
-	}
+		throw OSException("Thread object could not be found", LOCATION);
 
 	return getThreadByIndex(Index);
 }
 
 
-Thread* Process::getCurrentThread( const bool do_throw )
+Thread* Process::getCurrentThread()
 {
 	if (m_IsInitialized == false)
-	{
-		if (do_throw == true)
-			throw UninitializedObjectException(LOCATION);
-		else return NULL;
-	}
+		throw UninitializedObjectException(LOCATION);
+
 	unsigned long Index;
 	
 	for ( Index = 0; Index < OS_MAX_NUMBER_OF_THREADS; Index++ )
@@ -462,32 +451,20 @@ Thread* Process::getCurrentThread( const bool do_throw )
 	}
 	
 	if (Index == OS_MAX_NUMBER_OF_THREADS)
-	{
-		if (do_throw == true)
-			throw OSException("Thread object could not be found", LOCATION);
-		else return NULL;
-	}
+		throw OSException("Thread object could not be found", LOCATION);
 	
 	return getThreadByIndex(Index);
 }
 
 
-Thread*	Process::getThreadByIndex( unsigned long Index, const bool do_throw )
+Thread*	Process::getThreadByIndex( unsigned long Index )
 {
 	if (m_IsInitialized == false)
-	{
-		if (do_throw == true)
-			throw UninitializedObjectException(LOCATION);
-		else return NULL;
-	}
+		throw UninitializedObjectException(LOCATION);
 
 	if ( (  Index < 0 ) || 
          ( (unsigned long)Index > OS_MAX_NUMBER_OF_THREADS ) ) 
-	{
-		if (do_throw == true)
-			throw OSException("Index is out of range",LOCATION);
-		else return NULL;
-	}
+		throw OSException("Index is out of range",LOCATION);
 	
 	Thread* ThreadObject = &m_ThreadObject[ Index ];
 	
@@ -737,7 +714,7 @@ void Process::run()
 	}
 	catch ( ASAAC_Exception &e )
 	{
-		e.addPath("Error starting process", LOCATION);
+		e.addPath("Error running process", LOCATION);
 		
 		throw;
 	}
@@ -787,11 +764,12 @@ void Process::destroy()
 	CharSeq ErrorString;
 
 	try
-	{
+	{		
 		//If process shall be destroyed from inside it's own thread
 		//sendCommand will not return here.	
 		try
 		{
+			refreshPosixId();
 			sendCommand( CMD_TERM_PROCESS, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );		
 		}
 		catch ( ASAAC_Exception &e )
@@ -806,23 +784,9 @@ void Process::destroy()
 		//If Process shall be killed from outside, kill it truely now...
 		if (ProcessManager::getInstance()->getCurrentProcess()->getId() != this->getId())
 		{
-			try
-			{
-				int Dummy;	
-				SignalManager::getInstance()->waitForSignal( SIGCHLD, Dummy, OS_SIMPLE_COMMAND_TIMEOUT  );
-
-				oal_waitpid( (pid_t)-1, &Dummy, 0 );
-			}
-			catch ( ASAAC_Exception &e )
-			{
-				if (e.isTimeout())
-				{
-					if ( m_PosixId != 0 ) 
-						oal_kill( m_PosixId, SIGTERM );
-					else OSException("Kill Signal cannot be send, because pid is unknown (PID=0).", LOCATION).raiseError();
-				}
-				else throw;
-			}
+			if ( m_PosixId != 0 ) 
+				oal_kill( m_PosixId, SIGTERM );
+			else throw OSException("Kill Signal cannot be send, because posix process id is unknown.", LOCATION);
 
 			//TODO: deinitialize here?
 			deinitialize();
@@ -1282,7 +1246,10 @@ bool Process::isOSScope()
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
 
-	return (getCurrentThread(false) == NULL);
+    Thread *CurrentThread = NULL;
+    NO_EXCEPTION( CurrentThread = getCurrentThread() );
+    
+	return (CurrentThread == NULL);
 }
 
 

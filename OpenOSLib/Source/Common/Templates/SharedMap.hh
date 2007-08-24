@@ -148,6 +148,8 @@ template <class TID, class T> void SharedMap<TID, T>::deinitialize()
 	m_List.deinitialize();
 	
 	m_Semaphore.deinitialize();
+	
+	m_IsInitialized = false;
 }
 
 

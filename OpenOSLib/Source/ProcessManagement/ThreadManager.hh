@@ -53,13 +53,14 @@ public:
 	// Access
 	
 	//! get reference to current thread's controlling Thread instance
-	Thread* getCurrentThread( const bool do_throw = true );
+	Thread* getCurrentThread();
+	ASAAC_PublicId getCurrentThreadId();
 
 	//! get reference to thread defined by current process and ThreadId
-	Thread* getThread( ASAAC_PublicId ThreadId, const bool do_throw = true );
+	Thread* getThread( ASAAC_PublicId ThreadId);
 
 	//! get reference to thread defined by ProcessId and ThreadId
-	Thread* getThread( ASAAC_PublicId ProcessId, ASAAC_PublicId ThreadId, const bool do_throw = true );
+	Thread* getThread( ASAAC_PublicId ProcessId, ASAAC_PublicId ThreadId);
 
 private:
 	ThreadManager();

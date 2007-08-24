@@ -521,29 +521,18 @@ void OpenOS::initializeMutex()
 
 void OpenOS::acquireMutex()
 {
-	Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess(false);
-	Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
-
-	ASAAC_PublicId process_id = 0;
-	ASAAC_PublicId thread_id = OS_UNUSED_ID;
+	Process *ThisProcess = NULL;
+	NO_EXCEPTION( ThisProcess = ProcessManager::getInstance()->getCurrentProcess() );
 	
-	if (ThisProcess != NULL)
-		if (ThisProcess->isInitialized())
-			process_id = ThisProcess->getId();
-
-	if (ThisThread != NULL)
-		if (ThisThread->isInitialized())
-			thread_id = ThisThread->getId();
+	ASAAC_PublicId thread_id = ThreadManager::getInstance()->getCurrentThreadId();
 
 	unsigned long processIdx = 0;
 	unsigned long threadIdx = 0;
 
-	if (ThisProcess != 0)
+	if (ThisProcess != NULL)
 	{
 		processIdx = ProcessManager::getInstance()->getProcessIndex(ThisProcess->getId());
-		
-		if (ThisProcess->isInitialized())
-			threadIdx = ThisProcess->getThreadIndex(thread_id);
+		threadIdx = ThisProcess->getThreadIndex(thread_id);
 	}
 
 	unsigned long thisIdx = processIdx * (OS_MAX_NUMBER_OF_THREADS+1) + threadIdx;
@@ -564,29 +553,18 @@ void OpenOS::acquireMutex()
 
 void OpenOS::releaseMutex()
 {
-	Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess(false);
-	Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
-
-	ASAAC_PublicId process_id = 0;
-	ASAAC_PublicId thread_id = OS_UNUSED_ID;
+	Process *ThisProcess = NULL;
+	NO_EXCEPTION( ThisProcess = ProcessManager::getInstance()->getCurrentProcess() );
 	
-	if (ThisProcess != NULL)
-		if (ThisProcess->isInitialized())
-			process_id = ThisProcess->getId();
-
-	if (ThisThread != NULL)
-		if (ThisThread->isInitialized())
-			thread_id = ThisThread->getId();
-
+	ASAAC_PublicId thread_id = ThreadManager::getInstance()->getCurrentThreadId();
+	
 	unsigned long processIdx = 0;
 	unsigned long threadIdx = 0;
 
-	if (ThisProcess != 0)
+	if (ThisProcess != NULL)
 	{
-		processIdx = ProcessManager::getInstance()->getProcessIndex(ThisProcess->getId());
-		
-		if (ThisProcess->isInitialized())
-			threadIdx = ThisProcess->getThreadIndex(thread_id);
+		processIdx = ProcessManager::getInstance()->getProcessIndex(ThisProcess->getId());		
+		threadIdx = ThisProcess->getThreadIndex(thread_id);
 	}
 
 	unsigned long thisIdx = processIdx * (OS_MAX_NUMBER_OF_THREADS+1) + threadIdx;

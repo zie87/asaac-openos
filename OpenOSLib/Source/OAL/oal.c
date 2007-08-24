@@ -2,7 +2,7 @@
 
 const char *oal_signal_description( const int Signal )
 {
-	static const  char* DescriptionArray[29] = {
+	static const  char* DescriptionArray[28] = {
 		"[SIGABRT] Process abort signal.",
 		"[SIGALRM] Alarm clock.",
 		"[SIGBUS] Access to an undefined portion of a memory object.",
@@ -30,8 +30,7 @@ const char *oal_signal_description( const int Signal )
 		"[SIGURG] High bandwidth data is available at a socket.",
 		"[SIGVTALRM] Virtual timer expired.",
 		"[SIGXCPU] CPU time limit exceeded.",
-		"[SIGXFSZ] File size limit exceeded.",
-		"UNKNOWN SIGNAL"
+		"[SIGXFSZ] File size limit exceeded."
 	};
 
 	switch (Signal)
@@ -64,6 +63,10 @@ const char *oal_signal_description( const int Signal )
 		case SIGVTALRM: return DescriptionArray[25]; break;
 		case SIGXCPU:   return DescriptionArray[26]; break;
 		case SIGXFSZ:   return DescriptionArray[27]; break;
-		default:        return DescriptionArray[28]; break;
+		default: {
+			static char UnknownSignal[255];
+			snprintf( UnknownSignal, sizeof(UnknownSignal), "Unknown Signal: %i", Signal );
+			return UnknownSignal; break;
+		}
 	}
 }

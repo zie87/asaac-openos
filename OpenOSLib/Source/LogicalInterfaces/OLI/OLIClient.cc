@@ -108,25 +108,14 @@ namespace ASAAC
 		{
 			try
 			{
-				ASAAC_PublicId currentProcessId = OS_UNUSED_ID;
-				ASAAC_PublicId currentThreadId = OS_UNUSED_ID;
-				
 				ProcessManager *PM = ProcessManager::getInstance();
 				ThreadManager *TM = ThreadManager::getInstance();
-			
-				Process *P = PM->getCurrentProcess();
-			
-				currentProcessId = P->getId();
-
-				Thread *T = TM->getCurrentThread(false);
-				if (T != NULL)
-					currentThreadId = T->getId();
 				
 				m_TwoWayCommunication.setClientConfiguration( 
-					currentProcessId, 	//process_id
-					currentThreadId,	//thread_id
-					getRequestVc(), 	//request_local_vc_id
-					getReplyVc());		//reply_local_vc_id
+					PM->getCurrentProcessId(), 	//process_id
+					TM->getCurrentThreadId(),	//thread_id
+					getRequestVc(), 			//request_local_vc_id
+					getReplyVc());				//reply_local_vc_id
 								
 				m_TwoWayCommunication.attach();
 			}

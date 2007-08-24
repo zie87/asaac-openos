@@ -156,41 +156,41 @@ void ThreadManager::getThreadState(const ASAAC_PublicId process_id, const ASAAC_
 }
 
 
-Thread* ThreadManager::getCurrentThread( const bool do_throw )
+Thread* ThreadManager::getCurrentThread()
 {
 	if (m_IsInitialized == false)
-	{
-		if (do_throw == true)
-			throw UninitializedObjectException(LOCATION);
-		else return NULL;
-	}
+		throw UninitializedObjectException(LOCATION);
 
-	Process *P = ProcessManager::getInstance()->getCurrentProcess( do_throw );
+	Process *P = ProcessManager::getInstance()->getCurrentProcess();
 	
-	if ( P == NULL )
-		return NULL;
-	
-	return P->getCurrentThread( do_throw );
+	return P->getCurrentThread();
 }
 
 
-Thread* ThreadManager::getThread( ASAAC_PublicId ThreadId, const bool do_throw )
+ASAAC_PublicId ThreadManager::getCurrentThreadId()
 {
-	Process *P = ProcessManager::getInstance()->getCurrentProcess( do_throw );
+	Thread *CurrentThread = NULL;
 	
-	if (P == NULL)
-		return NULL;
+	NO_EXCEPTION( CurrentThread = getCurrentThread() );
+	
+	if (CurrentThread == NULL)
+		return OS_UNUSED_ID;
+	
+	return CurrentThread->getId();
+}
+
+
+Thread* ThreadManager::getThread( ASAAC_PublicId ThreadId )
+{
+	Process *P = ProcessManager::getInstance()->getCurrentProcess();
 	
 	return P->getThread(ThreadId);
 }
 
 
-Thread* ThreadManager::getThread( ASAAC_PublicId ProcessId, ASAAC_PublicId ThreadId, const bool do_throw )
+Thread* ThreadManager::getThread( ASAAC_PublicId ProcessId, ASAAC_PublicId ThreadId )
 {
-	Process *P = ProcessManager::getInstance()->getProcess( do_throw );
-	
-	if (P == NULL)
-		return NULL;
+	Process *P = ProcessManager::getInstance()->getProcess( ProcessId );
 	
 	return P->getThread(ThreadId);
 }

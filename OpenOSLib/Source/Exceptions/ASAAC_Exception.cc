@@ -238,15 +238,8 @@ void ASAAC_Exception::logMessage( ASAAC_LogMessageType message_type ) const
 }
 
 
-void ASAAC_Exception::raiseError( const bool do_throw ) const
+void ASAAC_Exception::raiseError( ) const
 {
-	if ( do_throw == true )
-	{
-	/*	cout << "test" << endl;
-		throw;
-		throw *this;*/
-	}
-
 	
 #ifdef DEBUG
     printMessage();

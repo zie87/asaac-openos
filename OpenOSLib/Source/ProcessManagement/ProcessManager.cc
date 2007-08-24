@@ -284,14 +284,10 @@ Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription &Descri
 }
 
 
-Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, const bool do_throw )
+Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId )
 {
 	if (m_IsInitialized == false) 
-	{
-		if (do_throw == true)
 			throw UninitializedObjectException(LOCATION);
-		else return NULL;
-	}
 	
 	Process* Object = NULL;
 	
@@ -331,15 +327,7 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId, const bool do_thr
 		ErrorString << "Error configuring process object (pid = " << CharSeq(ProcessId) << ")";
 		e.addPath( ErrorString.c_str(), LOCATION);
 
-		if (do_throw)
-		{
-			throw e;
-		}
-		else
-		{
-			e.raiseError();
-			return NULL;
-		}
+		throw e;
 	}
 	
 	return Object;
@@ -548,7 +536,9 @@ void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 
 	try
 	{
-		Process *P = getCurrentProcess( false );
+		Process *P = NULL;
+		
+		NO_EXCEPTION( P = getCurrentProcess() );
 		
 		if (P != NULL)
 			P->setServer( false );
@@ -561,7 +551,7 @@ void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 			Description.global_pid = ProcessId;
 			P = allocateProcess(Description, m_CurrentProcessIndex);
 		}
-		else P = getProcess( ProcessId, m_CurrentProcessIndex );
+		else P = getProcess( ProcessId );
 	
 		P->setServer( true );
 		
@@ -576,21 +566,13 @@ void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 }
 
 
-Process* ProcessManager::getCurrentProcess( const bool do_throw )
+Process* ProcessManager::getCurrentProcess()
 {
 	if (m_IsInitialized == false)
-	{
-		if (do_throw == true)
-			throw UninitializedObjectException(LOCATION);
-		else return NULL;
-	}
+		throw UninitializedObjectException(LOCATION);
 	
 	if ( (m_CurrentProcessIndex < 0) || (m_CurrentProcessIndex >= OS_MAX_NUMBER_OF_PROCESSES) )	
-	{
-		if (do_throw == true)
-			throw OSException("CurrentProcess object not available", LOCATION);
-		else return NULL;
-	}
+		throw OSException("CurrentProcess object not available", LOCATION);
 		
 	return (&m_ProcessObject[m_CurrentProcessIndex]);
 }

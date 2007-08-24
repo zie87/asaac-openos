@@ -149,19 +149,19 @@ public:
 	signed long				getThreadIndex( ASAAC_PublicId ThreadId );
 
 	//! get reference to a thread identified by thread ASAAC_PublicId
-	Thread*					getThread( ASAAC_PublicId ThreadId, const bool do_throw = true );
+	Thread*					getThread( ASAAC_PublicId ThreadId );
 	/*!< \param[in] ThreadId ASAAC_PublicId of thread object to obtain reference to
 	 *   \returns   Reference to indicated thread. 0, if no thread with the
 	 *              indicated ASAAC_PublicId is found within this process.
 	 */
 	
 	//! get reference to the currently executed thread
-	Thread*					getCurrentThread( const bool do_throw = true );
+	Thread*					getCurrentThread();
 	 /*!<   \returns   Reference to current thread. 0, if current thread is
 	  *                not found in this process.
 	  */
 
-	Thread*					getThreadByIndex( unsigned long Index, const bool do_throw = true );
+	Thread*					getThreadByIndex( unsigned long Index );
 
 	//! add an entry point	
 	void            		addEntryPoint( const ASAAC_CharacterSequence &Name, const EntryPointAddr Address );

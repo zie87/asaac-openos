@@ -63,7 +63,7 @@ void FileManager::initialize()
 }
 
 
-void FileManager::deinitialize( const bool do_throw )
+void FileManager::deinitialize( )
 {
     if (m_IsInitialized == false)
         return;
@@ -84,7 +84,7 @@ void FileManager::deinitialize( const bool do_throw )
     {
         e.addPath("Error while deinitializing FileManager", LOCATION);
 
-        e.raiseError( do_throw );
+        e.raiseError( );
     }    
 }
 
@@ -126,7 +126,7 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 	        	OSException( (ErrorString << "setuid: " << strerror(errno)).c_str(), LOCATION ).raiseError();
 	    } 
 	    
-	    deinitialize( true );
+	    deinitialize();
 	    
 	    //deallocate objects, because after execve all objects will be lost
 	    AllocatorManager::getInstance()->deallocateAllObjects();

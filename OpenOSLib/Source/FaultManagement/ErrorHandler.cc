@@ -81,10 +81,7 @@ void ErrorHandler::deinitialize()
 		//m_ErrorMessageQueue.close();
 		//m_LoggingMessageQueue.close();
 		
-		Process *P = ProcessManager::getInstance()->getCurrentProcess(false);
-		
-		if (P != NULL)		
-			P->removeCommandHandler( CMD_ACTIVATE_ERROR_HANDLER );
+		ProcessManager::getInstance()->getCurrentProcess()->removeCommandHandler( CMD_ACTIVATE_ERROR_HANDLER );
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -112,10 +109,6 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 		
 	try
 	{
-		Process *ThisProcess = ProcessManager::getInstance()->getCurrentProcess(false);
-		Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
-
-
 		ASAAC_Time absolute_local_time = TimeZero;
 		ASAAC_Time absolute_global_time = TimeZero;
 		ASAAC_Time relative_local_time = TimeZero;
@@ -124,18 +117,8 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 		TimeManager::getAbsoluteGlobalTime( absolute_global_time );
 		TimeManager::getRelativeLocalTime( relative_local_time );
 	
-	
-		ASAAC_PublicId process_id = 0;
-		ASAAC_PublicId thread_id = OS_UNUSED_ID;
-		
-		if (ThisProcess != NULL)
-			if (ThisProcess->isInitialized())
-				process_id = ThisProcess->getId();
-	
-		if (ThisThread != NULL)
-			if (ThisThread->isInitialized())
-				thread_id = ThisThread->getId();
-	
+		ASAAC_PublicId process_id = ProcessManager::getInstance()->getCurrentProcessId();
+		ASAAC_PublicId thread_id = ThreadManager::getInstance()->getCurrentThreadId();
 		
 		m_ErrorInformation.error_code           = error_code;
 		m_ErrorInformation.error_message        = error_message;
@@ -184,11 +167,6 @@ ASAAC_ReturnStatus ErrorHandler::getErrorInformation( ASAAC_PublicId& faulty_thr
 											ASAAC_CharacterSequence& error_message )
 {
 	if (m_HaveErrorInformation == false) 
-		return ASAAC_ERROR;
-	
-	Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
-	
-	if (( ThisThread == NULL ) || ( ThisThread->getId() != OS_UNUSED_ID )) 
 		return ASAAC_ERROR;
 	
 	faulty_thread_id = m_ErrorInformation.thread_id;
@@ -250,24 +228,16 @@ ASAAC_ReturnStatus ErrorHandler::logMessage( const ASAAC_CharacterSequence& log_
 		LogReportData ThisReportData;
 		ThisReportData.time = TimeStamp::Now().asaac_Time();	
 	
-		Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess(false);
-		Thread *ThisThread = ThreadManager::getInstance()->getCurrentThread(false);
-	
 		ASAAC_PublicId authentication_code = 0;
-		ASAAC_PublicId process_id = OS_UNUSED_ID;
-		ASAAC_PublicId thread_id = OS_UNUSED_ID;
+		ASAAC_PublicId process_id = ProcessManager::getInstance()->getCurrentProcessId();
+		ASAAC_PublicId thread_id = ThreadManager::getInstance()->getCurrentThreadId();
+
+		Process *ThisProcess = NULL;
+		NO_EXCEPTION( ThisProcess = ProcessManager::getInstance()->getCurrentProcess() );
 		
 		if (ThisProcess != NULL)
-			if (ThisProcess->isInitialized())
-			{
-				process_id = ThisProcess->getId();
-				authentication_code = ThisProcess->getAuthenticationCode();
-			}
+			authentication_code = ThisProcess->getAuthenticationCode();
 	
-		if (ThisThread != NULL)
-			if (ThisThread->isInitialized())
-				thread_id = ThisThread->getId();
-			
 		ThisReportData.log_message = log_message;
 		ThisReportData.message_type = message_type;
 	
