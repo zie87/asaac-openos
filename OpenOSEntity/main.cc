@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "OpenOS.hh"
 #include "OpenOSObject.hh"
 
@@ -13,15 +15,12 @@
 ASAAC_ENTITY
 
 
-#define UNDEFINED_PATH CharSeq("<undefined>").asaac_str()
-
 static EntityConfiguration entityConfiguration;
-
 
 void initializeConfiguration();		
 void parseParameter( char argc, char** argv );
 void parseConfiguration();
-void printHeader(EntityConfiguration conf);
+void printHeader(EntityConfiguration &conf);
 
 
 ASAAC_THREAD(MainThread)
@@ -69,7 +68,9 @@ int main( char argc, char** argv )
     catch ( ASAAC_Exception& e )
     {
     	e.printMessage();
-    	return 1;
+    	
+        cout << "OpenOS Entity shuts down now..." << endl;
+        return 1;
     }
 	
 	// 2nd step: start execution	
@@ -77,7 +78,7 @@ int main( char argc, char** argv )
     {    	
         // Initialize OS
         OpenOS::getInstance()->initialize( entityConfiguration.Flush, LAS_ENTITY, entityConfiguration.CpuId );
-        
+
         // Register local threads
         registerThreads();
         
@@ -101,12 +102,12 @@ int main( char argc, char** argv )
     	e.addPath( "Caught exception in main loop of OpenOS Entity", LOCATION );
     	e.printMessage();
     	
-    	return 3;
+        cout << "OpenOS Entity shuts down now..." << endl;
+        return 2;
     }
     
     // 3rd step: shut down
     cout << "OpenOS Entity shuts down now..." << endl;
-
     return 0;
 }
 
@@ -118,11 +119,11 @@ void initializeConfiguration()
 	
 	entityConfiguration.ProcessConfiguration.Count = 0;
 		
-	for (unsigned short p = 0; p < OS_MAX_NUMBER_OF_PROCESSES; p++)
+	for (unsigned short p = 0; p < OS_MAX_NUMBER_OF_PRECONFIGURED_PROCESSES; p++)
 	{
 		entityConfiguration.ProcessConfiguration.List[p].Alias = PROC_UNDEFINED;
 		entityConfiguration.ProcessConfiguration.List[p].Description.global_pid = OS_UNUSED_ID;
-		entityConfiguration.ProcessConfiguration.List[p].Description.programme_file_name = CharSeq("").asaac_str();
+		entityConfiguration.ProcessConfiguration.List[p].Description.programme_file_name.size = 0;
 		entityConfiguration.ProcessConfiguration.List[p].Description.programme_file_Size = 0;
 		entityConfiguration.ProcessConfiguration.List[p].Description.access_type = ASAAC_LOCAL_ACCESS;
 		entityConfiguration.ProcessConfiguration.List[p].Description.cpu_id = 0;
@@ -134,13 +135,13 @@ void initializeConfiguration()
 		
 		entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.Count = 0;
 		
-		for (unsigned short t = 0; t < OS_MAX_NUMBER_OF_THREADS; t++)
+		for (short t = OS_MAX_NUMBER_OF_PRECONFIGURED_THREADS-1; t >= 0; t--)
 		{
 			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.global_pid = OS_UNUSED_ID;
 			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.thread_id = OS_UNUSED_ID;
-			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.entry_point = CharSeq("").asaac_str();
+			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.entry_point.size = 0;
 			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.cpu_id = 0;
-			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.stack_size = 65536;
+			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.stack_size = 0x000fffff;
 			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.security_rating.classification_level = ASAAC_UNCLASSIFIED;
 			entityConfiguration.ProcessConfiguration.List[p].ThreadConfiguration.List[t].Description.security_rating.security_category = ASAAC_LEVEL_1;
 		}
@@ -176,7 +177,7 @@ void parseConfiguration()
 }
 
 
-void printHeader(EntityConfiguration conf)
+void printHeader(EntityConfiguration &conf)
 {
 	char * pattern = 
 		"                                                                     \n"

@@ -27,9 +27,11 @@
 <listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" id="gnu.cpp.compiler.exe.debug.option.debugging.level.815292171" name="Debug Level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
-<option superClass="gnu.cpp.compiler.option.debugging.other" id="gnu.cpp.compiler.option.debugging.other.1820246124" name="Other debugging flags" value="-ggdb" valueType="string"/>
+<option superClass="gnu.cpp.compiler.option.debugging.other" id="gnu.cpp.compiler.option.debugging.other.1820246124" name="Other debugging flags" value="-gstabs+" valueType="string"/>
 <option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.568452770" name="Defined symbols (-D)"/>
 <option superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" id="gnu.cpp.compiler.exe.debug.option.optimization.level.1708009113" name="Optimization Level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+<option superClass="gnu.cpp.compiler.option.debugging.prof" id="gnu.cpp.compiler.option.debugging.prof.1044518444" value="true" valueType="boolean"/>
+<option superClass="gnu.cpp.compiler.option.debugging.gprof" id="gnu.cpp.compiler.option.debugging.gprof.622109994" value="true" valueType="boolean"/>
 <inputType superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input" id="cdt.managedbuild.tool.gnu.cpp.compiler.input.135095100"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1224070012" name="GCC C Compiler">
@@ -62,6 +64,7 @@
 </storageModule>
 <storageModule moduleId="scannerConfiguration"/>
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.release.596840853">
 <storageModule moduleId="org.eclipse.cdt.core.settings" name="Release" id="cdt.managedbuild.config.gnu.exe.release.596840853" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
@@ -75,7 +78,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.exe.release.596840853" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" parent="cdt.managedbuild.config.gnu.exe.release" artifactName="ProcessManager" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.exe.release.596840853" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" parent="cdt.managedbuild.config.gnu.exe.release" artifactName="ProcessManager" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.exe.release.596840853.2143132680" name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.exe.release" id="cdt.managedbuild.toolchain.gnu.exe.release.866132929" name="GCC Tool Chain">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.exe.release" id="cdt.managedbuild.target.gnu.platform.exe.release.1338544192" name="Debug Platform"/>
@@ -107,6 +110,7 @@
 </storageModule>
 <storageModule moduleId="scannerConfiguration"/>
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 </cconfiguration>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
