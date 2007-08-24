@@ -33,7 +33,12 @@ LoggingManager* LoggingManager::getInstance()
 
 void LoggingManager::initialize(bool IsMaster)
 {
-	static char LogFileNames[][20] = { "log.error", "log.application", "log.gsm", "log.maintenance" };
+	ASAAC_CharacterSequence LogFileNameArray[4];
+	
+	LogFileNameArray[0] = CharSeq("log.error").asaac_str();
+	LogFileNameArray[1] = CharSeq("log.application").asaac_str();
+	LogFileNameArray[2] = CharSeq("log.gsm").asaac_str();
+	LogFileNameArray[3] = CharSeq("log.maintenance").asaac_str();
 
 	if ( m_IsInitialized ) 
 		return;
@@ -46,16 +51,16 @@ void LoggingManager::initialize(bool IsMaster)
 	
 	try 
 	{
-		for ( long Index = 0; Index < 4; Index ++ ) m_LogFileDescriptors[ Index ] = 0;
+		for ( long Index = 0; Index < 4; Index ++ ) m_LogFileDescriptorArray[ Index ] = 0;
 		
 		for ( long Index = 0; Index < 4; Index ++ )
 		{
 			if ( IsMaster )
-				FM->createFile( CharSeq(LogFileNames[ Index ]).asaac_str(), ASAAC_RW, 0 );
+				FM->createFile( LogFileNameArray[ Index ], ASAAC_RW, 0 );
 			
 			const ASAAC_UseOption UseOption = {ASAAC_READWRITE, ASAAC_SHARE};
 			
-			FM->openFile( CharSeq(LogFileNames[ Index ]).asaac_str(), UseOption, m_LogFileDescriptors[Index]);
+			FM->openFile( LogFileNameArray[ Index ], UseOption, m_LogFileDescriptorArray[ Index ] );
 		}
 		
 		m_LoggingQueue.initialize( IsMaster, OS_LOGGING_QUEUE, CLIENTS_RECEIVE, OS_SIZE_OF_ERROR_QUEUE, sizeof( LogReportData ) );
@@ -83,8 +88,8 @@ void LoggingManager::deinitialize()
 		
 		for ( long Index = 0; Index < 4; Index ++ )
 		{
-			if ( m_LogFileDescriptors[ Index ] ) 
-				FM->closeFile( m_LogFileDescriptors[ Index ] );
+			if ( m_LogFileDescriptorArray[ Index ] ) 
+				FM->closeFile( m_LogFileDescriptorArray[ Index ] );
 		}
 	}
 	catch (ASAAC_Exception &e)
@@ -110,12 +115,12 @@ ASAAC_ResourceReturnStatus	LoggingManager::readLog( ASAAC_LogMessageType message
 		unsigned long NewPosition;
 		
 		if ( log_id == 0 )
-			FM->seekFile( m_LogFileDescriptors[ message_type ], ASAAC_END_OF_FILE, 0, NewPosition );
-		else FM->seekFile( m_LogFileDescriptors[ message_type ], ASAAC_START_OF_FILE, log_id * ASAAC_OS_MAX_STRING_SIZE, NewPosition );
+			FM->seekFile( m_LogFileDescriptorArray[ message_type ], ASAAC_END_OF_FILE, 0, NewPosition );
+		else FM->seekFile( m_LogFileDescriptorArray[ message_type ], ASAAC_START_OF_FILE, log_id * ASAAC_OS_MAX_STRING_SIZE, NewPosition );
 		
 		long BytesRead;
 		
-		FM->readFile( m_LogFileDescriptors[ message_type ], log_message.data, 
+		FM->readFile( m_LogFileDescriptorArray[ message_type ], log_message.data, 
 				ASAAC_OS_MAX_STRING_SIZE, BytesRead, OS_SIMPLE_COMMAND_TIMEOUT );
 		
 		log_message.size = BytesRead;
@@ -148,8 +153,8 @@ ASAAC_ResourceReturnStatus	LoggingManager::writeLog( ASAAC_LogMessageType messag
 		unsigned long NewPosition;
 		
 		if ( log_id == 0 )
-			FM->seekFile( m_LogFileDescriptors[ message_type ], ASAAC_END_OF_FILE, 0, NewPosition );
-		else FM->seekFile( m_LogFileDescriptors[ message_type ], ASAAC_START_OF_FILE, log_id * ASAAC_OS_MAX_STRING_SIZE, NewPosition );
+			FM->seekFile( m_LogFileDescriptorArray[ message_type ], ASAAC_END_OF_FILE, 0, NewPosition );
+		else FM->seekFile( m_LogFileDescriptorArray[ message_type ], ASAAC_START_OF_FILE, log_id * ASAAC_OS_MAX_STRING_SIZE, NewPosition );
 		
 		long Index;
 		switch(message_type)
@@ -164,7 +169,7 @@ ASAAC_ResourceReturnStatus	LoggingManager::writeLog( ASAAC_LogMessageType messag
 		ASAAC_CharacterSequence message = CharSeq(log_message).append( ASAAC_OS_MAX_STRING_SIZE-log_message.size-1, ' ' ).appendLineBreak().asaac_str(); 
 		unsigned long BytesWritten;
 		
-		FM->writeFile(m_LogFileDescriptors[ Index ], message.data, ASAAC_OS_MAX_STRING_SIZE, 
+		FM->writeFile(m_LogFileDescriptorArray[ Index ], message.data, ASAAC_OS_MAX_STRING_SIZE, 
 				BytesWritten, OS_SIMPLE_COMMAND_TIMEOUT );
 		
 		if ( BytesWritten != ASAAC_OS_MAX_STRING_SIZE )

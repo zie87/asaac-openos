@@ -116,3 +116,4 @@ void SpinLock::operator delete( void* location )
 	SpinLockPool.releaseObject((SpinLock*)location);
 }
 
+

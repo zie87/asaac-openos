@@ -2,6 +2,7 @@
 #define OPENOSINCLUDES_HH_
 
 #include "OAL/oal.h"
+#include "OAL/oal.hh"
 #include "ASAAC.h"
 #include "OpenOSConstants.hh"
 

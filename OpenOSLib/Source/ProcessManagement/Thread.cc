@@ -644,7 +644,7 @@ void* Thread::ThreadStartWrapper( void* RealAddress )
 		{
 			// emulate a received 'suspend' call.
 			// TODO: Analyse this call
-			// SuspendCallback.call( 0 );
+			SuspendCallback( NULL );
 		}
 		
 		EntryPointAddr ThisEntryPoint = EntryPointAddr(RealAddress);

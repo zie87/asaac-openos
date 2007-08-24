@@ -8,7 +8,7 @@ typedef struct {
 } ThreadDescription;
 
 typedef struct {
-	ThreadDescription	        List[OS_MAX_NUMBER_OF_THREADS];
+	ThreadDescription	        List[OS_MAX_NUMBER_OF_PRECONFIGURED_THREADS];
 	unsigned long				Count;		
 } ThreadList;
 
@@ -21,7 +21,7 @@ typedef struct {
 
 
 typedef struct {
-	ProcessDescription  		List[OS_MAX_NUMBER_OF_PROCESSES];
+	ProcessDescription  		List[OS_MAX_NUMBER_OF_PRECONFIGURED_PROCESSES];
 	unsigned long				Count;		
 } ProcessList;
 

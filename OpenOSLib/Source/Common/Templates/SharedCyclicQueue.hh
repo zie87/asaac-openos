@@ -274,7 +274,7 @@ template <class T> void SharedCyclicQueue<T>::push( const T Value, const ASAAC_T
 	// Get exclusive Queue access before doing anything
 	// This will only be blocked for VERY VERY SHORT TIME
 	// so, don't apply a timeout for this.
-	ProtectedScope Access( "Pushing an element in SharedCyclicQueue", m_AccessSemaphore );
+	//ProtectedScope Access( "Pushing an element in SharedCyclicQueue", m_AccessSemaphore );
 
 	// This cell will now be overwritten. Call Overwrite Callback if applicable.
 	if (( m_GlobalData->Free == 0 ) && ( m_OverwriteCallback != NULL ))

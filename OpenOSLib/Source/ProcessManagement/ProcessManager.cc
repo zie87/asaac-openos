@@ -15,19 +15,18 @@
 #include "FaultManagement/ErrorHandler.hh"
 #include "Exceptions/Exceptions.hh"
 
+
 class ProcessSigChildCallback : public Callback {
 	
 	public:
 	
 		virtual void call ( void* Data )
 		{
-			int Dummy;
+			siginfo_t* SignalInfo = (siginfo_t*)Data;
+			ProcessManager* PM = ProcessManager::getInstance();
 			
-			pid_t* PID = (pid_t*)Data;
-			
-			cout << "PID = " << *PID << endl;
-			
-			oal_waitpid( (pid_t)-1, &Dummy, 0 );
+			ASAAC_PublicId ProcessId = PM->getProcessId(SignalInfo->si_pid);
+			PM->getProcess( ProcessId )->SigChildCallback( Data );
 		}
 		
 		virtual ~ProcessSigChildCallback() { };
@@ -204,7 +203,24 @@ long ProcessManager::getProcessIndex( ASAAC_PublicId ProcessId )
 }
 
 
-Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription& Description, long &Index )
+ASAAC_PublicId ProcessManager::getProcessId( pid_t PosixId )
+{
+	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
+	{
+		if ( m_ProcessId[ Index ] != OS_UNUSED_ID )
+		{
+			Process *P = getProcess( m_ProcessId[ Index ] );
+			
+			if (P->getPosixId() == PosixId)
+				return P->getId();
+		}
+	}
+	
+	return OS_UNUSED_ID;
+}
+
+
+Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription &Description, long &Index )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -775,3 +791,6 @@ void ProcessManager::DestroyEntityHandler( CommandBuffer Buffer )
 		e.raiseError();
 	}
 }	
+
+
+

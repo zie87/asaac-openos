@@ -54,6 +54,8 @@ public:
 
 	long     getProcessIndex( ASAAC_PublicId ProcessId );
 
+	ASAAC_PublicId getProcessId( pid_t PosixId );
+
 	//! get process instance
 	Process* getProcess( ASAAC_PublicId ProcessId, const bool do_throw = true );
 	/*!< This function returns a reference to the process instance handling
@@ -65,7 +67,7 @@ public:
 	 *              ProcessId could be found.
 	 */
 	
-	Process* allocateProcess( const ASAAC_ProcessDescription& Description, long &Index );
+	Process* allocateProcess( const ASAAC_ProcessDescription &Description, long &Index );
 			
     void     releaseProcess( ASAAC_PublicId ProcessId );    
     void     releaseAllProcesses();    
@@ -151,8 +153,7 @@ private:
 public:
 	static void	CreateProcessHandler( CommandBuffer Buffer );
 	static void DestroyProcessHandler( CommandBuffer Buffer );	
-	static void DestroyEntityHandler( CommandBuffer Buffer );	
-		
+	static void DestroyEntityHandler( CommandBuffer Buffer );
 };
 
 #endif /*PROCESSMANAGER_HH_*/

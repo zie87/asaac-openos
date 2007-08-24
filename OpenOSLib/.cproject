@@ -4,7 +4,7 @@
 <cproject>
 <storageModule moduleId="org.eclipse.cdt.core.settings">
 <cconfiguration id="cdt.managedbuild.config.gnu.so.debug.766548980">
-<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.so.debug.766548980" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" name="Debug" id="cdt.managedbuild.config.gnu.so.debug.766548980" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/OpenOSLib"/>
@@ -20,7 +20,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.so.debug.766548980" name="Debug" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.debug" artifactName="OpenOS" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="so" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.so.debug.766548980" name="Debug" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.debug" artifactName="OpenOS" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="so" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.so.debug.766548980.488972845" name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.so.debug" id="cdt.managedbuild.toolchain.gnu.so.debug.1250815655" name="GCC Tool Chain">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.so.debug" id="cdt.managedbuild.target.gnu.platform.so.debug.1538506277" name="Debug Platform"/>
@@ -33,7 +33,7 @@
 <listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.1606245775" name="Defined symbols (-D)" valueType="definedSymbols">
-<listOptionValue value="dont_DEBUG" builtIn="false"/>
+<listOptionValue value="DEBUG" builtIn="false"/>
 <listOptionValue value="DEBUG_APPLICATION" builtIn="false"/>
 <listOptionValue value="dont_DEBUG_OLI" builtIn="false"/>
 <listOptionValue value="dont_DEBUG_BUFFER" builtIn="false"/>
@@ -42,6 +42,9 @@
 </option>
 <option superClass="gnu.cpp.compiler.so.debug.option.optimization.level" id="gnu.cpp.compiler.so.debug.option.optimization.level.1026702384" name="Optimization Level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.cpp.compiler.so.debug.option.debugging.level" id="gnu.cpp.compiler.so.debug.option.debugging.level.1375106757" name="Debug Level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+<option superClass="gnu.cpp.compiler.option.optimization.flags" id="gnu.cpp.compiler.option.optimization.flags.603489645" name="Other optimization flags" value="-gstabs+" valueType="string"/>
+<option superClass="gnu.cpp.compiler.option.debugging.gprof" id="gnu.cpp.compiler.option.debugging.gprof.181555220" name="Generate gprof information (-pg)" value="true" valueType="boolean"/>
+<option superClass="gnu.cpp.compiler.option.debugging.prof" id="gnu.cpp.compiler.option.debugging.prof.46335994" name="Generate prof information (-p)" value="true" valueType="boolean"/>
 <inputType superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input" id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1953580047"/>
 </tool>
 <tool superClass="cdt.managedbuild.tool.gnu.c.compiler.so.debug" id="cdt.managedbuild.tool.gnu.c.compiler.so.debug.1475074070" name="GCC C Compiler">
@@ -81,7 +84,7 @@
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.so.release.1388842336">
-<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.so.release.1388842336" name="Release" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" name="Release" id="cdt.managedbuild.config.gnu.so.release.1388842336" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/OpenOSLib"/>

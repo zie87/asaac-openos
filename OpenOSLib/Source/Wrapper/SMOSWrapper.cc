@@ -34,7 +34,7 @@ ASAAC_ReturnStatus createThread(
     ASAAC_ThreadDescription ThreadDesc;
     ThreadDesc.global_pid = pid;
     ThreadDesc.thread_id  = id;
-    ThreadDesc.stack_size  = 65536;
+    ThreadDesc.stack_size  = 0x000fffff;
     ThreadDesc.entry_point = CharacterSequence(name).asaac_str();
 
 	return ASAAC_SMOS_createThread( &ThreadDesc );	

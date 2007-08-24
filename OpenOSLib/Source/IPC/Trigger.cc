@@ -224,3 +224,4 @@ void Trigger::operator delete( void* location )
 	TriggerPool.releaseObject((Trigger*)location);
 }
 
+

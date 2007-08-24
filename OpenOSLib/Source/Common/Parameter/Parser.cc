@@ -194,7 +194,7 @@ ASAAC_PublicId Parser::parsePublicId(unsigned long &Index)
 
 ASAAC_CharacterSequence Parser::parsePath(unsigned long &Index)
 {
-    static ASAAC_CharacterSequence Result;
+    ASAAC_CharacterSequence Result;
     unsigned long StartIndex = Index;
     Result = m_Sequence.asaac_str( StartIndex, parseSample(Index, createSample(graph), sizeof(Result.data)) );
     return Result;
@@ -203,7 +203,7 @@ ASAAC_CharacterSequence Parser::parsePath(unsigned long &Index)
 
 ASAAC_CharacterSequence Parser::parseName(unsigned long &Index)
 {
-    static ASAAC_CharacterSequence Result;
+    ASAAC_CharacterSequence Result;
     unsigned long StartIndex = Index;
     Result = m_Sequence.asaac_str( StartIndex, parseSample(Index, createSample(alnum), sizeof(Result.data)) );
     return Result;

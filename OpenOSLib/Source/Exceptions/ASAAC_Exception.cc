@@ -64,6 +64,30 @@ void ASAAC_Exception::initialize()
 }
 
 
+void ASAAC_Exception::setProcessId( ASAAC_PublicId ProcessId )
+{
+	m_ProcessId = ProcessId;
+}
+
+
+void ASAAC_Exception::setThreadId( ASAAC_PublicId ThreadId )
+{
+	m_ThreadId = ThreadId;
+}
+
+
+ASAAC_PublicId ASAAC_Exception::getProcessId()
+{
+	return m_ProcessId;
+}
+
+
+ASAAC_PublicId ASAAC_Exception::getThreadId()
+{
+	return m_ThreadId;	
+}
+
+
 bool ASAAC_Exception::isTimeout() const
 {
 	return false;
@@ -112,10 +136,10 @@ ASAAC_Address ASAAC_Exception::getLocation() const
 	return 0;
 }
 
+static CharacterSequence Message;
 
 const char * ASAAC_Exception::getMessage() const
 {
-	static CharacterSequence Message;
 	CharacterSequence ErrorType;
 		
 	Message.erase();
@@ -160,35 +184,35 @@ const char * ASAAC_Exception::getMessage() const
 	return Message.c_str();
 }
 
+static CharacterSequence MessageItem;
 
 const char * ASAAC_Exception::getMessageItem(unsigned short index) const
 {
 	if (index >= m_PathSize)
 		return EmptyString;
 		
-	static CharacterSequence Message;
-	Message.erase();
+	MessageItem.erase();
 	
 	ExceptionPathType Path = m_Path[index];	
 		
 	if ( Path.message.size > 0 )
 	{
-		Message << CharSeq( " \"") << Path.message << CharSeq( "\"");
+		MessageItem << CharSeq( " \"") << Path.message << CharSeq( "\"");
 	}
 
 #ifdef DEBUG		
 	if ( Path.function.size > 0 )
 	{
-		Message << CharSeq(" in function '") << Path.function << CharSeq( "'");
+		MessageItem << CharSeq(" in function '") << Path.function << CharSeq( "'");
 	}
 	
 	if ( Path.line > 0 )
 	{
-		Message << CharSeq(" on line ") << Path.line;
+		MessageItem << CharSeq(" on line ") << Path.line;
 	}	
 #endif
 	
-	return Message.c_str();
+	return MessageItem.c_str();
 }
 
 

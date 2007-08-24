@@ -164,7 +164,7 @@ public:
 	Thread*					getThreadByIndex( unsigned long Index, const bool do_throw = true );
 
 	//! add an entry point	
-	void            		addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address );
+	void            		addEntryPoint( const ASAAC_CharacterSequence &Name, const EntryPointAddr Address );
 	/*!< this function adds an entry polong to the table of entry points stored
 	 *   for this process. These entry points are required in order to
 	 *   indicate jump-in addresses for threads to be started inside the process.
@@ -176,10 +176,10 @@ public:
 	 *            the table. ASAAC_ERROR in case of an error.
 	 */
 	     
-	signed long				getEntryPointIndex( ASAAC_CharacterSequence Name );
+	signed long				getEntryPointIndex( const ASAAC_CharacterSequence &Name );
 	
 	//! remove an entry point
-	EntryPoint*				getEntryPoint( ASAAC_CharacterSequence Name );
+	EntryPoint*				getEntryPoint( const ASAAC_CharacterSequence &Name );
 	/*!< retrieve the entry address for an entry polong stored for this process.
 	 * 
 	 *   \param[in] Name Name of the entry point
@@ -188,7 +188,7 @@ public:
 	 
 
 	//! attach the process to a Virtual Channel
-	void		            attachLocalVc( ASAAC_PublicId GlobalVcId, ASAAC_PublicId LocalVcId );
+	void		            attachLocalVc( const ASAAC_PublicId GlobalVcId, const ASAAC_PublicId LocalVcId );
 	/*!< this function establishes the connection of a process with a virtual channel.
 	 *   if required, the shared memory object constituting the virtual channel is opened,
 	 *   and the reference to the proper LocalVc slot is stored in the process.
@@ -203,7 +203,7 @@ public:
 	
 
 	//! detach the process from a Virtual Channel	
-	void		            detachLocalVc( ASAAC_PublicId LocalVcId );
+	void		            detachLocalVc( const ASAAC_PublicId LocalVcId );
 	/*!<
 	 *   \param[in] LocalVcId	Process-Local ASAAC_PublicId of the virtual channel
 	 * 
@@ -211,16 +211,16 @@ public:
 	 */
 	 
 	 //! get reference to a LovalVc attached to this process
-	LocalVc*				getAttachedVirtualChannel( ASAAC_PublicId LocalVcId );
+	LocalVc*				getAttachedVirtualChannel( const ASAAC_PublicId LocalVcId );
 	/*!< \param[in] LocalVcId		Process-local ASAAC_PublicId of the virtual channel
 	 * 
 	 *   \returns Reference to the LocalVc object handling input and/or output for
 	 *            the indicated virtual channel. 0, if no LocalVc object with the
 	 *            supplied LocalVcId could be found.
 	 */
-    long                    getAttachedVirtualChannelIndex( ASAAC_PublicId LocalVcId );
+    long                    getAttachedVirtualChannelIndex( const ASAAC_PublicId LocalVcId );
     
-    bool                    isAttachedTo( ASAAC_PublicId LocalVcId );
+    bool                    isAttachedTo( const ASAAC_PublicId LocalVcId );
 
 
 	//! suspend all threads of the process, except for the calling thread
@@ -380,6 +380,8 @@ public:
 	static void			AttachLocalVcHandler( CommandBuffer Buffer );
 	static void			DetachLocalVcHandler( CommandBuffer Buffer );
 	static void 		InvokeOSScopeHandler( CommandBuffer Buffer );
+	
+	void 				SigChildCallback( void* Data );	
 };
 
 #endif /*PROCESS_HH_*/

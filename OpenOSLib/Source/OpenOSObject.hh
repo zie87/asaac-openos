@@ -8,6 +8,7 @@
 #include "Common/Templates/Shared.hh"
 #include "Allocator/SharedMemory.hh"
 #include "IPC/SimpleCommandInterface.hh"
+#include "IPC/NoLock.hh"
 
 class ProcessManager;
 

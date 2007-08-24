@@ -27,7 +27,7 @@ ASAAC_CharacterSequence FileNameGenerator::getGlobalVcName( ASAAC_PublicId Globa
 	
 	CharacterSequence cs;
 	
-	cs << subdir << "GlobalVc_" << CharSeq(Index, true);
+	cs << subdir << "GlobalVc_" << CharSeq(Index, signed_decimal);
 	
 	return cs.asaac_str();	
 }
@@ -52,7 +52,7 @@ ASAAC_CharacterSequence FileNameGenerator::getProcessName( ASAAC_PublicId Proces
 
 	CharacterSequence cs;
 	
-	cs << subdir << "Process_" << CharSeq(Index, true);
+	cs << subdir << "Process_" << CharSeq(Index, signed_decimal);
 
 	return cs.asaac_str();	
 }
@@ -67,7 +67,7 @@ ASAAC_CharacterSequence FileNameGenerator::getProcessManagerName( ASAAC_PublicId
 
 	CharacterSequence cs;
 	
-	cs << subdir << "ProcessManager_" << CharSeq(Index, true);
+	cs << subdir << "ProcessManager_" << CharSeq(Index, signed_decimal);
 	
 	return cs.asaac_str();	
 }

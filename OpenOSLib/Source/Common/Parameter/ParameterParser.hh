@@ -28,8 +28,8 @@ class ParameterParser: public Parser
 	
 		void parse( ASAAC_CharacterSequence Sequence );
 
-		void setConfiguration( EntityConfiguration Configuration );
-		EntityConfiguration getConfiguration( ); 
+		void setConfiguration( EntityConfiguration &Configuration );
+		EntityConfiguration &getConfiguration( ); 
 	
 	private:
 		EntityConfiguration m_Configuration;

@@ -239,19 +239,25 @@ void SignalManager::waitForSignal( int Signal, int& Value, const ASAAC_TimeInter
 			registerSignalHandler( Signal, ThisNullCallback );
 		
 		long iError = 0;
-		if ( TimeInterval(Timeout).isInfinity() )
-			iError = oal_sigwaitinfo( &ThisSigSet, &ThisSigInfo );
-		else iError = oal_sigtimedwait( &ThisSigSet, &ThisSigInfo, &TimeSpecTimeout );
+		
+		do
+		{
+			if ( TimeInterval(Timeout).isInfinity() )
+				iError = oal_sigwaitinfo( &ThisSigSet, &ThisSigInfo );
+			else iError = oal_sigtimedwait( &ThisSigSet, &ThisSigInfo, &TimeSpecTimeout );
+		}
+		while ((iError == -1) && (errno == EINTR));
 
 		// unregister Null Handler, if it was applied before.
 		if ( Index == -1 ) 
 			unregisterSignalHandler( Signal );
 		
-		if (( iError == -1 ) && ( errno == EAGAIN ))
-			throw TimeoutException( LOCATION );
-		
-		if ( iError <= 0 )
-			throw OSException( strerror(errno), LOCATION );
+		if ( iError == -1 )
+		{
+			if ( errno == EAGAIN )
+				throw TimeoutException( LOCATION );
+			else throw OSException( strerror(errno), LOCATION );
+		}
 	
 		Value = ThisSigInfo.si_value.sival_int;
     }
@@ -281,7 +287,7 @@ void SignalManager::InternalSignalHandler( int Signal, siginfo_t* SignalInfo, vo
 		if (ThisInstance->m_Signals[Index].Handler == NULL )
 			return;
 		
-		ThisInstance->m_Signals[Index].Handler->call( &(SignalInfo->si_value) );
+		ThisInstance->m_Signals[Index].Handler->call( SignalInfo );
     }
     catch ( ASAAC_Exception &e )
     {

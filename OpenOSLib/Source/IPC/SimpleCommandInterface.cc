@@ -10,7 +10,7 @@ using namespace std;
 
 #define SIZE_OF_COMMAND_NAME_ARRAY 13
 
-string CommandNames[SIZE_OF_COMMAND_NAME_ARRAY] = 
+char *CommandNames[SIZE_OF_COMMAND_NAME_ARRAY] = 
 { 
 	"CMD_NULL_COMMAND", 
 	"CMD_GET_PID", 

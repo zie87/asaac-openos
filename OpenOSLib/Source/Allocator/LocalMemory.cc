@@ -31,7 +31,7 @@ void LocalMemory::initialize( long Size )
 		
 		m_BaseAddress = new char[Size];
 		
-		if ( m_BaseAddress == 0 ) 
+		if ( m_BaseAddress == NULL ) 
 			throw OSException( "Allocation Error" );
 	
 		m_MemorySize = Size;

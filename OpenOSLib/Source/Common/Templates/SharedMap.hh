@@ -116,6 +116,11 @@ template <class TID, class T> void SharedMap<TID, T>::initialize( Allocator* Thi
 							 									  const bool IsMaster, 
 							 									  const unsigned long Size )
 {
+	if ( m_IsInitialized ) 
+		throw DoubleInitializationException(LOCATION);
+
+	m_IsInitialized = true;
+	
 	try 
 	{
 		m_List.initialize( ThisAllocator, IsMaster, Size );
@@ -137,6 +142,9 @@ template <class TID, class T> void SharedMap<TID, T>::initialize( Allocator* Thi
 
 template <class TID, class T> void SharedMap<TID, T>::deinitialize()
 {
+	if ( m_IsInitialized == false )
+		return;
+	
 	m_List.deinitialize();
 	
 	m_Semaphore.deinitialize();
@@ -146,6 +154,9 @@ template <class TID, class T> void SharedMap<TID, T>::deinitialize()
 
 template <class TID, class T> inline long SharedMap<TID, T>::add( const TID Id, const T Value, const ASAAC_Time& Timeout )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	ProtectedScope Access( "Add an element into SharedMap", m_Semaphore, Timeout );
 
 	long Index = 0;
@@ -177,6 +188,9 @@ template <class TID, class T> inline long SharedMap<TID, T>::add( const TID Id, 
 
 template <class TID, class T> inline void SharedMap<TID, T>::remove( const TID Id, const ASAAC_Time& Timeout )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	try
 	{
 		m_List.remove(indexOf(Id), Timeout);
@@ -193,6 +207,9 @@ template <class TID, class T> inline void SharedMap<TID, T>::remove( const TID I
 
 template <class TID, class T> inline unsigned long SharedMap<TID, T>::getSize() const
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	return m_List.getSize();
 }
 
@@ -200,6 +217,9 @@ template <class TID, class T> inline unsigned long SharedMap<TID, T>::getSize() 
 
 template <class TID, class T> inline unsigned long SharedMap<TID, T>::getCount() const
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	return m_List.getCount();
 }
 
@@ -207,6 +227,9 @@ template <class TID, class T> inline unsigned long SharedMap<TID, T>::getCount()
 
 template <class TID, class T> inline bool SharedMap<TID, T>::isEmpty() const
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	return m_List.isEmpty();
 }
 
@@ -214,6 +237,9 @@ template <class TID, class T> inline bool SharedMap<TID, T>::isEmpty() const
 
 template <class TID, class T> inline T& SharedMap<TID, T>::operator[]( const long Index )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	return m_List[ Index ].Data;
 }
 
@@ -221,6 +247,10 @@ template <class TID, class T> inline T& SharedMap<TID, T>::operator[]( const lon
 
 template <class TID, class T> inline long SharedMap<TID, T>::indexOf( const TID Id )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
+	
 	ProtectedScope Access( "Determine index of an element in SharedMap", m_Semaphore );
 
 	long i;
@@ -233,13 +263,19 @@ template <class TID, class T> inline long SharedMap<TID, T>::indexOf( const TID 
 		i = l + div(u-l, (long)2).quot;
 
 		if (m_List[i].Id == Id)
+		{
+//			void * ptr = (void*)(Access.ProtectedScope);
+			//cout << "ProtectedScope::ProtectedScope: " << ptr << endl;
 			return i;
+		}
 	
 		if (m_List[i].Id < Id)
 			l = i+1;
 		else u = i;			
 	}
-	
+
+//	void * ptr = (void*)(Access.ProtectedScope);
+//	cout << "ProtectedScope::ProtectedScope: " << ptr << endl;
 	return -1;
 }
 
@@ -247,6 +283,9 @@ template <class TID, class T> inline long SharedMap<TID, T>::indexOf( const TID 
 
 template <class TID, class T> inline TID SharedMap<TID, T>::idOf( const long Index )
 {
+	if ( m_IsInitialized == false ) 
+		throw UninitializedObjectException( LOCATION );
+
 	return m_List[Index].Id;
 }
 

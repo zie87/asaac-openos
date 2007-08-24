@@ -117,7 +117,6 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 	    if ( alias == PROC_APOS )
 	    {
 	    	// It is important here first to set the group id and then the user id
-	    	
 	        if (setgid( 65534 ) == -1)
 	        	OSException( (ErrorString << "setgid: " << strerror(errno)).c_str(), LOCATION ).raiseError();
 

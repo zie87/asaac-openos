@@ -270,3 +270,4 @@ void EventTable::operator delete( void* location )
 	EventTablePool.releaseObject( (EventTable*) location );
 }
 
+

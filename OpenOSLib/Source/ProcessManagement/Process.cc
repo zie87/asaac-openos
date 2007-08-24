@@ -273,7 +273,7 @@ void Process::launch()
 		else ProcessPath = FileNameGenerator::getAsaacPath(m_ProcessData->Description.programme_file_name);
 
 		m_PosixId = fork();
-		
+
         if (m_PosixId == -1)
             throw OSException( strerror(errno), LOCATION );                
         
@@ -283,7 +283,7 @@ void Process::launch()
             try
             {        
             	m_PosixId = getpid();
-            	
+
                 OpenOS::getInstance()->switchState( false, LAS_PROCESS_INIT, getId() );
 
 				// Enter main cycle of ProcessStarter
@@ -297,7 +297,7 @@ void Process::launch()
 					
 					if ( CommandId == CMD_TERM_ENTITY )
 						break;
-					
+
 					if ( CommandId == CMD_RUN_PROCESS )
 						FileManager::getInstance()->executeFile( ProcessPath, getAlias() );
 				} 
@@ -838,7 +838,7 @@ void Process::destroy()
 }
 
 
-void Process::addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Address )
+void Process::addEntryPoint( const ASAAC_CharacterSequence &Name, const EntryPointAddr Address )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -865,7 +865,7 @@ void Process::addEntryPoint( ASAAC_CharacterSequence Name, EntryPointAddr Addres
 }
 
 
-signed long	Process::getEntryPointIndex( ASAAC_CharacterSequence Name )
+signed long	Process::getEntryPointIndex( const ASAAC_CharacterSequence &Name )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -880,7 +880,7 @@ signed long	Process::getEntryPointIndex( ASAAC_CharacterSequence Name )
 }
 
 
-EntryPoint* Process::getEntryPoint( ASAAC_CharacterSequence Name )
+EntryPoint* Process::getEntryPoint( const ASAAC_CharacterSequence &Name )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -1018,7 +1018,7 @@ void	Process::handleOneCommand( unsigned long& CommandIdentifier )
 }
 
 
-void Process::attachLocalVc( ASAAC_PublicId GlobalVcId, ASAAC_PublicId LocalVcId )
+void Process::attachLocalVc( const ASAAC_PublicId GlobalVcId, const ASAAC_PublicId LocalVcId )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -1081,7 +1081,7 @@ void Process::attachLocalVc( ASAAC_PublicId GlobalVcId, ASAAC_PublicId LocalVcId
 }
 
 
-void Process::detachLocalVc( ASAAC_PublicId LocalVcId )
+void Process::detachLocalVc( const ASAAC_PublicId LocalVcId )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -1167,7 +1167,7 @@ void Process::detachAndDestroyAllLocalVcs()
 }
 
 
-long Process::getAttachedVirtualChannelIndex( ASAAC_PublicId LocalVcId )
+long Process::getAttachedVirtualChannelIndex( const ASAAC_PublicId LocalVcId )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -1186,7 +1186,7 @@ long Process::getAttachedVirtualChannelIndex( ASAAC_PublicId LocalVcId )
 }
 
 
-LocalVc* Process::getAttachedVirtualChannel( ASAAC_PublicId LocalVcId )
+LocalVc* Process::getAttachedVirtualChannel( const ASAAC_PublicId LocalVcId )
 {
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
@@ -1214,7 +1214,7 @@ LocalVc* Process::getAttachedVirtualChannel( ASAAC_PublicId LocalVcId )
 }
 
 
-bool Process::isAttachedTo( ASAAC_PublicId LocalVcId )
+bool Process::isAttachedTo( const ASAAC_PublicId LocalVcId )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -1580,3 +1580,38 @@ void Process::InvokeOSScopeHandler( CommandBuffer Buffer )
 	Data->Return = ASAAC_SUCCESS;
 }
 
+
+// *******************************************************************************************
+//                              C A L L B A C K ' S
+// *******************************************************************************************
+
+void Process::SigChildCallback( void* Data )
+{
+	siginfo_t* SignalInfo = (siginfo_t*)Data;
+	
+	CharSeq ErrorString;
+	ErrorString << oal_signal_description(SignalInfo->si_value.sival_int);
+	
+	if (SignalInfo->si_errno != 0)
+		ErrorString << ": " << strerror(SignalInfo->si_errno);
+	
+	CharSeq FunctionString;
+	FunctionString << "Address: " << CharSeq((unsigned long)SignalInfo->si_addr, hexadecimal);
+	
+	long Line = 0;
+	
+	FatalException e( ErrorString.c_str(), FunctionString.c_str(), Line);
+	
+	e.setProcessId( getId() );
+	e.setThreadId( OS_UNUSED_ID );
+
+	CharSeq ErrorPathString;
+	ErrorPathString << "Signal received by parent process " << ProcessManager::getInstance()->getCurrentProcessId();
+	e.addPath( ErrorPathString.c_str(), LOCATION);
+	
+	e.raiseError();
+	
+	//TODO: Is this call needed? Reason?
+	int Dummy;			
+	oal_waitpid( (pid_t)-1, &Dummy, 0 );
+}

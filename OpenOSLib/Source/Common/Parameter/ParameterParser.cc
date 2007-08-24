@@ -59,13 +59,13 @@ void ParameterParser::parse( ASAAC_CharacterSequence Sequence)
 }
 
 
-void ParameterParser::setConfiguration( EntityConfiguration Configuration )
+void ParameterParser::setConfiguration( EntityConfiguration &Configuration )
 {
 	m_Configuration = Configuration;
 }
 
 
-EntityConfiguration ParameterParser::getConfiguration( ) 
+EntityConfiguration &ParameterParser::getConfiguration( ) 
 {
 	return m_Configuration;
 }

@@ -1,7 +1,7 @@
 #ifndef NOLOCK_HH_
 #define NOLOCK_HH_
 
-#include "LockingObject.hh"
+#include "AbstractInterfaces/LockingObject.hh"
 
 //! non-locking object for ProtectedScopes
 /*! the NoLock object can be used for a ProtectedScope where only the
@@ -12,8 +12,8 @@
 class NoLock : public LockingObject
 {
 public:
-	virtual void lock() { return ASAAC_SUCCESS; }
-	virtual void release() { return ASAAC_SUCCESS; }
+	virtual void lock( const ASAAC_Time& Timeout = TimeInfinity ) {  }
+	virtual void release() {  }
 	
 	
 	virtual ~NoLock() {}

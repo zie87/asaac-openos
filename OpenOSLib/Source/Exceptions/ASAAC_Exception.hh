@@ -6,9 +6,6 @@
 #include "Common/Asaac/CharacterSequence.hh"
 
 
-#define THROW(x,y)		throw x(y,__PRETTY_FUNCTION__,__LINE__);
-
-
 typedef struct
 {
 	ASAAC_CharacterSequence message;
@@ -24,6 +21,12 @@ class ASAAC_Exception: public exception {
 		virtual ~ASAAC_Exception() throw();
 		
         virtual const char *what() const throw(); 
+        
+        void setProcessId( ASAAC_PublicId ProcessId );
+        void setThreadId( ASAAC_PublicId ThreadId );
+        
+        ASAAC_PublicId getProcessId();
+        ASAAC_PublicId getThreadId();
         
 		virtual bool isTimeout() const;
 		virtual bool isResource() const;

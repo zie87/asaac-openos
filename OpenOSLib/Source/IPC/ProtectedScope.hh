@@ -27,7 +27,7 @@ class ProtectedScope
 {
 public:
 	//! instantiate the scope protection and set it longo effect
-	ProtectedScope( char * Scope, LockingObject& ThisLockingObject, const ASAAC_Time& Timeout = TimeInfinity, bool Cancelable = false );
+	ProtectedScope( char * Scope, LockingObject& ThisLockingObject, const ASAAC_Time& Timeout = TimeInfinity, const bool &Cancelable = false );
 	/*!< \param[in] ThisLockingObject		Reference to the instance of a LockingObject used to provide the
 	 *                                      exclusive execution lock.
 	 *   \param[in] Timeout					ASAAC_Time to wait before returning from the instantiation

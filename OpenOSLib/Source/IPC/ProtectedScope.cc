@@ -4,11 +4,15 @@
 #include "ProcessManagement/ThreadManager.hh"
 #include "ProcessManagement/Thread.hh"
 
-ProtectedScope::ProtectedScope( char * Scope, LockingObject& ThisLockingObject, const ASAAC_Time& Timeout, bool Cancelable ) : m_LockingObject(&ThisLockingObject), m_Locked(false), m_SuspendPending(false)
+ProtectedScope::ProtectedScope( char * Scope, LockingObject& ThisLockingObject, const ASAAC_Time& Timeout, const bool &Cancelable ) : m_Locked(false), m_SuspendPending(false)
 {
+	
+	m_LockingObject = &ThisLockingObject; 
 	m_Scope = CharSeq(Scope).asaac_str();
 	m_Timeout = Timeout;
 	m_Cancelable = Cancelable;
+	if (CharSeq(m_Scope) == CharSeq("DEBUG"))
+		return;
 
 	try
 	{		
@@ -37,6 +41,9 @@ ProtectedScope::ProtectedScope( char * Scope, LockingObject& ThisLockingObject, 
 
 ProtectedScope::~ProtectedScope()
 {
+	if (CharSeq(m_Scope) == CharSeq("DEBUG"))
+		return;
+
 	try
 	{
 		if ( m_Locked == true )

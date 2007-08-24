@@ -61,7 +61,7 @@ void ConfigurationParser::parse( ASAAC_CharacterSequence FileName )
 	
 	    parseSample(Index, createSample(space), Unlimited);
 	    
-	    for (unsigned short p = 0; p < OS_MAX_NUMBER_OF_PROCESSES; p++)
+	    for (unsigned short p = 0; p < OS_MAX_NUMBER_OF_PRECONFIGURED_PROCESSES; p++)
 	    {
 	        if (parseString(Index, "process", 1) == 1)
 	        {
@@ -122,7 +122,7 @@ void ConfigurationParser::parse( ASAAC_CharacterSequence FileName )
 	                m_Configuration.List[p].Description.cpu_id = parsePublicId(Index);
 	            }
 	    
-	            for (unsigned long t = 0; t < OS_MAX_NUMBER_OF_THREADS; t++)
+	            for (unsigned long t = 0; t < OS_MAX_NUMBER_OF_PRECONFIGURED_THREADS; t++)
 	            {
 	                parseSample(Index, createSample(space), Unlimited);
 	

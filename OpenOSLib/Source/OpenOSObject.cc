@@ -459,34 +459,20 @@ void OpenOS::flushSession()
 			
 			CommandData d;		
 			
-			//First we just send a simple command to determine the processes liveliness
+			//First we just send a simple command to determine the processes liveliness and its PosixId
 			try
 			{
 				sendCommand(m_CpuId[Index], CMD_GET_PID, d.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time(), false);
 			}
 			catch ( ASAAC_Exception &e )
 			{
-				if (e.isTimeout() == false)
-					throw;
-	
 				m_CpuId[Index] = OS_UNUSED_ID;
 				continue;
 			}
 	
 			//If succeeded, we send our real approach
-			try
-			{
-				d.NewSessionId = NewSessionId;
-				sendCommand(m_CpuId[Index], CMD_FLUSH_SESSION, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false);
-			}
-			catch ( ASAAC_Exception &e )
-			{
-				if (e.isTimeout() == false)
-					throw;
-	
-				m_CpuId[Index] = OS_UNUSED_ID;
-				continue;
-			}
+			d.NewSessionId = NewSessionId;
+			sendCommand(m_CpuId[Index], CMD_FLUSH_SESSION, d.ReturnBuffer, TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time(), false);
 				
 			if (d.Return == ASAAC_ERROR)
 			{

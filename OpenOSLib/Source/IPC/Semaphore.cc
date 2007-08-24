@@ -198,3 +198,4 @@ void Semaphore::operator delete( void* location )
 	SemaphorePool.releaseObject((Semaphore*)location);
 }
 
+

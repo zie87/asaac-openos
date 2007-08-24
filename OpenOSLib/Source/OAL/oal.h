@@ -4,15 +4,10 @@
 // OS ABSTRACTION LAYER
 
 #include <limits.h>
-
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <ctime>
-
-#include <iostream>
-#include <sstream>
-#include <string>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include <assert.h>
 #include <errno.h>
@@ -139,18 +134,30 @@
        
 #define oal_inet_addr					inet_addr       
 
-long oal_process_fork();
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/*long oal_process_fork();
 long oal_process_exec();
 long oal_process_kill();
 long oal_process_config();
 long oal_process_run();
 long oal_process_stop();
 
-long oal_thread_create();
-long oal_thread_destroy();
+long oal_thread_fork();
+long oal_thread_kill();
 long oal_thread_config();
 long oal_thread_run();
 long oal_thread_stop();
+*/
 
-       
+const char *oal_signal_description( const int Signal );
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif /*OAL_H_*/
