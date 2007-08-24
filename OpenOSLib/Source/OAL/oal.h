@@ -3,6 +3,23 @@
 
 // OS ABSTRACTION LAYER
 
+#ifdef __cplusplus
+
+#include <iostream>
+#include <sstream>
+
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+
+#include <cassert>
+#include <cerrno>
+#include <csignal>
+
+#else
+	
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
@@ -11,11 +28,14 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <signal.h>
+
+#endif
+
 #include <fcntl.h>
 #include <mqueue.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include <signal.h>
 #include <unistd.h>
 #include <sched.h>
 
@@ -135,8 +155,7 @@
 #define oal_inet_addr					inet_addr       
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /*long oal_process_fork();
