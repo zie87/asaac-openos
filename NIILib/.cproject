@@ -31,9 +31,7 @@
 <listOptionValue value="&quot;${workspace_loc:/AsaacCLib}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/NIILib/Source}&quot;" builtIn="false"/>
 </option>
-<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.869556973" name="Defined symbols (-D)" valueType="definedSymbols">
-<listOptionValue value="_DEBUG_" builtIn="false"/>
-</option>
+<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.869556973" name="Defined symbols (-D)" valueType="definedSymbols"/>
 <option superClass="gnu.cpp.compiler.lib.debug.option.optimization.level" id="gnu.cpp.compiler.lib.debug.option.optimization.level.1140957342" name="Optimization Level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.cpp.compiler.lib.debug.option.debugging.level" id="gnu.cpp.compiler.lib.debug.option.debugging.level.1227365306" name="Debug Level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 <inputType superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input" id="cdt.managedbuild.tool.gnu.cpp.compiler.input.175393374"/>
@@ -46,8 +44,8 @@
 </option>
 <option superClass="gnu.c.compiler.lib.debug.option.optimization.level" id="gnu.c.compiler.lib.debug.option.optimization.level.262818263" name="Optimization Level" defaultValue="gnu.c.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.c.compiler.lib.debug.option.debugging.level" id="gnu.c.compiler.lib.debug.option.debugging.level.1287387284" name="Debug Level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-<option superClass="gnu.c.compiler.option.preprocessor.def.symbols" id="gnu.c.compiler.option.preprocessor.def.symbols.1070097156" valueType="definedSymbols">
-<listOptionValue value="_DEBUG_" builtIn="false"/>
+<option superClass="gnu.c.compiler.option.preprocessor.def.symbols" id="gnu.c.compiler.option.preprocessor.def.symbols.909264962" name="Defined symbols (-D)" valueType="definedSymbols">
+<listOptionValue value="dont_DEBUG_" builtIn="false"/>
 </option>
 <inputType superClass="cdt.managedbuild.tool.gnu.c.compiler.input" id="cdt.managedbuild.tool.gnu.c.compiler.input.208112386"/>
 </tool>
