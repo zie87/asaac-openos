@@ -132,6 +132,7 @@ private:
 
 	LocalMemory	 			m_LocalMemoryAllocator;
 	SharedMemory 			m_SharedMemoryAllocator;
+	Allocator* 				m_Allocator;
 
 	long					m_CurrentProcessIndex;
 	

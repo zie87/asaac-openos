@@ -94,7 +94,6 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 		if ( IsServer )
 			OpenOS::getInstance()->registerCpu(CurrentCpuId);
 		
-		Allocator* UsedAllocator;
 		if ( Location == SHARED ) //Applications with special rights (GSM, SM, ...)
 		{
 			m_SharedMemoryAllocator.initialize( 
@@ -102,18 +101,18 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 				IsServer,	// IsServer is correct here!
 				predictInternalSize() );
 										
-			UsedAllocator = &m_SharedMemoryAllocator;
+			m_Allocator = &m_SharedMemoryAllocator;
 		}
 		else //Normal Applications
 		{
 			m_LocalMemoryAllocator.initialize( predictSize() );
 	
-			UsedAllocator = &m_LocalMemoryAllocator;
+			m_Allocator = &m_LocalMemoryAllocator;
 		}
 		
 		//CommandInterface has to be the first object initialized here,
 		//because memory is used in OpenOS object too
-		m_CommandInterface.initialize( UsedAllocator, IsServer );
+		m_CommandInterface.initialize( m_Allocator, IsServer );
 		
 		//Semaphore is an global OpenOS object, therefore it has to allocate memory from parent allocator
 		m_Semaphore.initialize( ParentAllocator, IsMaster );
