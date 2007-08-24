@@ -10,7 +10,7 @@ cp ../ASAAC\ IF/ASAAC_ENH.h OpenOS;            if (test $? != 0) then exit; fi;
 cp ../OpenOSLib/OpenOS.h OpenOS;               if (test $? != 0) then exit; fi;
 cp ../OpenOSLib/OpenOS.hh OpenOS;              if (test $? != 0) then exit; fi;
 
-cp ../MOS/Debug/libMOS.so OpenOS;              if (test $? != 0) then exit; fi;
+cp ../MOSLib/Debug/libMOS.so OpenOS;              if (test $? != 0) then exit; fi;
 cp ../OpenOSLib/Debug/libOpenOS.so OpenOS;     if (test $? != 0) then exit; fi;
 cp ../OpenOSEntity/Debug/OpenOSEntity OpenOS;  if (test $? != 0) then exit; fi;
 
