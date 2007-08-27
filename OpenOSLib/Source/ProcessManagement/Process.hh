@@ -51,8 +51,8 @@ enum SMOS_Actions {
 	
 };
 
-typedef char OSScopeCommandBuffer[ OS_SIZE_OF_OSSCOPE_COMMANDBUFFER ];
-
+//Refer to OSScopeCommandData.scope
+typedef char OSScopeCommandBuffer[ OS_SIZE_OF_SIMPLE_COMMANDBUFFER - sizeof(void*) ];
 typedef void(*OSScopeFunction)(OSScopeCommandBuffer);
 
 typedef struct 

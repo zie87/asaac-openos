@@ -618,7 +618,7 @@ void OneWayCommunication::attachLocalVc(OSScopeCommandBuffer param)
 		
 		if (p_state == PROCESS_RUNNING)
 			P->stop();	
-		
+
 		CM->attachChannelToProcessOrThread(data->mapping);
 
 		if (p_state == PROCESS_RUNNING)

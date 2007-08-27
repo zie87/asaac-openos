@@ -57,8 +57,6 @@
 #define OS_SIZE_OF_SIMPLE_COMMANDBUFFER	 		 4096
 #define OS_MAX_NUMBER_OF_COMMAND_HANDLERS		 32
 
-#define OS_SIZE_OF_OSSCOPE_COMMANDBUFFER 		 32
-
 /* Values for Threads, Processes and Vcs */
 #define OS_POLICY								 SCHED_RR
 #define OS_MAX_NUMBER_OF_SIGNALS 				 64
