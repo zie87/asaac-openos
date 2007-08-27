@@ -49,7 +49,7 @@ void LocalVc::initialize( bool IsMaster,
 	
 		m_Description.initialize( ThisAllocator );
 
-		if (m_IsMaster)			
+		if (m_IsMaster == true)			
 			*m_Description = Description;
 		
 		// Get number of Buffers for queue
@@ -119,14 +119,7 @@ void LocalVc::deinitialize()
 
 bool LocalVc::isInitialized()
 {
-	if (m_IsInitialized)
-	{
-		//Is this local vc assigned too?
-		if (getDescription()->global_pid != OS_UNUSED_ID)
-			return true;
-	}
-	
-	return false;
+	return m_IsInitialized;
 }
 
 
