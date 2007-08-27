@@ -526,14 +526,11 @@ void OpenOS::acquireMutex()
 	
 	ASAAC_PublicId thread_id = ThreadManager::getInstance()->getCurrentThreadId();
 
-	unsigned long processIdx = 0;
+	unsigned long processIdx = ProcessManager::getInstance()->getProcessIndex(ThisProcess->getId());
 	unsigned long threadIdx = 0;
 
 	if (ThisProcess != NULL)
-	{
-		processIdx = ProcessManager::getInstance()->getProcessIndex(ThisProcess->getId());
 		threadIdx = ThisProcess->getThreadIndex(thread_id);
-	}
 
 	unsigned long thisIdx = processIdx * (OS_MAX_NUMBER_OF_THREADS+1) + threadIdx;
 	unsigned long numberOfFlags = OS_MAX_NUMBER_OF_PROCESSES * (OS_MAX_NUMBER_OF_THREADS + 1);	
@@ -558,14 +555,11 @@ void OpenOS::releaseMutex()
 	
 	ASAAC_PublicId thread_id = ThreadManager::getInstance()->getCurrentThreadId();
 	
-	unsigned long processIdx = 0;
+	unsigned long processIdx = ProcessManager::getInstance()->getProcessIndex(ThisProcess->getId());
 	unsigned long threadIdx = 0;
 
 	if (ThisProcess != NULL)
-	{
-		processIdx = ProcessManager::getInstance()->getProcessIndex(ThisProcess->getId());		
 		threadIdx = ThisProcess->getThreadIndex(thread_id);
-	}
 
 	unsigned long thisIdx = processIdx * (OS_MAX_NUMBER_OF_THREADS+1) + threadIdx;
 
