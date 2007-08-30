@@ -787,7 +787,7 @@ void Process::destroy()
 		//does not work.
 		
 		siginfo_t SignalInfo;
-		SignalManager::getInstance()->waitForSignal( SIGCHLD, SignalInfo, OS_SIMPLE_COMMAND_TIMEOUT );
+		NO_EXCEPTION( SignalManager::getInstance()->waitForSignal( SIGCHLD, SignalInfo, OS_SIMPLE_COMMAND_TIMEOUT ) );
 		
 		//If Process shall be killed from outside, kill it truely now...
 		if (ProcessManager::getInstance()->getCurrentProcess()->getId() != this->getId())
