@@ -63,8 +63,6 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 
 			if (getMemoryHeader()->MagicNumber != OS_MAGIC_NUMBER)
 				throw FatalException("Magic number is not correct", LOCATION);
-
-            getMemoryHeader()->AllocationCounter ++;
             
             if (EvaluateSession)
             {
@@ -74,6 +72,8 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 	
 			if ( getMemoryHeader()->Size < Size )
  				throw FatalException("Size of of shared memory is smaller than requested size", LOCATION);
+
+			getMemoryHeader()->AllocationCounter ++;
 				
 			Size = getMemoryHeader()->Size;
 			
@@ -120,8 +120,12 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
                 getMemoryHeader()->AllocationCounter = 1;
             }
 		}
-	
+		
 		m_UsedMemory = 0;
+
+#ifdef DEBUG_SHM
+			cout << "ShM inititialized: " << CharSeq(m_Name) << ", Size: " << m_Size << ", Counter: " << getMemoryHeader()->AllocationCounter << endl;
+#endif	
 	}
 	catch ( ASAAC_Exception &e )
 	// If an exception is caught, make sure everything is cleaned
@@ -159,7 +163,11 @@ void SharedMemory::deinitialize()
 
 			// Unmap memory mapping of shared memory file.	
 			FileManager::getInstance()->unmapFile( m_BaseAddress.ptr, m_BaseMemorySize );
-	
+
+#ifdef DEBUG_SHM
+			cout << "ShM deinititialized: " << CharSeq(m_Name) << ", Size: " << m_Size << ", Counter: " << AllocationCounter << endl;
+#endif	
+			
             // Check if no more objects using the memory    
             if (AllocationCounter == 0 )
             {
