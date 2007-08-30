@@ -124,7 +124,8 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 		m_UsedMemory = 0;
 
 #ifdef DEBUG_SHM
-			cout << "ShM inititialized: " << CharSeq(m_Name) << ", Size: " << m_Size << ", Counter: " << getMemoryHeader()->AllocationCounter << endl;
+		cout << "ShM inititialized: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
+			<< ", Counter: " << getMemoryHeader()->AllocationCounter << endl;
 #endif	
 	}
 	catch ( ASAAC_Exception &e )
@@ -161,13 +162,14 @@ void SharedMemory::deinitialize()
 			
 			unsigned long AllocationCounter = getMemoryHeader()->AllocationCounter; 
 
+#ifdef DEBUG_SHM
+			cout << "ShM deinititialized: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
+				<< ", Counter: " << getMemoryHeader()->AllocationCounter << endl;
+#endif	
+			
 			// Unmap memory mapping of shared memory file.	
 			FileManager::getInstance()->unmapFile( m_BaseAddress.ptr, m_BaseMemorySize );
 
-#ifdef DEBUG_SHM
-			cout << "ShM deinititialized: " << CharSeq(m_Name) << ", Size: " << m_Size << ", Counter: " << AllocationCounter << endl;
-#endif	
-			
             // Check if no more objects using the memory    
             if (AllocationCounter == 0 )
             {
