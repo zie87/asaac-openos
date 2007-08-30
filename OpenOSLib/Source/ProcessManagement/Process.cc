@@ -783,6 +783,8 @@ void Process::destroy()
 
 		//TODO: here the process shall wait for the child signal, that process has been terminated
 		//This must perhaps be synchronized with the signal callback function.
+		//SignalManager::getInstance()->waitForSignal( SIGCHLD, SignalInfo, OS_SIMPLE_COMMAND_TIMEOUT )
+		//does not work.
 		
 		siginfo_t SignalInfo;
 		SignalManager::getInstance()->waitForSignal( SIGCHLD, SignalInfo, OS_SIMPLE_COMMAND_TIMEOUT );
@@ -1438,7 +1440,7 @@ void Process::DestroyHandler( CommandBuffer Buffer )
 	volatile ASAAC_ReturnStatus* Return = (ASAAC_ReturnStatus*)( Buffer );
 		
 	// Nothing to do. Termination signal will be handled in main loop of 'run()'
-	
+	*Return = ASAAC_SUCCESS;
 	return;
 }
 
