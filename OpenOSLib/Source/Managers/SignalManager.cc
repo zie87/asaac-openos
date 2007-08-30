@@ -210,7 +210,7 @@ void SignalManager::raiseSignalToThread( ASAAC_PublicId ThreadId, int Signal, in
 }
 
 
-void SignalManager::waitForSignal( int Signal, int& Value, const ASAAC_TimeInterval& Timeout )
+void SignalManager::waitForSignal( int Signal, siginfo_t &SignalInfo, const ASAAC_TimeInterval& Timeout )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -259,7 +259,7 @@ void SignalManager::waitForSignal( int Signal, int& Value, const ASAAC_TimeInter
 			else throw OSException( strerror(errno), LOCATION );
 		}
 	
-		Value = ThisSigInfo.si_value.sival_int;
+		SignalInfo = ThisSigInfo;
     }
 	catch ( ASAAC_Exception &e )
 	{

@@ -23,7 +23,7 @@ public:
 	
 	void raiseSignalToProcess( ASAAC_PublicId ProcessId, int Signal, int Value );
 	void raiseSignalToThread( ASAAC_PublicId ThreadId, int Signal, int Value );
-	void waitForSignal( int Signal, int& Value, const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
+	void waitForSignal( int Signal, siginfo_t& SignalInfo, const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
 
 private:
 	bool m_IsInitialized;

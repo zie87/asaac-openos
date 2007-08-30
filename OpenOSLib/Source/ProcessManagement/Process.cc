@@ -780,7 +780,13 @@ void Process::destroy()
 	
 		if (Data.Return == ASAAC_ERROR)
 			OSException((ErrorString << "Application created an error while terminating itself. (PID=" << CharSeq(getId()) << ")").c_str(), LOCATION).raiseError();
-	
+
+		//TODO: here the process shall wait for the child signal, that process has been terminated
+		//This must perhaps be synchronized with the signal callback function.
+		
+		siginfo_t SignalInfo;
+		SignalManager::getInstance()->waitForSignal( SIGCHLD, SignalInfo, OS_SIMPLE_COMMAND_TIMEOUT );
+		
 		//If Process shall be killed from outside, kill it truely now...
 		if (ProcessManager::getInstance()->getCurrentProcess()->getId() != this->getId())
 		{
@@ -1368,9 +1374,6 @@ void Process::RunHandler( CommandBuffer Buffer )
 	{
 		Process* ThisInstance = ProcessManager::getInstance()->getCurrentProcess();
 		
-		if (ThisInstance == NULL)
-			throw OSException("'Current process' is not available.", LOCATION);
-			
 		if ( ThisInstance->getState() != PROCESS_INITIALIZED )
 		{
 			// PROCESS_INITIALIZED means Process is still under control of the
@@ -1407,9 +1410,6 @@ void Process::StopHandler( CommandBuffer Buffer )
 	{
 		Process* ThisInstance = ProcessManager::getInstance()->getCurrentProcess();
 		
-		if (ThisInstance == NULL)
-			throw OSException("'Current process' is not available.", LOCATION);
-			
 		ThisInstance->stop();
 		*Return = ASAAC_SUCCESS;
 			
@@ -1437,9 +1437,8 @@ void Process::DestroyHandler( CommandBuffer Buffer )
 {
 	volatile ASAAC_ReturnStatus* Return = (ASAAC_ReturnStatus*)( Buffer );
 		
-	//Nothing to do	
-		
-	*Return = ASAAC_SUCCESS;
+	// Nothing to do. Termination signal will be handled in main loop of 'run()'
+	
 	return;
 }
 
@@ -1460,14 +1459,10 @@ void Process::AttachLocalVcHandler( CommandBuffer Buffer )
 {
 	VCCommandData* Data = (VCCommandData*)Buffer; 
 
-	// get current process	
-	ProcessManager* PM = ProcessManager::getInstance();
-	Process* ThisProcess = PM->getCurrentProcess();
-		
 	try
 	{
-		if (ThisProcess == NULL)
-			throw FatalException("Current Process not found", LOCATION);
+		// get current process	
+		Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
 
 		ThisProcess->attachLocalVc( Data->VC.GlobalVcId, Data->VC.LocalVcId );
 	}
@@ -1496,15 +1491,11 @@ void Process::AttachLocalVcHandler( CommandBuffer Buffer )
 void Process::DetachLocalVcHandler( CommandBuffer Buffer )
 {
 	VCCommandData* Data = (VCCommandData*)Buffer; 
-
-	// get current process	
-	ProcessManager* PM = ProcessManager::getInstance();
-	Process* ThisProcess = PM->getCurrentProcess();
 		
 	try
 	{
-		if (ThisProcess == NULL)
-			throw FatalException("Current Process not found", LOCATION);
+		// get current process	
+		Process* ThisProcess = ProcessManager::getInstance()->getCurrentProcess();
 
 		ThisProcess->detachLocalVc( Data->VC.LocalVcId );
 	}

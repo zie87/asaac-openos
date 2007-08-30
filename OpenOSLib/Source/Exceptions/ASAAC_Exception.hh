@@ -45,7 +45,7 @@ class ASAAC_Exception: public exception {
 
 		void printMessage() const;
 		
-        void logMessage( ASAAC_LogMessageType message_type ) const;
+        void logMessage( ASAAC_LogMessageType message_type = ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE ) const;
         void raiseError( ) const;
 		
 	protected:

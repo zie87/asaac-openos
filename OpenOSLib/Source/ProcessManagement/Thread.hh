@@ -170,7 +170,7 @@ public:
 
 	
 	void 		raiseSignal( int Signal, int Value = 0 );
-	void 		waitForSignal( int Signal, int& Value, const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
+	void 		waitForSignal( int Signal, siginfo_t& SignalInfo, const ASAAC_TimeInterval& Timeout = TimeIntervalInfinity );
 	
 	
 	//! predict the amount of memory for control and data structures to be allocated via an allocator	

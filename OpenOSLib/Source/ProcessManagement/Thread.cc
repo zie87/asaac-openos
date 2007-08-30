@@ -442,8 +442,8 @@ void Thread::suspendSelf()
 	
 		m_ThreadData->SuspendLevel = 1;
 
-		int iDummy;
-		waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
+		siginfo_t SignalInfo;
+		waitForSignal( OS_SIGNAL_RESUME, SignalInfo, TimeIntervalInfinity );
 		
 		m_SuspendPending = false; // resume() is waiting for this switch
     }
@@ -531,7 +531,7 @@ void Thread::raiseSignal( int Signal, int Value )
 }
 
 
-void Thread::waitForSignal( int Signal, int& Value, const ASAAC_TimeInterval& Timeout )
+void Thread::waitForSignal( int Signal, siginfo_t& SignalInfo, const ASAAC_TimeInterval& Timeout )
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
@@ -539,7 +539,7 @@ void Thread::waitForSignal( int Signal, int& Value, const ASAAC_TimeInterval& Ti
     if ( isCurrentThread() == false ) 
 		throw OSException("Only the thread itself can wait for its signals", LOCATION);
 
-	SignalManager::getInstance()->waitForSignal( Signal, Value, Timeout );
+	SignalManager::getInstance()->waitForSignal( Signal, SignalInfo, Timeout );
 }
 
 
@@ -690,7 +690,7 @@ void* Thread::ThreadStartWrapper( void* RealAddress )
 void Thread::SuspendCallback( void* )
 {
 	int iDummy;
-
+	
 	// get current cancel state
 	// if current thread is not supposed to be cancelled,
 	// it is not supposed to be suspended, either,
@@ -707,7 +707,8 @@ void Thread::SuspendCallback( void* )
 	Thread* ThisThread = ThreadManager::getInstance()->getCurrentThread();
 	ThisThread->m_SuspendPending = false; // suspend() is waiting for this switch 
 
-	ThisThread->waitForSignal( OS_SIGNAL_RESUME, iDummy, TimeIntervalInfinity );
+	siginfo_t SignalInfo;
+	ThisThread->waitForSignal( OS_SIGNAL_RESUME, SignalInfo, TimeIntervalInfinity );
 
 	ThisThread->m_SuspendPending = false; // resume() is waiting for this switch
 }

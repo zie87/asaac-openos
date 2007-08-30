@@ -219,8 +219,11 @@ void ErrorHandler::terminateErrorHandler( ASAAC_ReturnStatus return_status )
 
 ASAAC_ReturnStatus ErrorHandler::logMessage( const ASAAC_CharacterSequence& log_message, ASAAC_LogMessageType message_type )
 {
-	static bool Executing = false;	
-	if ( Executing == true ) return ASAAC_ERROR;
+	static bool Executing = false;
+	
+	if ( Executing == true ) 
+		return ASAAC_ERROR;
+	
 	Executing = true;
 	
 	try

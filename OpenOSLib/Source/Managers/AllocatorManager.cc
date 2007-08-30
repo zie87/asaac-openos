@@ -103,6 +103,11 @@ void AllocatorManager::reallocateAllObjects( SessionId NewSessionId )
 		{
 			if ( ShM->isInitialized() )	
 			{
+#ifdef DEBUG_SHM
+				CharSeq LogString;
+				LogString << "ShM reallocateAllObjects: NewSessionId: " << NewSessionId << ", OldSessionId: " << ShM->getSessionId();
+				OSException(LogString.c_str()).printMessage();
+#endif	
 				if (ShM->getSessionId() == NewSessionId)
 				{
 					//Inkrement AllocationCounter to global indicate allocation of object

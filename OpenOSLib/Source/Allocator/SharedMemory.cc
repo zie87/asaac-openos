@@ -124,8 +124,10 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 		m_UsedMemory = 0;
 
 #ifdef DEBUG_SHM
-		cout << "ShM inititialized: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
-			<< ", Counter: " << getMemoryHeader()->AllocationCounter << endl;
+		CharSeq LogString;
+		LogString << "ShM inititialized: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
+			<< ", Counter: " << getMemoryHeader()->AllocationCounter; 
+		OSException(LogString.c_str()).printMessage();
 #endif	
 	}
 	catch ( ASAAC_Exception &e )
@@ -163,8 +165,10 @@ void SharedMemory::deinitialize()
 			unsigned long AllocationCounter = getMemoryHeader()->AllocationCounter; 
 
 #ifdef DEBUG_SHM
-			cout << "ShM deinititialized: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
-				<< ", Counter: " << getMemoryHeader()->AllocationCounter << endl;
+			CharSeq LogString;
+			LogString << "ShM deinititialized: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
+				<< ", Counter: " << getMemoryHeader()->AllocationCounter;			
+			OSException(LogString.c_str()).printMessage();
 #endif	
 			
 			// Unmap memory mapping of shared memory file.	
@@ -307,8 +311,15 @@ void SharedMemory::setAllocationCounter(unsigned long value)
 {
     if (m_IsInitialized == false) 
         throw UninitializedObjectException(LOCATION);
-
-	getMemoryHeader()->AllocationCounter = value;		
+    
+	getMemoryHeader()->AllocationCounter = value;
+	
+#ifdef DEBUG_SHM
+	CharSeq LogString;
+	LogString << "ShM setAllocationCounter: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
+		<< ", Counter: " << getMemoryHeader()->AllocationCounter;
+	OSException(LogString.c_str()).printMessage();
+#endif	
 }
 
 
