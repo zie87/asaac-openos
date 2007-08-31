@@ -84,9 +84,15 @@
 #define OS_SIZE_OF_STACK_LIMIT					 0x000fffff
 
 /* SIGNALS */
-#define OS_SIGNAL_KILL				 		     SIGRTMIN
-#define OS_SIGNAL_SUSPEND					    (SIGRTMIN+1)
-#define OS_SIGNAL_RESUME			    		(SIGRTMIN+2)
+#define OS_SIGNAL_SUCCESS			    		(SIGRTMIN+0)
+#define OS_SIGNAL_TIMEOUT			    		(SIGRTMIN+1)
+#define OS_SIGNAL_RESOURCE			    		(SIGRTMIN+2)
+#define OS_SIGNAL_ERROR				    		(SIGRTMIN+3)
+#define OS_SIGNAL_FATALERROR				    (SIGRTMIN+4)
+
+#define OS_SIGNAL_KILL				 		    (SIGRTMIN+5)
+#define OS_SIGNAL_SUSPEND					    (SIGRTMIN+6)
+#define OS_SIGNAL_RESUME			    		(SIGRTMIN+7)
 
 #define OS_ERROR_QUEUE					 		 CharacterSequence("/errorq").asaac_str()
 #define OS_LOGGING_QUEUE				 		 CharacterSequence("/loggingq").asaac_str()

@@ -304,7 +304,7 @@ void Process::launch()
 	            
                 AllocatorManager::getInstance()->deallocateAllObjects();
                 //OpenOS::getInstance()->deinitialize();
-	            exit(0);            
+	            exit(OS_SIGNAL_SUCCESS);            
             }
             catch ( ASAAC_Exception &e )
             {
@@ -318,7 +318,7 @@ void Process::launch()
                 AllocatorManager::getInstance()->deallocateAllObjects();
                 //OpenOS::getInstance()->deinitialize();
                 
-                exit(-1);
+                exit(OS_SIGNAL_ERROR);
             }
             catch (...)
             {
@@ -329,7 +329,7 @@ void Process::launch()
                 AllocatorManager::getInstance()->deallocateAllObjects();
                 //OpenOS::getInstance()->deinitialize();
 
-                exit(-2);
+                exit(OS_SIGNAL_FATALERROR);
             }
         }           
 	}
@@ -666,8 +666,8 @@ void Process::run()
 					} 
 	
 					//TODO: Is this call still needed?
-					if (m_IsMaster)
-						ProcessManager::getInstance()->destroyEntity();
+					//if (m_IsMaster)
+						//ProcessManager::getInstance()->destroyEntity();
 
 					//terminateAllThreads();
 					suspendAllThreads();
@@ -714,7 +714,9 @@ void Process::run()
 	}
 	catch ( ASAAC_Exception &e )
 	{
-		e.addPath("Error running process", LOCATION);
+        CharacterSequence ErrorString;
+        ErrorString << "Error running process " << CharSeq(getId());
+		e.addPath( ErrorString.c_str(), LOCATION);
 		
 		throw;
 	}
@@ -747,7 +749,7 @@ void Process::stop()
 	catch ( ASAAC_Exception &e )
 	{
         CharacterSequence ErrorString;
-        ErrorString << "An Error occured while stopping the process: " << CharSeq(getId());
+        ErrorString << "Error stopping process " << CharSeq(getId());
 		e.addPath( ErrorString.c_str(), LOCATION);
 		
 		throw;
@@ -764,46 +766,50 @@ void Process::destroy()
 	CharSeq ErrorString;
 
 	try
-	{		
-		//If process shall be destroyed from inside it's own thread
-		//sendCommand will not return here.	
+	{	
 		try
 		{
 			refreshPosixId();
+			
 			sendCommand( CMD_TERM_PROCESS, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );		
-		}
-		catch ( ASAAC_Exception &e )
-		{
-			e.addPath( "Termination command could not be send properly", LOCATION );			
-			e.raiseError();
-		}
 	
-		if (Data.Return == ASAAC_ERROR)
-			OSException((ErrorString << "Application created an error while terminating itself. (PID=" << CharSeq(getId()) << ")").c_str(), LOCATION).raiseError();
-
-		//TODO: here the process shall wait for the child signal, that process has been terminated
-		//This must perhaps be synchronized with the signal callback function.
-		//SignalManager::getInstance()->waitForSignal( SIGCHLD, SignalInfo, OS_SIMPLE_COMMAND_TIMEOUT )
-		//does not work.
-		
-		siginfo_t SignalInfo;
-		NO_EXCEPTION( SignalManager::getInstance()->waitForSignal( SIGCHLD, SignalInfo, OS_SIMPLE_COMMAND_TIMEOUT ) );
-		
-		//If Process shall be killed from outside, kill it truely now...
-		if (ProcessManager::getInstance()->getCurrentProcess()->getId() != this->getId())
-		{
-			if ( m_PosixId != 0 ) 
-				oal_kill( m_PosixId, SIGTERM );
-			else throw OSException("Kill Signal cannot be send, because posix process id is unknown.", LOCATION);
-
-			//TODO: deinitialize here?
-			deinitialize();
+			if (Data.Return == ASAAC_ERROR)
+				throw OSException((ErrorString << "Application created an error while terminating itself. (PID=" << CharSeq(getId()) << ")").c_str(), LOCATION);
 	
+			//TODO: here the process shall wait for the child signal, that process has been terminated
+			//This must perhaps be synchronized with the signal callback function.
+			
+			if (m_IsMaster)
+			{
+				siginfo_t SignalInfo;
+				SignalManager::getInstance()->waitForSignal( SIGCHLD, SignalInfo, OS_SIMPLE_COMMAND_TIMEOUT );
+			}
 		}
+		catch (ASAAC_Exception &e)
+		{
+			if (ProcessManager::getInstance()->getCurrentProcess()->getId() != this->getId())
+			{
+				if ( m_PosixId != 0 )
+				{
+					oal_kill( m_PosixId, SIGTERM );
+				}
+				else 
+				{
+					e.addPath("Kill Signal cannot be sent, because posix-id of process is unknown.", LOCATION);
+					throw e;
+				}
+			}
+			else throw e;
+		}
+		
+		//TODO: deinitialize here?
+		deinitialize();
 	}
 	catch (ASAAC_Exception &e)
 	{
-		e.addPath("Error destroying process", LOCATION);
+		CharSeq ErrorString;
+		
+		e.addPath( (ErrorString << "Error destroying process " << getId()).c_str(), LOCATION);
 		
 		throw;
 	}
@@ -1549,8 +1555,38 @@ void Process::SigChildCallback( void* Data )
 {
 	siginfo_t* SignalInfo = (siginfo_t*)Data;
 	
+	if (SignalInfo->si_value.sival_int == OS_SIGNAL_SUCCESS)
+		return;
+	
+	
 	CharSeq ErrorString;
 	ErrorString << oal_signal_description(SignalInfo->si_value.sival_int);
+	
+	
+	if (SignalInfo->si_value.sival_int == OS_SIGNAL_SUCCESS)
+		ErrorString = "OS_SIGNAL_SUCCESS";
+	
+	if (SignalInfo->si_value.sival_int == OS_SIGNAL_TIMEOUT)
+		ErrorString = "OS_SIGNAL_TIMEOUT";
+	
+	if (SignalInfo->si_value.sival_int == OS_SIGNAL_RESOURCE)
+		ErrorString = "OS_SIGNAL_RESOURCE";
+	
+	if (SignalInfo->si_value.sival_int == OS_SIGNAL_ERROR)
+		ErrorString = "OS_SIGNAL_ERROR";
+	
+	if (SignalInfo->si_value.sival_int == OS_SIGNAL_FATALERROR)
+		ErrorString = "OS_SIGNAL_FATALERROR";
+	
+	if (SignalInfo->si_value.sival_int == OS_SIGNAL_KILL)
+		ErrorString = "OS_SIGNAL_KILL";
+	
+	if (SignalInfo->si_value.sival_int == OS_SIGNAL_SUSPEND)
+		ErrorString = "OS_SIGNAL_SUSPEND";
+	
+	if (SignalInfo->si_value.sival_int == OS_SIGNAL_RESUME)
+		ErrorString = "OS_SIGNAL_RESUME";
+	
 	
 	if (SignalInfo->si_errno != 0)
 		ErrorString << ": " << strerror(SignalInfo->si_errno);

@@ -24,10 +24,10 @@ int applicationMain( void )
 		e.addPath("Caught exception in main loop of application.", LOCATION);
 		e.printMessage();
 		
-		return 1;
+		return OS_SIGNAL_ERROR;
 	}
 
-	return 0;	
+	return OS_SIGNAL_SUCCESS;	
 }
 
 

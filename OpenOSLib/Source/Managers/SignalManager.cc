@@ -225,8 +225,8 @@ void SignalManager::waitForSignal( int Signal, siginfo_t &SignalInfo, const ASAA
 		sigset_t ThisSigSet;
 		siginfo_t ThisSigInfo;
 	
-		// Convert Timeout to format required for function call	
-		timespec TimeSpecTimeout = TimeInterval(Timeout).timespec_Interval();
+		// Convert Timeout to format required for function call
+		TimeStamp t(Timeout);
 	
 		// Only wait for the indicated signal
 		oal_sigemptyset( &ThisSigSet );
@@ -242,6 +242,8 @@ void SignalManager::waitForSignal( int Signal, siginfo_t &SignalInfo, const ASAA
 		
 		do
 		{
+			timespec TimeSpecTimeout = TimeInterval(t.asaac_Interval()).timespec_Interval();
+
 			if ( TimeInterval(Timeout).isInfinity() )
 				iError = oal_sigwaitinfo( &ThisSigSet, &ThisSigInfo );
 			else iError = oal_sigtimedwait( &ThisSigSet, &ThisSigInfo, &TimeSpecTimeout );
