@@ -24,6 +24,12 @@ int applicationMain( void )
 		e.addPath("Caught exception in main loop of application.", LOCATION);
 		e.printMessage();
 		
+		if (e.isTimeout())
+			return OS_SIGNAL_TIMEOUT;
+		
+		if (e.isResource())
+			return OS_SIGNAL_RESOURCE;
+		
 		return OS_SIGNAL_ERROR;
 	}
 
