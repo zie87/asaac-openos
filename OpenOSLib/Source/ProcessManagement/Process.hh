@@ -285,6 +285,8 @@ public:
 	static size_t			predictSize();
 	
 	bool					isOSScope();
+	
+	bool					isCurrentProcess();
     
 	void                    invokeOSScope(OSScopeFunction foo, OSScopeCommandBuffer param);
 	
@@ -361,6 +363,7 @@ private:
 	SimpleCommandInterface*		m_CommandInterface;
 
 	bool						m_ActiveMainLoop;
+	bool						m_Destroying;
 	
 	AllocatedArea				m_ThreadAllocator[ OS_MAX_NUMBER_OF_THREADS ];
 	Shared<ASAAC_PublicId>		m_ThreadIndex;

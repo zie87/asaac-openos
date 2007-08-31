@@ -36,6 +36,7 @@ Process::Process() :  m_IsInitialized( false ),  m_IsMaster(false), m_IsServer(f
 {
 	m_PosixId = 0;
 	m_ActiveMainLoop = false;
+	m_Destroying = false;
 }
 
 
@@ -771,6 +772,8 @@ void Process::destroy()
 		{
 			refreshPosixId();
 			
+			m_Destroying = true;
+			
 			sendCommand( CMD_TERM_PROCESS, Data.ReturnBuffer, TimeStamp(OS_SIMPLE_COMMAND_TIMEOUT).asaac_Time() );		
 	
 			if (Data.Return == ASAAC_ERROR)
@@ -807,12 +810,15 @@ void Process::destroy()
 	}
 	catch (ASAAC_Exception &e)
 	{
+		m_Destroying = false;
+	
 		CharSeq ErrorString;
-		
 		e.addPath( (ErrorString << "Error destroying process " << getId()).c_str(), LOCATION);
 		
 		throw;
 	}
+
+	m_Destroying = false;
 }
 
 
@@ -1267,6 +1273,12 @@ bool Process::isOSScope()
 }
 
 
+bool Process::isCurrentProcess()
+{
+	return m_IsServer;
+}
+
+
 ASAAC_PublicId Process::getId()
 {
 	if ( m_IsInitialized == false ) 
@@ -1555,10 +1567,14 @@ void Process::SigChildCallback( void* Data )
 {
 	siginfo_t* SignalInfo = (siginfo_t*)Data;
 	
+	//Process has exited and returned his signal
+	if ((SignalInfo->si_value.sival_int >= SIGRTMIN) && (m_Destroying == false))
+		deinitialize();
+
+	//Return value is "SUCCESS", so no more information is needed
 	if (SignalInfo->si_value.sival_int == OS_SIGNAL_SUCCESS)
 		return;
-	
-	
+		
 	CharSeq ErrorString;
 	ErrorString << oal_signal_description(SignalInfo->si_value.sival_int);
 	
