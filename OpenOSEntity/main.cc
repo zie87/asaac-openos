@@ -70,7 +70,7 @@ int main( char argc, char** argv )
     	e.printMessage();
     	
         cout << "OpenOS Entity shuts down now..." << endl;
-        return 1;
+        return OS_SIGNAL_ERROR;
     }
 	
 	// 2nd step: start execution	
@@ -103,12 +103,12 @@ int main( char argc, char** argv )
     	e.printMessage();
     	
         cout << "OpenOS Entity shuts down now..." << endl;
-        return 2;
+        return OS_SIGNAL_ERROR;
     }
     
     // 3rd step: shut down
     cout << "OpenOS Entity shuts down now..." << endl;
-    return 0;
+    return OS_SIGNAL_SUCCESS;
 }
 
 
