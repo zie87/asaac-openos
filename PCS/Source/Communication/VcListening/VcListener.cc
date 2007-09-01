@@ -83,9 +83,11 @@ ASAAC_TimedReturnStatus VcListener::listen( const ASAAC_TimeInterval& Timeout )
 		cout << "VcListener::listen() adding local VC " << m_ListeningVcInfo[ Index ].LocalVc << endl;
 		#endif
 	}
+	
 	#ifdef _DEBUG_
 	cout << "VcListener::listen()" << endl;
 	#endif 
+	
 	ASAAC_TimedReturnStatus Result = ASAAC_APOS_waitOnMultiChannel( &ListeningVcs, 1, &ReceivingVcs, &Timeout );
 		
 	if ( Result == ASAAC_TM_ERROR ) 

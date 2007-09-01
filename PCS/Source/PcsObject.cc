@@ -448,7 +448,19 @@ ASAAC_ReturnStatus PCS::detachTransferConnectionFromVirtualChannel( ASAAC_Public
 	cout << "PCS::detachTransferConnectionFromVirtualChannel()  " << endl;
 #endif
 	
-	return ASAAC_ERROR;
+	if ( m_Listener.removeListeningConsumer( vc_id ) == ASAAC_ERROR )
+		return ASAAC_ERROR;
+	
+	if ( m_Configuration.removeLocalVc( vc_id ) == ASAAC_ERROR )
+		return ASAAC_ERROR;
+
+	if ( m_Configuration.removeTcMapping( vc_id, tc_id ) == ASAAC_ERROR )
+		return ASAAC_ERROR;
+	
+	if ( m_Configuration.removeVcDescription( vc_id ) == ASAAC_ERROR )
+		return ASAAC_ERROR;
+	
+	return ASAAC_SUCCESS;
 }
 
 
