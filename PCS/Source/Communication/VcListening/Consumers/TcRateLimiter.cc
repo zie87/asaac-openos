@@ -17,11 +17,16 @@ TcRateLimiter::TcRateLimiter()
 void TcRateLimiter::initialize()
 {
 	ASAAC_CharacterSequence ConfigurationChangedEventName = CharSeq("PCS_RateLimiter_ConfigurationChangedEvent").asaac_str();
+	ASAAC_CharacterSequence MessageProcessedEventName = CharSeq("PCS_RateLimiter_MessageProcessedEvent").asaac_str();
 	
 	if (ASAAC_APOS_createEvent( &ConfigurationChangedEventName, &m_ConfigurationChangedEvent ) != ASAAC_RS_SUCCESS)
 		throw PcsException(0,0,"ConfigurationChangedEvent couldn't be created");
+	
+	if (ASAAC_APOS_createEvent( &MessageProcessedEventName, &m_MessageProcessedEvent ) != ASAAC_RS_SUCCESS)
+		throw PcsException(0,0,"MessageProcessedEvent couldn't be created");
 
 	ASAAC_APOS_resetEvent( m_ConfigurationChangedEvent );
+	ASAAC_APOS_resetEvent( m_MessageProcessedEvent );
 	
 	for ( unsigned long Index = 0; Index < PCS_MAX_NUMBER_OF_TCS;  ++Index )
 	{
@@ -45,6 +50,8 @@ void TcRateLimiter::deinitialize()
 {
 	ASAAC_APOS_setEvent( m_ConfigurationChangedEvent );
 	ASAAC_APOS_deleteEvent( m_ConfigurationChangedEvent );
+
+	ASAAC_APOS_deleteEvent( m_MessageProcessedEvent );
 }
 
 
@@ -211,9 +218,15 @@ ASAAC_ReturnStatus TcRateLimiter::enqueueMessage( ASAAC_PublicId TcId, ASAAC_Add
 		return ASAAC_ERROR;
 	}
 	
-	
-	ASAAC_Time Now;
-	ASAAC_APOS_getAbsoluteLocalTime( &Now );
+	while (m_NextFreeQueue[q] == m_NextMessage[q])
+	{
+#ifdef _DEBUG_       
+		cout << "TcRateLimiter::enqueueMessage() - Waiting for free buffers." << endl; fflush(stdout);
+#endif	
+		
+		ASAAC_APOS_waitForEvent( m_MessageProcessedEvent, &TimeIntervalInfinity );
+		ASAAC_APOS_resetEvent( m_MessageProcessedEvent );
+	}
 	
 	Message* ThisMessage = &m_QueuedMessages[q][ m_NextFreeQueue[q] ];
 		
@@ -269,6 +282,7 @@ ASAAC_ReturnStatus TcRateLimiter::processNextMessage()
 			setNextMessageTime( Index, Now );
 			
 			m_NextMessage[Index] = ( m_NextMessage[Index] + 1 ) % PCS_MAX_SIZE_OF_MESSAGEQUEUE;
+			ASAAC_APOS_setEvent( m_MessageProcessedEvent );
 			
 			#ifdef _DEBUG_       
 			cout << "TcRateLimiter::processNextMessage() processed enqueued message" << endl;fflush(stdout);

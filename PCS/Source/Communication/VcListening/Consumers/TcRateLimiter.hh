@@ -56,6 +56,7 @@ private:
 	PCSConfiguration*  m_Configuration;
 	
 	ASAAC_PrivateId	   m_ConfigurationChangedEvent;
+	ASAAC_PrivateId	   m_MessageProcessedEvent;
 };
 
 

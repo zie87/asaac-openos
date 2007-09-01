@@ -390,7 +390,10 @@ ASAAC_ReturnStatus PCS::getNetworkPortStatus( const ASAAC_NetworkDescriptor& net
 	cout << "PCS::getNetworkPortStatus()  " << endl;
 #endif
 	
-	return ASAAC_ERROR;
+	if ( ASAAC_MOS_getNetworkPortStatus( &network_descriptor, &status ) != ASAAC_MOS_NII_CALL_COMPLETE)
+		return ASAAC_ERROR;
+	
+	return ASAAC_SUCCESS;
 }
 
 
