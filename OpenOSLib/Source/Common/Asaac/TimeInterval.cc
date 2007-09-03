@@ -7,12 +7,12 @@ TimeInterval::TimeInterval()
 	reset();
 }
 
-TimeInterval::TimeInterval(unsigned long value, TimeUnit unit)
+TimeInterval::TimeInterval(const unsigned long value, const TimeUnit unit)
 {
 	assign(value, unit);
 }
 
-TimeInterval::TimeInterval(ASAAC_TimeInterval interval)
+TimeInterval::TimeInterval(const ASAAC_TimeInterval interval)
 {
 	assign(interval);
 }
@@ -21,13 +21,13 @@ TimeInterval::~TimeInterval()
 {
 }
 
-TimeInterval & TimeInterval::assign(unsigned long value, TimeUnit unit)
+TimeInterval & TimeInterval::assign(const unsigned long value, const TimeUnit unit)
 {
 	reset();
 	return add(value, unit);
 }
 
-TimeInterval & TimeInterval::assign(ASAAC_TimeInterval interval)
+TimeInterval & TimeInterval::assign(const ASAAC_TimeInterval interval)
 {
 	reset();
 	addSeconds(interval.sec);
@@ -35,7 +35,7 @@ TimeInterval & TimeInterval::assign(ASAAC_TimeInterval interval)
 	return *this;
 }
 
-TimeInterval & TimeInterval::add(long value, TimeUnit unit)
+TimeInterval & TimeInterval::add(const long value, const TimeUnit unit)
 {
 	switch (unit) {
 		case NanoSeconds: addNanoSeconds(value); break;
@@ -49,17 +49,17 @@ TimeInterval & TimeInterval::add(long value, TimeUnit unit)
 	return *this;
 }
 
-TimeInterval & TimeInterval::addHours(long hours)
+TimeInterval & TimeInterval::addHours(const long hours)
 {
 	return addMinutes(hours * 60);
 }
 
-TimeInterval & TimeInterval::addMinutes(long minutes)
+TimeInterval & TimeInterval::addMinutes(const long minutes)
 {
 	return addSeconds(minutes * 60);
 }
 
-TimeInterval & TimeInterval::addSeconds(long seconds)
+TimeInterval & TimeInterval::addSeconds(const long seconds)
 {
 	if ((OS_TIME_INFINITY_SECONDS - m_Interval.sec) < seconds)
 		m_Interval.sec = OS_TIME_INFINITY_SECONDS;
@@ -68,17 +68,17 @@ TimeInterval & TimeInterval::addSeconds(long seconds)
 	return *this;
 }
 
-TimeInterval & TimeInterval::addMilliSeconds(long milli_seconds)
+TimeInterval & TimeInterval::addMilliSeconds(const long milli_seconds)
 {
 	return addMicroSeconds(milli_seconds * 1000);
 }
 
-TimeInterval & TimeInterval::addMicroSeconds(long micro_seconds)
+TimeInterval & TimeInterval::addMicroSeconds(const long micro_seconds)
 {
 	return addNanoSeconds(micro_seconds * 1000);
 }
 
-TimeInterval & TimeInterval::addNanoSeconds(long nano_seconds)
+TimeInterval & TimeInterval::addNanoSeconds(const long nano_seconds)
 {
 	//div_t d = div(nano_seconds, (long)1000000000);
 	ldiv_t d = div(nano_seconds, (long)1000000000);
@@ -104,7 +104,7 @@ TimeInterval & TimeInterval::addNanoSeconds(long nano_seconds)
 	return *this;
 }
 
-const timespec TimeInterval::timespec_Interval()
+const timespec TimeInterval::timespec_Interval() const
 {
 	timespec result;
 	result.tv_sec = m_Interval.sec;
@@ -112,17 +112,27 @@ const timespec TimeInterval::timespec_Interval()
 	return result;
 }
 
-const ASAAC_TimeInterval TimeInterval::asaac_Interval()
+const ASAAC_TimeInterval TimeInterval::asaac_Interval() const
 {
 	return m_Interval;
 }
 
-bool TimeInterval::isInstant()
+const unsigned long long TimeInterval::sec() const
+{
+	return m_Interval.sec;
+}
+
+const unsigned long long TimeInterval::nsec() const
+{
+	return m_Interval.nsec;
+} 
+
+bool TimeInterval::isInstant() const
 {
 	return ((m_Interval.sec == 0) && (m_Interval.nsec == 0));	
 }
 
-bool TimeInterval::isInfinity()
+bool TimeInterval::isInfinity() const
 {
 	return ((m_Interval.sec == OS_TIME_INFINITY_SECONDS) && (m_Interval.nsec == OS_TIME_INFINITY_NANOSECONDS));	
 }

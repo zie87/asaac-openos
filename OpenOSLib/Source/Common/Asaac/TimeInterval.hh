@@ -18,27 +18,29 @@ class TimeInterval
 {
 public:
 	TimeInterval();
-	TimeInterval(unsigned long value, TimeUnit unit);
-	TimeInterval(ASAAC_TimeInterval interval);
+	TimeInterval(const unsigned long value, const TimeUnit unit);
+	TimeInterval(const ASAAC_TimeInterval interval);
 
 	virtual ~TimeInterval();
 	
-	TimeInterval & assign(unsigned long value, TimeUnit unit);
-	TimeInterval & assign(ASAAC_TimeInterval interval);
+	TimeInterval & assign(const unsigned long value, const TimeUnit unit);
+	TimeInterval & assign(const ASAAC_TimeInterval interval);
 
-	TimeInterval & add(long value, TimeUnit unit);
-	TimeInterval & addHours(long hours);
-	TimeInterval & addMinutes(long minutes);
-	TimeInterval & addSeconds(long seconds);
-	TimeInterval & addMilliSeconds(long milli_seconds);
-	TimeInterval & addMicroSeconds(long micro_seconds);
-	TimeInterval & addNanoSeconds(long nano_seconds);
+	TimeInterval & add(const long value, const TimeUnit unit);
+	TimeInterval & addHours(const long hours);
+	TimeInterval & addMinutes(const long minutes);
+	TimeInterval & addSeconds(const long seconds);
+	TimeInterval & addMilliSeconds(const long milli_seconds);
+	TimeInterval & addMicroSeconds(const long micro_seconds);
+	TimeInterval & addNanoSeconds(const long nano_seconds);
 
-	const timespec timespec_Interval();
-	const ASAAC_TimeInterval asaac_Interval();
+	const timespec timespec_Interval() const;
+	const ASAAC_TimeInterval asaac_Interval() const;
+	const unsigned long long sec() const;
+	const unsigned long long nsec() const;
 	
-	bool isInstant();
-	bool isInfinity();
+	bool isInstant() const;
+	bool isInfinity() const;
 	
 	static TimeInterval  Instant();
 	static TimeInterval  Infinity();

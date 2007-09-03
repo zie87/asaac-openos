@@ -4,26 +4,26 @@
 
 #include "Managers/TimeManager.hh"
 
-TimeStamp::TimeStamp(unsigned long seconds, unsigned long nano_seconds)
+TimeStamp::TimeStamp(const unsigned long seconds, const unsigned long nano_seconds)
 {
 	reset();
 	addSeconds(seconds);
 	addNanoSeconds(nano_seconds);
 }
 
-TimeStamp::TimeStamp(ASAAC_TimeInterval Interval)
+TimeStamp::TimeStamp(const ASAAC_TimeInterval Interval)
 {
 	*this = Now().addInterval(Interval);
 }
 
-TimeStamp::TimeStamp(ASAAC_Time Time)
+TimeStamp::TimeStamp(const ASAAC_Time Time)
 {
 	reset();
 	addSeconds(Time.sec);
 	addNanoSeconds(Time.nsec);
 }
 
-TimeStamp::TimeStamp(timespec Time)
+TimeStamp::TimeStamp(const timespec Time)
 {
 	reset();
 	addSeconds(Time.tv_sec);
@@ -34,17 +34,17 @@ TimeStamp::~TimeStamp()
 {
 }
 
-TimeStamp & TimeStamp::addHours(long hours)
+TimeStamp & TimeStamp::addHours(const long hours)
 {
 	return addMinutes(hours * 60);
 }
 
-TimeStamp & TimeStamp::addMinutes(long minutes)
+TimeStamp & TimeStamp::addMinutes(const long minutes)
 {
 	return addSeconds(minutes * 60);
 }
 
-TimeStamp & TimeStamp::addSeconds(long seconds)
+TimeStamp & TimeStamp::addSeconds(const long seconds)
 {
 	if ((abs(m_Time.sec) < abs(seconds)) && 
 	    (seconds < 0))
@@ -57,17 +57,17 @@ TimeStamp & TimeStamp::addSeconds(long seconds)
 	return *this;
 }
 
-TimeStamp & TimeStamp::addMilliSeconds(long milli_seconds)
+TimeStamp & TimeStamp::addMilliSeconds(const long milli_seconds)
 {
 	return addMicroSeconds(milli_seconds * 1000);
 }
 
-TimeStamp & TimeStamp::addMicroSeconds(long micro_seconds)
+TimeStamp & TimeStamp::addMicroSeconds(const long micro_seconds)
 {
 	return addNanoSeconds(micro_seconds * 1000);
 }
 
-TimeStamp & TimeStamp::addNanoSeconds(long nano_seconds)
+TimeStamp & TimeStamp::addNanoSeconds(const long nano_seconds)
 {
 	ldiv_t d = div(nano_seconds, (long)1000000000);
 	
@@ -92,35 +92,49 @@ TimeStamp & TimeStamp::addNanoSeconds(long nano_seconds)
 	return *this;
 }
 
-TimeStamp & TimeStamp::addInterval(ASAAC_TimeInterval Interval)
+TimeStamp & TimeStamp::addInterval(const ASAAC_TimeInterval Interval)
 {
-	addSeconds(Interval.sec);
-	addNanoSeconds(Interval.nsec);
+	addSeconds( Interval.sec );
+	addNanoSeconds( Interval.nsec );
 	return *this;
 }
 
-TimeStamp & TimeStamp::addInterval(timespec Interval)
+TimeStamp & TimeStamp::addInterval(const TimeInterval &Interval)
 {
-	addSeconds(Interval.tv_sec);
-	addNanoSeconds(Interval.tv_nsec);
+	addSeconds( Interval.sec() );
+	addNanoSeconds( Interval.nsec() );
 	return *this;
 }
 
-TimeStamp & TimeStamp::subInterval(ASAAC_TimeInterval Interval)
+TimeStamp & TimeStamp::addInterval(const timespec Interval)
 {
-	addSeconds(-Interval.sec);
-	addNanoSeconds(-Interval.nsec);
+	addSeconds( Interval.tv_sec );
+	addNanoSeconds( Interval.tv_nsec );
 	return *this;
 }
 
-TimeStamp & TimeStamp::subInterval(timespec Interval)
+TimeStamp & TimeStamp::subInterval(const ASAAC_TimeInterval Interval)
 {
-	addSeconds(-Interval.tv_sec);
-	addNanoSeconds(-Interval.tv_nsec);
+	addSeconds( -Interval.sec );
+	addNanoSeconds( -Interval.nsec );
 	return *this;
 }
 
-const timespec TimeStamp::timespec_Time()
+TimeStamp & TimeStamp::subInterval(const TimeInterval &Interval)
+{
+	addSeconds( -Interval.sec() );
+	addNanoSeconds( -Interval.nsec() );
+	return *this;
+}
+
+TimeStamp & TimeStamp::subInterval(const timespec Interval)
+{
+	addSeconds( -Interval.tv_sec );
+	addNanoSeconds( -Interval.tv_nsec );
+	return *this;
+}
+
+const timespec TimeStamp::timespec_Time() const
 {
 	timespec result;
 	result.tv_sec = m_Time.sec;
@@ -128,7 +142,7 @@ const timespec TimeStamp::timespec_Time()
 	return result;
 }
 
-const tm TimeStamp::tm_Time()
+const tm TimeStamp::tm_Time() const
 {
 	time_t time = timespec_Time().tv_sec;
 	tm* tm_ptr = gmtime(&time);
@@ -136,19 +150,19 @@ const tm TimeStamp::tm_Time()
 	return result;
 }
 
-const ASAAC_Time TimeStamp::asaac_Time()
+const ASAAC_Time TimeStamp::asaac_Time() const
 {
 	return m_Time;
 }
  
-const ASAAC_TimeInterval TimeStamp::asaac_Interval()
+const ASAAC_TimeInterval TimeStamp::asaac_Interval() const
 {
 	ASAAC_Time time;
 	TimeManager::getAbsoluteLocalTime(time);
 	
 	ASAAC_TimeInterval interval;
-	interval.sec = m_Time.sec-time.sec;
-	interval.nsec = m_Time.sec-time.nsec;
+	interval.sec = m_Time.sec - time.sec;
+	interval.nsec = m_Time.sec - time.nsec;
 	
 	if (interval.nsec < 0)
 	{
@@ -165,142 +179,166 @@ const ASAAC_TimeInterval TimeStamp::asaac_Interval()
 	return interval;
 }
 
-const unsigned long long TimeStamp::sec()
+const unsigned long long TimeStamp::sec() const
 {
 	return m_Time.sec;
 }
 
-const unsigned long long TimeStamp::nsec()
+const unsigned long long TimeStamp::nsec() const
 {
 	return m_Time.nsec;
 }
  
-bool TimeStamp::isInfinity()
+bool TimeStamp::isInfinity() const
 {
 	return ((m_Time.sec == OS_TIME_INFINITY_SECONDS) && (m_Time.nsec == OS_TIME_INFINITY_NANOSECONDS));
 }
 
-bool TimeStamp::isZero()
+bool TimeStamp::isZero() const
 {
 	return ((m_Time.sec == 0) && (m_Time.nsec == 0));
 } 
  
-TimeStamp & TimeStamp::operator=(ASAAC_Time Time)
+TimeStamp & TimeStamp::operator=(const ASAAC_Time Time)
 {
 	m_Time = Time;
 	return *this;
 }
 
-TimeStamp & TimeStamp::operator=(timespec Time)
+TimeStamp & TimeStamp::operator=(const timespec Time)
 {
 	m_Time.sec = Time.tv_sec;
 	m_Time.nsec = Time.tv_nsec;
 	return *this;
 }
 
-TimeStamp & TimeStamp::operator=(TimeStamp Time)
+TimeStamp & TimeStamp::operator=(const TimeStamp Time)
 {
 	m_Time = Time.asaac_Time();
 	return *this;
 }
 
-TimeStamp & TimeStamp::operator+=(ASAAC_TimeInterval Interval)
+TimeStamp & TimeStamp::operator+=(const ASAAC_TimeInterval Interval)
 {
 	return addInterval(Interval);
 }
 
-TimeStamp & TimeStamp::operator+=(timespec Interval)
+TimeStamp & TimeStamp::operator+=(const timespec Interval)
 {
 	return addInterval(Interval);
 }
 
-TimeStamp & TimeStamp::operator-=(ASAAC_TimeInterval Interval)
+TimeStamp & TimeStamp::operator-=(const ASAAC_TimeInterval Interval)
 {
 	return subInterval(Interval);
 }
 
-TimeStamp & TimeStamp::operator-=(timespec Interval)
+TimeStamp & TimeStamp::operator-=(const timespec Interval)
 {
 	return subInterval(Interval);
 }
 
-bool TimeStamp::operator<(ASAAC_Time Time)
+bool TimeStamp::operator<(const ASAAC_Time Time) const
 {
 	return (*this < TimeStamp(Time));
 }
 
-bool TimeStamp::operator<(timespec Time)
+bool TimeStamp::operator<(const timespec Time) const
 {
 	return (*this < TimeStamp(Time));
 }
 
-bool TimeStamp::operator<(TimeStamp Time)
+bool TimeStamp::operator<(const TimeStamp Time) const
 {
 	return ((sec() < Time.sec()) ||
 			((sec() == Time.sec()) && (nsec() < Time.nsec())) );
 }
 
-bool TimeStamp::operator<=(ASAAC_Time Time)
+bool TimeStamp::operator<=(const ASAAC_Time Time) const
 {
 	return (*this <= TimeStamp(Time));
 }
 
-bool TimeStamp::operator<=(timespec Time)
+bool TimeStamp::operator<=(const timespec Time) const
 {
 	return (*this <= TimeStamp(Time));
 }
 
-bool TimeStamp::operator<=(TimeStamp Time)
+bool TimeStamp::operator<=(const TimeStamp Time) const
 {
 	return ((sec() < Time.sec()) ||
 			((sec() == Time.sec()) && (nsec() <= Time.nsec())) );
 }
 
-bool TimeStamp::operator==(ASAAC_Time Time)
+bool TimeStamp::operator==(const ASAAC_Time Time) const
 {
 	return (*this == TimeStamp(Time));
 }
 
-bool TimeStamp::operator==(timespec Time)
+bool TimeStamp::operator==(const timespec Time) const
 {
 	return (*this == TimeStamp(Time));
 }
 
-bool TimeStamp::operator==(TimeStamp Time)
+bool TimeStamp::operator==(const TimeStamp Time) const
 {
 	return ((sec() == Time.sec()) && (nsec() == Time.nsec()) );
 }
 
-bool TimeStamp::operator>=(ASAAC_Time Time)
+bool TimeStamp::operator>=(const ASAAC_Time Time) const
 {
 	return (*this >= TimeStamp(Time));
 }
 
-bool TimeStamp::operator>=(timespec Time)
+bool TimeStamp::operator>=(const timespec Time) const
 {
 	return (*this >= TimeStamp(Time));
 }
 
-bool TimeStamp::operator>=(TimeStamp Time)
+bool TimeStamp::operator>=(const TimeStamp Time) const
 {
 	return ((sec() > Time.sec()) ||
 			((sec() == Time.sec()) && (nsec() >= Time.nsec())) );
 }
 
-bool TimeStamp::operator>(ASAAC_Time Time)
+bool TimeStamp::operator>(const ASAAC_Time Time) const
 {
 	return (*this > TimeStamp(Time));
 }
 
-bool TimeStamp::operator>(timespec Time)
+bool TimeStamp::operator>(const timespec Time) const
 {
 	return (*this > TimeStamp(Time));
 }
 
-bool TimeStamp::operator>(TimeStamp Time)
+bool TimeStamp::operator>(const TimeStamp Time) const
 {
 	return ((sec() > Time.sec()) ||
 			((sec() == Time.sec()) && (nsec() > Time.nsec())) );
+}
+
+TimeStamp TimeStamp::operator+(const TimeInterval data) const
+{
+	TimeStamp ts(*this);
+	return ts.addInterval(data);
+}
+
+TimeStamp TimeStamp::operator+(const ASAAC_TimeInterval data) const
+{
+	TimeStamp ts(*this);
+	return ts.addInterval(data);
+}
+	
+TimeStamp TimeStamp::operator-(const TimeInterval data) const
+{
+	TimeStamp ts(*this);
+	return ts.subInterval(data);
+}
+
+TimeStamp TimeStamp::operator-(const ASAAC_TimeInterval data) const
+{
+	TimeStamp ts(*this);
+	return ts.subInterval(data);
 }
 	
 TimeStamp TimeStamp::Zero()
