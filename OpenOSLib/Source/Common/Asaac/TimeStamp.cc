@@ -157,7 +157,9 @@ const ASAAC_Time TimeStamp::asaac_Time() const
  
 const ASAAC_TimeInterval TimeStamp::asaac_Interval() const
 {
-	return (*this - Now()).asaac_Interval();
+	ASAAC_TimeInterval Interval = (Now() - *this).asaac_Interval();
+	
+	return Interval;
 }
 
 const unsigned long long TimeStamp::sec() const
@@ -317,21 +319,19 @@ TimeInterval TimeStamp::operator-(const TimeStamp &data) const
 
 TimeInterval TimeStamp::operator-(const ASAAC_Time data) const
 {
-	TimeStamp n = Now();
-	
-	ASAAC_TimeInterval ti_now;
-	ti_now.sec  = n.sec();
-	ti_now.nsec = n.nsec();
+	ASAAC_TimeInterval ti_this;
+	ti_this.sec  = sec();
+	ti_this.nsec = nsec();
 	
 	ASAAC_TimeInterval ti_data;
 	ti_data.sec  = data.sec;
 	ti_data.nsec = data.nsec;
 	
-	TimeInterval Data( ti_data );
+	TimeInterval This( ti_data );
 	
-	Data -= TimeInterval(ti_now);
+	This -= TimeInterval(ti_this);
 	
-	return Data;
+	return This;
 }
 
 TimeStamp TimeStamp::operator-(const TimeInterval &data) const

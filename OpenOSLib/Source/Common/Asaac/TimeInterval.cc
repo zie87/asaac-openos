@@ -63,7 +63,10 @@ TimeInterval & TimeInterval::addSeconds(const long seconds)
 {
 	if ((OS_TIME_INFINITY_SECONDS - m_Interval.sec) < seconds)
 		m_Interval.sec = OS_TIME_INFINITY_SECONDS;
-	else m_Interval.sec += seconds;	
+	else m_Interval.sec += seconds;
+	
+	if ( m_Interval.sec < 0 )
+		m_Interval.sec = 0;
 	
 	return *this;
 }
@@ -88,8 +91,15 @@ TimeInterval & TimeInterval::addNanoSeconds(const long nano_seconds)
 	
 	if (m_Interval.nsec < 0)
 	{
-		m_Interval.nsec = 1000000000 + m_Interval.nsec;
-		addSeconds(-1);
+		if (m_Interval.sec > 0)
+		{
+			m_Interval.nsec = 1000000000 + m_Interval.nsec;
+			addSeconds(-1);
+		}
+		else
+		{
+			m_Interval.nsec = 0;
+		}
 	}
 	
 	if (m_Interval.nsec > 999999999)

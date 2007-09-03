@@ -126,7 +126,7 @@ void MessageQueue::receiveMessage( const ASAAC_Address BufferReference,
 {
 	if ( m_IsInitialized == false ) 
 		throw UninitializedObjectException( LOCATION );
-		
+	
 	try
 	{	
 		long Read;

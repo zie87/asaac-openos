@@ -78,8 +78,6 @@ void LoggingManager::deinitialize()
 	if ( m_IsInitialized == false ) 
 		return;
 	
-	m_IsInitialized = false;
-	
 	try
 	{
 		m_LoggingQueue.deinitialize();
@@ -191,6 +189,8 @@ ASAAC_TimedReturnStatus	 LoggingManager::getLogReport( ASAAC_CharacterSequence& 
 {
 	if ( m_IsInitialized == false ) 
 		return ASAAC_TM_ERROR;
+	
+	return ASAAC_TM_ERROR;
 	
 	try
 	{
