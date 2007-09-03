@@ -181,11 +181,11 @@ void PCS::loopVcListener()
 		try
 		{
 #ifdef _DEBUG_       
-	        //cout << "PCS::vcListener()" << endl; fflush(stdout);
+	        //cout << "PCS::loopVcListener()" << endl; fflush(stdout);
 #endif
-			if(m_Listener.listen(t) == ASAAC_TM_ERROR)
+			if (m_Listener.listen(t) == ASAAC_TM_ERROR)
 			{
-				cerr << "PCS::vcListener() cannot listen to local VCs. Break loop. Good Bye!" << endl;
+				cerr << "PCS::loopVcListener() cannot listen to local VCs. Break loop. Good Bye!" << endl;
 				return;
 			}
 		}
@@ -208,7 +208,7 @@ void PCS::loopRateLimiter()
 #ifdef _DEBUG_
 			if (ret == ASAAC_SUCCESS)
 			{       
-	    		cout << "PCS::rateLimiter() processed enqueued message " << endl; fflush(stdout);
+	    		cout << "PCS::loopRateLimiter() processed enqueued message " << endl; fflush(stdout);
 			}
 #endif
 		}
@@ -234,12 +234,13 @@ void PCS::TcCallback( const ASAAC_Address event_info_data )
 #ifdef _DEBUG_       
 	cout << "PCS::TcCallback()  " << endl;
 #endif
+	
 	try
 	{
 		EventInfoData *Data = static_cast<EventInfoData*>(event_info_data);
 
 #ifdef _DEBUG_       
-			cout << "PCS::TcCallback()  comms_ev_buffer_received.tc_id: " << Data->comms_ev_buffer_received.tc_id << endl;
+		cout << "PCS::TcCallback()  comms_ev_buffer_received.tc_id: " << Data->comms_ev_buffer_received.tc_id << endl;
 #endif			
 		
 		if (Data->comms_ev_buffer_received.status == ASAAC_MOS_NII_CALL_OK)
@@ -306,27 +307,24 @@ ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_
 			cerr << "PCS::createTransferConnection() failed to configure interface with network " << tc_description.network_descr.network << " and port " << tc_description.network_descr.port << endl;
 	}			
 	
-	UdpConfiguration udp_conf;
-        
+	UdpConfiguration  udp_conf;
 	TcNetworkSpecific nw_spec_conf_data;
 
 	nw_spec_conf_data.udp = udp_conf;
 
-	ASAAC_TC_ConfigurationData tc_configuration_data = { 1, NETWORK_TYPE_UDP, nw_spec_conf_data};
+	ASAAC_TC_ConfigurationData tc_configuration_data = { 1, NETWORK_TYPE_UDP, nw_spec_conf_data};	
+	ASAAC_TransferDirection    send_receive = tc_description.is_receiver == ASAAC_BOOL_TRUE ? ASAAC_TRANSFER_DIRECTION_RECEIVE : ASAAC_TRANSFER_DIRECTION_SEND;
+	ASAAC_TransferType         message_streaming = tc_description.is_msg_transfer == ASAAC_BOOL_TRUE ? ASAAC_TRANSFER_TYPE_MESSAGE : ASAAC_TRANSFER_TYPE_STREAMING;
 	
-	ASAAC_TransferDirection send_receive = tc_description.is_receiver == ASAAC_BOOL_TRUE ? ASAAC_TRANSFER_DIRECTION_RECEIVE : ASAAC_TRANSFER_DIRECTION_SEND;
-	
-	ASAAC_TransferType message_streaming = tc_description.is_msg_transfer == ASAAC_BOOL_TRUE ? ASAAC_TRANSFER_TYPE_MESSAGE : ASAAC_TRANSFER_TYPE_STREAMING;
-	
-	niiRet = ASAAC_MOS_configureTransfer(tc_description.tc_id, 
+	niiRet = ASAAC_MOS_configureTransfer( tc_description.tc_id, 
                                           &tc_description.network_descr, 
                                           send_receive, 
                                           message_streaming, 
                                           tc_configuration_data, 
                                           ASAAC_BOOL_TRUE, 
-                                          PCS_CALLBACKID_TC);
+                                          PCS_CALLBACKID_TC );
                                               
-	if(niiRet == ASAAC_MOS_NII_CALL_COMPLETE)
+	if (niiRet == ASAAC_MOS_NII_CALL_COMPLETE)
 	{
 #ifdef _DEBUG_       
 		cout << "PCS::createTransferConnection() configured transfer connection " << tc_description.tc_id << endl;
@@ -340,9 +338,9 @@ ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_
 	
 	m_Configuration.addTcDescription(tc_description);
 	
-	ASAAC_TimeInterval defaultTcRateLimit = {0,20000000}; //COMMENT.SBS> way to specify limits is not known yet
-	
-	m_Limiter.setRateLimit( tc_description.tc_id, defaultTcRateLimit );
+	//TODO: way to specify limits from outside is not known yet
+	if (tc_description.is_receiver == ASAAC_BOOL_FALSE )
+		m_Limiter.setRateLimit( tc_description.tc_id, PCS_DEFAULT_RATE_LIMIT );
 	
 	return ASAAC_SUCCESS;
 }
@@ -365,6 +363,16 @@ ASAAC_ReturnStatus PCS::destroyTransferConnection( ASAAC_PublicId tc_id, const A
 #ifdef _DEBUG_       
 	cout << "PCS::destroyTransferConnection()  " << endl;
 #endif
+
+	ASAAC_TcDescription tc_description;
+	
+	if ( m_Configuration.getTcDescription( tc_id, tc_description ) == ASAAC_ERROR )
+		return ASAAC_ERROR;
+
+	if (tc_description.is_receiver == ASAAC_BOOL_FALSE )
+		m_Limiter.setRateLimit( tc_description.tc_id, PCS_DEFAULT_RATE_LIMIT );
+	
+	m_Configuration.removeTcDescription( tc_id );
 	
 	ASAAC_NiiReturnStatus niiRet = ASAAC_MOS_destroyTransfer(tc_id, &network_descriptor);
 	  
@@ -423,8 +431,8 @@ ASAAC_ReturnStatus PCS::attachTransferConnectionToVirtualChannel( const ASAAC_Vc
 	
 	ASAAC_VcToTcMappingDescription TcMapping; //depends on host configuration
 	TcMapping.is_data_representation = is_data_representation;
-    TcMapping.global_vc_id = vc_description.global_vc_id;
-	TcMapping.tc_id        = tc_id;
+    TcMapping.global_vc_id           = vc_description.global_vc_id;
+	TcMapping.tc_id                  = tc_id;
 
 	if(m_Configuration.addTcMapping(TcMapping) != ASAAC_SUCCESS)
 	{

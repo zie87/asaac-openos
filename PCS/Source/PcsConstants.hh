@@ -18,4 +18,6 @@
 #define PCS_MAX_NUMBER_OF_NETWORKS                              16
 #define PCS_MAX_NUMBER_OF_MAPPINGS                              16
 
+#define PCS_DEFAULT_RATE_LIMIT									TimeInterval(5, MilliSeconds).asaac_Interval()
+
 #endif /*PCSCONSTANTS_HH_*/

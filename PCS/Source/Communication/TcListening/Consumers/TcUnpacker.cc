@@ -82,6 +82,10 @@ ASAAC_ReturnStatus TcUnpacker::processTcMessage( ASAAC_PublicId TcId, ASAAC_Addr
 	TcDataType* TcData = static_cast<TcDataType*>(Data);
 	
 	ASAAC_PublicId GlobalVc =  ntohl(TcData->VcId);
+
+	//DEBUG CODE
+	//GlobalVc = 8;
+	//DEBUG CODE
 	
 	// Check whether indicated GlobalVc
 	for ( unsigned long Index = 0;; Index ++ )
