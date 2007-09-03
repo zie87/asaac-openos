@@ -157,26 +157,7 @@ const ASAAC_Time TimeStamp::asaac_Time() const
  
 const ASAAC_TimeInterval TimeStamp::asaac_Interval() const
 {
-	ASAAC_Time time;
-	TimeManager::getAbsoluteLocalTime(time);
-	
-	ASAAC_TimeInterval interval;
-	interval.sec = m_Time.sec - time.sec;
-	interval.nsec = m_Time.sec - time.nsec;
-	
-	if (interval.nsec < 0)
-	{
-		interval.nsec+= 1000000000;
-		interval.sec--;
-	} 
-	
-	if (interval.sec < 0)
-	{
-		interval.sec = 0;
-		interval.nsec = 0;
-	}
-	
-	return interval;
+	return (*this - Now()).asaac_Interval();
 }
 
 const unsigned long long TimeStamp::sec() const
@@ -317,7 +298,7 @@ bool TimeStamp::operator>(const TimeStamp Time) const
 			((sec() == Time.sec()) && (nsec() > Time.nsec())) );
 }
 
-TimeStamp TimeStamp::operator+(const TimeInterval data) const
+TimeStamp TimeStamp::operator+(const TimeInterval &data) const
 {
 	TimeStamp ts(*this);
 	return ts.addInterval(data);
@@ -328,8 +309,32 @@ TimeStamp TimeStamp::operator+(const ASAAC_TimeInterval data) const
 	TimeStamp ts(*this);
 	return ts.addInterval(data);
 }
+
+TimeInterval TimeStamp::operator-(const TimeStamp &data) const
+{
+	return *this - data.asaac_Time();
+}
+
+TimeInterval TimeStamp::operator-(const ASAAC_Time data) const
+{
+	TimeStamp n = Now();
 	
-TimeStamp TimeStamp::operator-(const TimeInterval data) const
+	ASAAC_TimeInterval ti_now;
+	ti_now.sec  = n.sec();
+	ti_now.nsec = n.nsec();
+	
+	ASAAC_TimeInterval ti_data;
+	ti_data.sec  = data.sec;
+	ti_data.nsec = data.nsec;
+	
+	TimeInterval Data( ti_data );
+	
+	Data -= TimeInterval(ti_now);
+	
+	return Data;
+}
+
+TimeStamp TimeStamp::operator-(const TimeInterval &data) const
 {
 	TimeStamp ts(*this);
 	return ts.subInterval(data);

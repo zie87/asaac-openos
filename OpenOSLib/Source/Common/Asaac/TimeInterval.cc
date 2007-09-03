@@ -104,6 +104,34 @@ TimeInterval & TimeInterval::addNanoSeconds(const long nano_seconds)
 	return *this;
 }
 
+TimeInterval & TimeInterval::addInterval(const ASAAC_TimeInterval Interval)
+{
+	addSeconds( Interval.sec );
+	addNanoSeconds( Interval.nsec );
+	return *this;
+}
+
+TimeInterval & TimeInterval::addInterval(const TimeInterval &Interval)
+{
+	addSeconds( Interval.sec() );
+	addNanoSeconds( Interval.nsec() );
+	return *this;
+}
+
+TimeInterval & TimeInterval::subInterval(const ASAAC_TimeInterval Interval)
+{
+	addSeconds( -Interval.sec );
+	addNanoSeconds( -Interval.nsec );
+	return *this;
+}
+
+TimeInterval & TimeInterval::subInterval(const TimeInterval &Interval)
+{
+	addSeconds( -Interval.sec() );
+	addNanoSeconds( -Interval.nsec() );
+	return *this;
+}
+
 const timespec TimeInterval::timespec_Interval() const
 {
 	timespec result;
@@ -135,6 +163,130 @@ bool TimeInterval::isInstant() const
 bool TimeInterval::isInfinity() const
 {
 	return ((m_Interval.sec == OS_TIME_INFINITY_SECONDS) && (m_Interval.nsec == OS_TIME_INFINITY_NANOSECONDS));	
+}
+
+TimeInterval & TimeInterval::operator=(const ASAAC_TimeInterval Interval)
+{
+	m_Interval = Interval;
+	return *this;
+}
+
+TimeInterval & TimeInterval::operator=(const TimeInterval &Interval)
+{
+	m_Interval = Interval.m_Interval;
+	return *this;
+}
+
+TimeInterval & TimeInterval::operator+=(const ASAAC_TimeInterval Interval)
+{
+	addInterval( Interval );
+	return *this;
+}
+
+TimeInterval & TimeInterval::operator+=(const TimeInterval &Interval)
+{
+	addInterval( Interval );
+	return *this;
+}
+
+TimeInterval & TimeInterval::operator-=(const ASAAC_TimeInterval Interval)
+{
+	subInterval( Interval );
+	return *this;
+}
+
+TimeInterval & TimeInterval::operator-=(const TimeInterval &Interval)
+{
+	subInterval( Interval );
+	return *this;
+}
+
+bool TimeInterval::operator<(const ASAAC_TimeInterval Interval) const
+{
+	return (*this < TimeInterval(Interval));
+}
+
+bool TimeInterval::operator<(const TimeInterval Interval) const
+{
+	return ((sec() < Interval.sec()) ||
+			((sec() == Interval.sec()) && (nsec() < Interval.nsec())) );
+}
+
+bool TimeInterval::operator<=(const ASAAC_TimeInterval Interval) const
+{
+	return (*this <= TimeInterval(Interval));
+}
+
+bool TimeInterval::operator<=(const TimeInterval Interval) const
+{
+	return ((sec() < Interval.sec()) ||
+			((sec() == Interval.sec()) && (nsec() <= Interval.nsec())) );
+}
+
+bool TimeInterval::operator==(const ASAAC_TimeInterval Interval) const
+{
+	return (*this == TimeInterval(Interval));
+}
+
+bool TimeInterval::operator==(const TimeInterval Interval) const
+{
+	return ((sec() == Interval.sec()) && (nsec() == Interval.nsec()) );	
+}
+
+bool TimeInterval::operator>=(const ASAAC_TimeInterval Interval) const
+{
+	return (*this >= TimeInterval(Interval));
+}
+
+bool TimeInterval::operator>=(const TimeInterval Interval) const
+{
+	return ((sec() > Interval.sec()) ||
+			((sec() == Interval.sec()) && (nsec() >= Interval.nsec())) );
+}
+
+bool TimeInterval::operator>(const ASAAC_TimeInterval Interval) const
+{
+	return (*this > TimeInterval(Interval));
+}
+
+bool TimeInterval::operator>(const TimeInterval Interval) const
+{
+	return ((sec() > Interval.sec()) ||
+			((sec() == Interval.sec()) && (nsec() > Interval.nsec())) );
+}
+
+TimeStamp TimeInterval::operator+(const TimeStamp &data) const
+{
+	
+}
+
+TimeStamp TimeInterval::operator+(const ASAAC_Time data) const
+{
+	
+}
+
+TimeInterval TimeInterval::operator+(const TimeInterval &data) const
+{
+	TimeInterval ti(*this);
+	return ti.addInterval(data);
+}
+
+TimeInterval TimeInterval::operator+(const ASAAC_TimeInterval data) const
+{
+	TimeInterval ti(*this);
+	return ti.addInterval(data);
+}
+
+TimeInterval TimeInterval::operator-(const TimeInterval &data) const
+{
+	TimeInterval ti(*this);
+	return ti.subInterval(data);
+}
+
+TimeInterval TimeInterval::operator-(const ASAAC_TimeInterval data) const
+{
+	TimeInterval ti(*this);
+	return ti.subInterval(data);
 }
 
 TimeInterval  TimeInterval::Instant()

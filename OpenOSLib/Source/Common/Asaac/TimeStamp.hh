@@ -78,10 +78,12 @@ public:
 	bool operator>(const timespec Time) const;
 	bool operator>(const TimeStamp Time) const;
 
-	TimeStamp operator+(const TimeInterval data) const;
+	TimeStamp operator+(const TimeInterval &data) const;
 	TimeStamp operator+(const ASAAC_TimeInterval data) const;
 	
-	TimeStamp operator-(const TimeInterval data) const;
+	TimeInterval operator-(const TimeStamp &data) const;
+	TimeInterval operator-(const ASAAC_Time data) const;
+	TimeStamp operator-(const TimeInterval &data) const;
 	TimeStamp operator-(const ASAAC_TimeInterval data) const;
 	
 	static TimeStamp  Zero();
