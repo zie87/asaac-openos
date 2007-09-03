@@ -991,6 +991,10 @@ void handleMessageTc(const ASAAC_PublicId port, ASAAC_PublicId *tc_id)
 	if (Buffer == NULL)
 		return;
 	
+	//DEBUG CODE
+	//Buffer->packet.tc_header.tc_id = 8;
+	//DEBUG CODE
+	
 	TransferConnection Tc;
 	if ( getTc(Buffer->packet.tc_header.tc_id, &Tc) == 0 )
 	{
