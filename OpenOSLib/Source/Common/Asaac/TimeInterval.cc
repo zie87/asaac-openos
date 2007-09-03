@@ -257,12 +257,12 @@ bool TimeInterval::operator>(const TimeInterval Interval) const
 
 TimeStamp TimeInterval::operator+(const TimeStamp &data) const
 {
-	
+	return (data + *this);
 }
 
 TimeStamp TimeInterval::operator+(const ASAAC_Time data) const
 {
-	
+	return (*this + TimeStamp(data));
 }
 
 TimeInterval TimeInterval::operator+(const TimeInterval &data) const
