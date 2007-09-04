@@ -11,6 +11,7 @@
 #include "Common/Parameter/ParameterParser.hh"
 #include "Common/Parameter/ConfigurationParser.hh"
 
+// $Revision$
 
 ASAAC_ENTITY
 
