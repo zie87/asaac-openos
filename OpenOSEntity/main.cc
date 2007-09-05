@@ -220,7 +220,7 @@ void printHeader(EntityConfiguration &conf)
 				
 	printf(pattern, 
 		__DATE__,
-		"$Revision",
+		"$LastChangedRevision",
 		(conf.Flush == true)?"yes":"no", 
 		conf.CpuId, 
 		conf.ProcessConfiguration.Count); 	
