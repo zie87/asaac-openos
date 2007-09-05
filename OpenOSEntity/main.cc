@@ -205,7 +205,7 @@ void printHeader(EntityConfiguration &conf)
 		"  #       ###   #  #   ###       #    -------------------            \n"
 		"  ##      #   ###  ###   #      ##    Version:  Beta 2               \n"
 		"  ####       ####  ####       ####    Date:     %s\n"
-		"  ######   ######  ######   ######    Revision: %s\n"
+		"  ######   ######  ######   ######    Revision: %d\n"
 		"  ##############    ##############                                   \n"
   		"    ###########      ###########                                     \n"
     	"      #######   ####   #######        Starting OpenOS Entity:        \n"
@@ -218,13 +218,9 @@ void printHeader(EntityConfiguration &conf)
 		"          #              #                                           \n"
 		"                                                                     \n";
 
-	CharSeq Revision = "$Revision$";
-	Revision.erase(0, 11);
-	Revision.erase(Revision.size()-1, Revision.size());
-	
 	printf(pattern, 
 		__DATE__,
-		Revision.c_str(),
+		OpenOS::getInstance()->getRevisionId(),
 		(conf.Flush == true)?"yes":"no", 
 		conf.CpuId, 
 		conf.ProcessConfiguration.Count); 	
