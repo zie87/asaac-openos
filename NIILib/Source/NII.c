@@ -485,7 +485,7 @@ ASAAC_NiiReturnStatus NII_destroyTransfer(
 	
 	TransferConnection Tc;
 	
-	if ( getTc( tc_id, &Tc ) == -1 ) //TC not established yet
+	if ( getTc( tc_id, &Tc ) == 0 ) //TC not established yet
 		return ASAAC_MOS_NII_TC_NOT_CONFIGURED;
 
 	if ( removeTc( tc_id ) == 0 )
@@ -495,7 +495,7 @@ ASAAC_NiiReturnStatus NII_destroyTransfer(
 	
 	if (getNw( Tc.network_id.port, &Nw ) == 1)
 	{
-		if (countTcs( Tc.network_id.port ) == 0)
+		if (countTcsByPort( Tc.network_id.port ) == 0)
 		{
 			close(Nw.fd);
 			
@@ -1114,13 +1114,19 @@ void* ServiceThread(void* Data)
 			for (Index = 0; Index < m_NwListSize; Index++)
 			{
 				if ( m_NwList[Index].fd == -1 )
-					continue;
-				
+				  {
+				    continue;
+				  }
 				if ( m_NwList[Index].tc_id_with_data != NII_UNUSED_ID )
-					continue;
+				  {
 
+				    continue;
+				  }
+				
 				if ( FD_ISSET(m_NwList[Index].fd, &rfds) == 0 )
-					continue;
+				  {
+				    continue;
+				  }
 				
 				ASAAC_PublicId TcId = NII_UNUSED_ID;
 				
