@@ -1114,19 +1114,13 @@ void* ServiceThread(void* Data)
 			for (Index = 0; Index < m_NwListSize; Index++)
 			{
 				if ( m_NwList[Index].fd == -1 )
-				  {
 				    continue;
-				  }
-				if ( m_NwList[Index].tc_id_with_data != NII_UNUSED_ID )
-				  {
 
+				if ( m_NwList[Index].tc_id_with_data != NII_UNUSED_ID )
 				    continue;
-				  }
 				
 				if ( FD_ISSET(m_NwList[Index].fd, &rfds) == 0 )
-				  {
 				    continue;
-				  }
 				
 				ASAAC_PublicId TcId = NII_UNUSED_ID;
 				
