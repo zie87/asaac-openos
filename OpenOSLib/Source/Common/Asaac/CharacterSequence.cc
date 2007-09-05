@@ -427,6 +427,7 @@ CharacterSequence & CharacterSequence::erase(const unsigned long start, const un
 			memmove( m_Data + start, m_Data + End, move_size );
 			
 			m_Size -= move_size;
+			m_Data[ m_Size ] = 0;
 		}
 	}
 	
