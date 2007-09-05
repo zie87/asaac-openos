@@ -11,6 +11,7 @@
 #include "Common/Parameter/ParameterParser.hh"
 #include "Common/Parameter/ConfigurationParser.hh"
 
+// $LastChangedDate$
 // $Rev$
 
 ASAAC_ENTITY
