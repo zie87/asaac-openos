@@ -351,6 +351,7 @@ void OpenOS::sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier,
 
 RevisionId OpenOS::getRevisionId()
 {
+	//String will be updated by subversion
 	CharSeq Revision = "$Revision$";
 	return Revision.c_ulong(11, Revision.size()-13);
 }
