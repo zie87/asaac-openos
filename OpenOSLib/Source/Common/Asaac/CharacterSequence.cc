@@ -125,6 +125,8 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_CharacterSequence& da
 	
 		m_Size = Len;
 		m_Data[m_Size] = 0;
+		
+		cout << m_Data << endl;
 	}
 	else
 	{

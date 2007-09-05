@@ -352,7 +352,7 @@ void OpenOS::sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier,
 RevisionId OpenOS::getRevisionId()
 {
 	CharSeq Revision = "$Revision$";
-	return Revision.c_ulong(10, Revision.size()-11);
+	return Revision.c_ulong(11, Revision.size()-13);
 }
 
 
