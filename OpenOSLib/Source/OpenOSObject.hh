@@ -36,6 +36,7 @@ public:
 			CommandBuffer Buffer, const ASAAC_Time& Timeout = TimeInfinity,
 			bool Cancelable = false);
 
+	RevisionId getRevisionId(); 
 	SessionId getSessionId();
 	LocalActivityState getActivityState();
 	long getCpuIndex(ASAAC_PublicId CpuId);

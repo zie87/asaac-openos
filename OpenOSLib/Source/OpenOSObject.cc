@@ -349,6 +349,13 @@ void OpenOS::sendCommand( ASAAC_PublicId CpuId, unsigned long CommandIdentifier,
 }
 
 
+RevisionId OpenOS::getRevisionId()
+{
+	CharSeq Revision = "$Revision$";
+	return Revision.c_ulong(10, Revision.size()-11);
+}
+
+
 SessionId OpenOS::getSessionId()
 {
 	if (m_IsInitialized == false) 
