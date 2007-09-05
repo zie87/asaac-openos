@@ -218,11 +218,13 @@ void printHeader(EntityConfiguration &conf)
 		"          #              #                                           \n"
 		"                                                                     \n";
 
-	const char* Revision = "$Revision$";
+	CharSeq Revision = "$Revision$";
+	Revision.erase(0, 11);
+	Revision.erase(Revision.size()-1, Revision.size());
 	
 	printf(pattern, 
 		__DATE__,
-		Revision,
+		Revision.c_str(),
 		(conf.Flush == true)?"yes":"no", 
 		conf.CpuId, 
 		conf.ProcessConfiguration.Count); 	
