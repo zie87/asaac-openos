@@ -9,7 +9,7 @@ int applicationMain( void )
 {
 	try
 	{		
-		OpenOS::getInstance()->initialize( false, LAS_PROCESS_RUNNING );
+	    OpenOS::getInstance()->initialize( false, LAS_PROCESS_RUNNING );
 			
 		//This call shall be implemented by application writer
 		registerThreads();
