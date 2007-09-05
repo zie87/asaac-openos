@@ -11,8 +11,6 @@
 #include "Common/Parameter/ParameterParser.hh"
 #include "Common/Parameter/ConfigurationParser.hh"
 
-// $LastChangedDate$
-// $Rev$
 
 ASAAC_ENTITY
 
@@ -205,9 +203,9 @@ void printHeader(EntityConfiguration &conf)
         "          ######    ######                                           \n"
         "          ####        ####            OpenOS ASAAC Layer:            \n"
 		"  #       ###   #  #   ###       #    -------------------            \n"
-		"  ##      #   ###  ###   #      ##    Version: Beta 2                \n"
-		"  ####       ####  ####       ####    Date:    %s\n"
-		"  ######   ######  ######   ######                                   \n"
+		"  ##      #   ###  ###   #      ##    Version:  Beta 2               \n"
+		"  ####       ####  ####       ####    Date:     %s\n"
+		"  ######   ######  ######   ######    Revision: %s\n"
 		"  ##############    ##############                                   \n"
   		"    ###########      ###########                                     \n"
     	"      #######   ####   #######        Starting OpenOS Entity:        \n"
@@ -221,7 +219,8 @@ void printHeader(EntityConfiguration &conf)
 		"                                                                     \n";
 				
 	printf(pattern, 
-		__DATE__, 
+		__DATE__,
+		"$Revision",
 		(conf.Flush == true)?"yes":"no", 
 		conf.CpuId, 
 		conf.ProcessConfiguration.Count); 	
