@@ -218,7 +218,7 @@ void printHeader(EntityConfiguration &conf)
 		"          #              #                                           \n"
 		"                                                                     \n";
 
-	const char* Revision = "$Rev: 218";
+	const char* Revision = "$Rev: 218$";
 	
 	printf(pattern, 
 		__DATE__,
