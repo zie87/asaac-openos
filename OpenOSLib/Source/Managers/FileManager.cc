@@ -243,9 +243,10 @@ void FileManager::createSharedMemory(const ASAAC_CharacterSequence name, const A
         int Mode = AccessRightsToMode(access);    
         
 #ifdef _ELINOS_4_1_
-        Path = "/dev/vmfileshm/" + name;
+		Name.erase();
+        Name << "/dev/vmfileshm/" << name;
         Flags = 0;
-        Handle = oal_open( Path.c_str(), Flags );
+        Handle = oal_open( Name.c_str(), Flags );
 #else
         //TODO: check if file exists, then throw a recource exception
         
@@ -434,6 +435,7 @@ void FileManager::openSharedMemory(const ASAAC_CharacterSequence name, const ASA
 	        int Mode = S_IREAD | S_IWRITE;
 	    
 #ifdef _ELINOS_4_1_
+			Name.erase();
 	        Name << "/dev/vmfileshm/" << name;
 	        PosixHandle = oal_open( Name.c_str(), Flags, Mode );
 #else
