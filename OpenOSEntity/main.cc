@@ -217,10 +217,12 @@ void printHeader(EntityConfiguration &conf)
 		"          ###          ###                                           \n"
 		"          #              #                                           \n"
 		"                                                                     \n";
-				
+
+	const char* Revision = "$Rev: 218";
+	
 	printf(pattern, 
 		__DATE__,
-		"218",
+		Revision,
 		(conf.Flush == true)?"yes":"no", 
 		conf.CpuId, 
 		conf.ProcessConfiguration.Count); 	
