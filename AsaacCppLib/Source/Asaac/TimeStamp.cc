@@ -43,6 +43,7 @@ TimeStamp & TimeStamp::addMinutes(const long minutes)
 
 TimeStamp & TimeStamp::addSeconds(const long seconds)
 {
+	//TODO: Implement exeptions in AsaacCppLib
 	/*if ((abs(m_Time.sec) < abs(seconds)) && 
 	    (seconds < 0))
 		throw FatalException("Time value beyond zero"); //beyond zero
