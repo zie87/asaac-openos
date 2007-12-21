@@ -150,6 +150,7 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 	{
 		e.addPath("Error couldn't be raised", LOCATION);
 		
+		//TODO: Error must be printed here to stdout
 		e.raiseError();
 		
 		Executing = false;
