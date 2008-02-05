@@ -135,7 +135,7 @@ void FileManager::executeFile( const ASAAC_CharacterSequence name, const Process
 	    execve( CharSeq(name).c_str(), 0, environ);
 	
 	    //if the last call returned, an error occured
-	    OSException e( (ErrorString << "execve: " << strerror(errno)).c_str(), LOCATION );
+	    OSException e( (ErrorString << "execve: " << strerror(errno) << " (" << name << ")").c_str(), LOCATION );
 
 		//reallocate all objects, because execve failed.
 	    AllocatorManager::getInstance()->reallocateAllObjects();
