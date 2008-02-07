@@ -4,7 +4,7 @@
 <cproject>
 <storageModule moduleId="org.eclipse.cdt.core.settings">
 <cconfiguration id="cdt.managedbuild.config.gnu.lib.debug.407703950">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Debug" id="cdt.managedbuild.config.gnu.lib.debug.407703950" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.lib.debug.407703950" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/AsaacCLib"/>
@@ -33,7 +33,7 @@
 <option superClass="gnu.c.compiler.lib.debug.option.optimization.level" id="gnu.c.compiler.lib.debug.option.optimization.level.1429407496" name="Optimization Level" defaultValue="gnu.c.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.c.compiler.lib.debug.option.debugging.level" id="gnu.c.compiler.lib.debug.option.debugging.level.776872350" name="Debug Level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 <option superClass="gnu.c.compiler.option.include.paths" id="gnu.c.compiler.option.include.paths.1965705177" name="Include paths (-I)" valueType="includePath">
-<listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/AsaacInterface}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/AsaacCLib}&quot;" builtIn="false"/>
 </option>
 <inputType superClass="cdt.managedbuild.tool.gnu.c.compiler.input" id="cdt.managedbuild.tool.gnu.c.compiler.input.1309245124"/>
@@ -311,7 +311,7 @@
 <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.lib.release.540644999">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Release" id="cdt.managedbuild.config.gnu.lib.release.540644999" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.lib.release.540644999" name="Release" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/AsaacCLib"/>
@@ -326,7 +326,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.lib.release.540644999" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.release" artifactName="AsaacCLib" artifactExtension="a" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.lib.release.540644999" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.release" artifactName="AsaacCLib" artifactExtension="a" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.lib.release.540644999." name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.lib.release" id="cdt.managedbuild.toolchain.gnu.lib.release.692336288" name="Linux GCC">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.lib.release" id="cdt.managedbuild.target.gnu.platform.lib.release.24061490" name="Debug Platform"/>
