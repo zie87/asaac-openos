@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?fileVersion 3.1.0?>
+
+<ManagedProjectBuildInfo>
+<project id="GSM-Application.cdt.managedbuild.target.gnu.exe.1235592623" name="Executable (Gnu)" projectType="cdt.managedbuild.target.gnu.exe">
+<configuration id="cdt.managedbuild.config.gnu.exe.debug.1064697939" name="Debug" description="" parent="cdt.managedbuild.config.gnu.exe.debug" artifactName="GSM-Application" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" cleanCommand="rm -rf">
+<toolChain superClass="cdt.managedbuild.toolchain.gnu.exe.debug" id="cdt.managedbuild.toolchain.gnu.exe.debug.1979808192" name="GCC Tool Chain">
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.827430352" name="GCC C++ Compiler">
+<option superClass="gnu.cpp.compiler.option.include.paths" id="gnu.cpp.compiler.option.include.paths.14341477" valueType="includePath">
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Source}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
+</option>
+<option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.1982287535" valueType="definedSymbols">
+<listOptionValue value="ABC" builtIn="false"/>
+</option>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug" id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1447430694" name="GCC C Compiler"/>
+<tool superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug" id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.361260219" name="GCC C Linker"/>
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1184405809" name="GCC C++ Linker">
+<option superClass="gnu.cpp.link.option.libs" id="gnu.cpp.link.option.libs.2127534859" valueType="libs">
+<listOptionValue value="OpenOS" builtIn="false"/>
+<listOptionValue value="pthread" builtIn="false"/>
+<listOptionValue value="rt" builtIn="false"/>
+</option>
+<option superClass="gnu.cpp.link.option.paths" id="gnu.cpp.link.option.paths.808524711" valueType="stringList">
+<listOptionValue value="&quot;${workspace_loc:/OpenOSLib/Debug}&quot;" builtIn="false"/>
+</option>
+</tool>
+<tool superClass="cdt.managedbuild.tool.gnu.assembler.exe.debug" id="cdt.managedbuild.tool.gnu.assembler.exe.debug.1128840534" name="GCC Assembler"/>
+<macros/>
+</toolChain>
+</configuration>
+<configuration id="cdt.managedbuild.config.gnu.exe.release.1809176190" name="Release" description="" parent="cdt.managedbuild.config.gnu.exe.release" artifactName="GSM-Application" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" cleanCommand="rm -rf">
+<toolChain superClass="cdt.managedbuild.toolchain.gnu.exe.release" id="cdt.managedbuild.toolchain.gnu.exe.release.1537796046" name="GCC Tool Chain">
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1770094256" name="GCC C++ Compiler"/>
+<tool superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release" id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1398447542" name="GCC C Compiler"/>
+<tool superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release" id="cdt.managedbuild.tool.gnu.c.linker.exe.release.2027106471" name="GCC C Linker"/>
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.218498815" name="GCC C++ Linker"/>
+<tool superClass="cdt.managedbuild.tool.gnu.assembler.exe.release" id="cdt.managedbuild.tool.gnu.assembler.exe.release.263503190" name="GCC Assembler"/>
+</toolChain>
+</configuration>
+<macros/>
+</project>
+</ManagedProjectBuildInfo>
