@@ -3,9 +3,9 @@
 rm -rf OpenOS
 mkdir OpenOS
 
-cp ../ASAAC\ IF/ASAAC.h OpenOS;                if (test $? != 0) then exit; fi;
-cp ../ASAAC\ IF/ASAAC_IMPL.h OpenOS;           if (test $? != 0) then exit; fi;
-cp ../ASAAC\ IF/ASAAC_ENH.h OpenOS;            if (test $? != 0) then exit; fi;
+cp ../AsaacInterface/ASAAC.h OpenOS;           if (test $? != 0) then exit; fi;
+cp ../AsaacInterface/ASAAC_IMPL.h OpenOS;      if (test $? != 0) then exit; fi;
+cp ../AsaacInterface/ASAAC_ENH.h OpenOS;       if (test $? != 0) then exit; fi;
 
 cp ../OpenOSLib/OpenOS.h OpenOS;               if (test $? != 0) then exit; fi;
 cp ../OpenOSLib/OpenOS.hh OpenOS;              if (test $? != 0) then exit; fi;
@@ -27,9 +27,20 @@ strip OpenOS/libNII.a
 strip OpenOS/OpenOSEntity
 strip OpenOS/PCS
 
+mkdir OpenOS/HelloWorld
+
+cp ../HelloWorldConfigurationApplication/Debug/HelloWorldConfigurationApplication OpenOS/HelloWorld;   if (test $? != 0) then exit; fi;
+cp ../HelloWorldConfigurationApplication/HelloWorldConfiguration                  OpenOS/HelloWorld;   if (test $? != 0) then exit; fi;
+cp ../SendHelloWorldApplication/Debug/SendHelloWorldApplication                   OpenOS/HelloWorld;   if (test $? != 0) then exit; fi;
+cp ../ReceiveHelloWorldApplication/Debug/ReceiveHelloWorldApplication             OpenOS/HelloWorld;   if (test $? != 0) then exit; fi;
+
+strip OpenOS/HelloWorld/HelloWorldConfigurationApplication
+strip OpenOS/HelloWorld/SendHelloWorldApplication
+strip OpenOS/HelloWorld/ReceiveHelloWorldApplication
+
 tar -cvzf Release.tgz OpenOS
 rm -rf OpenOS
 
-ftp -u ftp://upload.sourceforge.net/incoming/OpenOS-Beta2.tar.gz Release.tgz
+ftp -u ftp://upload.sourceforge.net/incoming/OpenOS-Release1.tar.gz Release.tgz
 
 rm Release.tgz
