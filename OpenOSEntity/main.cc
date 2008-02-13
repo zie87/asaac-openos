@@ -203,7 +203,7 @@ void printHeader(EntityConfiguration &conf)
         "          ######    ######                                           \n"
         "          ####        ####            OpenOS ASAAC Layer:            \n"
 		"  #       ###   #  #   ###       #    -------------------            \n"
-		"  ##      #   ###  ###   #      ##    Version:  Beta 2               \n"
+		"  ##      #   ###  ###   #      ##    Version:  1.0                  \n"
 		"  ####       ####  ####       ####    Date:     %s\n"
 		"  ######   ######  ######   ######    Revision: %d\n"
 		"  ##############    ##############                                   \n"
