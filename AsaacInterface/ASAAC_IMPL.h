@@ -2,6 +2,12 @@
 #define _ASAAC_IMPL_H_
 #include <time.h>
 
+#define _ASAAC_PublicId_defined
+typedef unsigned long ASAAC_PublicId;
+
+#define _ASAAC_PublicIdSet_defined
+typedef unsigned long ASAAC_PublicIdSet[256];
+
 #define _ASAAC_Bool_defined
 typedef enum {
     ASAAC_BOOL_FALSE,
