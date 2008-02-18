@@ -71,7 +71,7 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
             }
 	
 			if ( getMemoryHeader()->Size < Size )
- 				throw FatalException("Size of of shared memory is smaller than requested size", LOCATION);
+ 				throw FatalException( (ErrorString << "Size of of shared memory (" << getMemoryHeader()->Size << ") is smaller than requested size (" << Size << ")").c_str(), LOCATION);
 
 			getMemoryHeader()->AllocationCounter ++;
 				

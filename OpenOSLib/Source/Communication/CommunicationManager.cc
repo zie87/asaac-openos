@@ -169,6 +169,7 @@ GlobalVc* CommunicationManager::getVirtualChannel( ASAAC_PublicId GlobalVcId, lo
 		ASAAC_VcDescription Description;
 		Description.max_number_of_buffers = 1; 
 		Description.max_number_of_threads_attached = 2;
+		Description.max_number_of_TCs_attached = 0;
 		Description.max_msg_length = 1;
 	
 		if (obj->isInitialized())
@@ -912,7 +913,7 @@ void CommunicationManager::waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in,
 		// checkinf whether all VC's are receiving, too.
 		for ( unsigned long Index = 0; Index < ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE; Index++ )
 		{
-			if ( vc_set_in.vc_id[ Index ] == 0 ) 
+			if ( vc_set_in[ Index ] == 0 ) 
 			{
 				LocalVcObjects[ Index ] = 0;
 				continue;
@@ -923,7 +924,7 @@ void CommunicationManager::waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in,
 			if (ThisProcess == NULL)
 				throw OSException("Process not found", LOCATION);
 		
-			LocalVcObjects[Index] = ThisProcess->getAttachedVirtualChannel( vc_set_in.vc_id[ Index ] );
+			LocalVcObjects[Index] = ThisProcess->getAttachedVirtualChannel( vc_set_in[ Index ] );
 			
 			if ( LocalVcObjects[Index] == NULL )
 			{
@@ -937,7 +938,7 @@ void CommunicationManager::waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in,
 			
 			for ( unsigned long CompareIndex = 0; CompareIndex < Index; CompareIndex ++ )
 			{
-				if ( vc_set_in.vc_id[ CompareIndex ] == vc_set_in.vc_id[ Index ] )
+				if ( vc_set_in[ CompareIndex ] == vc_set_in[ Index ] )
 				{
 	//				return ASAAC_TM_ERROR;
 				}
@@ -957,7 +958,7 @@ void CommunicationManager::waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in,
 	
 			for ( unsigned long Index = 0; Index < ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE; Index++ )
 			{		
-				vc_set_out.vc_id[ Index ] = 0;
+				vc_set_out[ Index ] = 0;
 	
 				if ( LocalVcObjects[ Index ] != NULL ) 
 				{
@@ -965,12 +966,12 @@ void CommunicationManager::waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in,
 					{
 				    	LocalVcObjects[ Index ]->waitForAvailableData( TimeStamp::Instant().asaac_Time() );
 				    	
-						vc_set_out.vc_id[ AvailableVcs ] = vc_set_in.vc_id[ Index ];
+						vc_set_out[ AvailableVcs ] = vc_set_in[ Index ];
 						AvailableVcs ++;
 					}
 					catch ( ASAAC_Exception &e )
 					{
-						vc_set_out.vc_id[ Index ] = 0;
+						vc_set_out[ Index ] = 0;
 					}
 				}
 			}

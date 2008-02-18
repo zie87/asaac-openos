@@ -191,11 +191,13 @@ void LocalVc::sendMessage(ASAAC_Address BufferReference, unsigned long Size, con
 		
 	try
 	{
+		CharacterSequence ErrorString;
+		
 		if ( m_Description->is_reading ) 
 			throw OSException("This is a reading local vc", LOCATION);
 	
 		if ( Size > m_Description->buffer_size ) 
-			throw OSException("Size of message is bigger than the buffer of global vc", LOCATION);
+			throw OSException( (ErrorString << "Size of message (" << Size << ") is bigger than the buffer of global vc (" <<  (unsigned long)m_Description->buffer_size << ")").c_str(), LOCATION);
 	
 		ASAAC_Address LockedBuffer;
 	

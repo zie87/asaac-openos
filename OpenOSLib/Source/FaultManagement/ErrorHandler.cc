@@ -143,8 +143,8 @@ ASAAC_ReturnStatus	ErrorHandler::raiseError(
 		// TODO: check whether timeout should be set to TimeInstant rather (non-blocking) (jbm)
 		// TODO: In case of timeout try to send the information later. Store it in a local queue. 
 		// TODO: In case of non initialisation store it in a queue too.
-		//m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeInfinity );
-		m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeStamp::Instant().asaac_Time() );
+		m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeInfinity );
+		//m_ErrorMessageQueue.sendMessage( &m_ErrorInformation, sizeof( m_ErrorInformation ), TimeStamp::Instant().asaac_Time() );
 	}
 	catch ( ASAAC_Exception &e )
 	{

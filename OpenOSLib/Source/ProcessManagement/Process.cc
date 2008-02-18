@@ -869,10 +869,12 @@ EntryPoint* Process::getEntryPoint( const ASAAC_CharacterSequence &Name )
 	if (m_IsInitialized == false) 
 		throw UninitializedObjectException(LOCATION);
 
+	CharSeq ErrorString;
+	
 	signed long	Index = getEntryPointIndex( Name );
 	
 	if (Index == -1) 
-		throw OSException("EntryPoint could not be found", LOCATION);
+		throw OSException( (ErrorString << "EntryPoint could not be found: " << Name).c_str(), LOCATION);
 
 	return &m_EntryPoints[ Index ];
 }
@@ -1011,10 +1013,6 @@ void Process::attachLocalVc( const ASAAC_PublicId GlobalVcId, const ASAAC_Public
 	{
 		// process must be in STOPPED or INITIALIZED state
 		ProcessStatus ThisState = getState();
-
-		if (( ThisState != PROCESS_STOPPED ) && 
-			( ThisState != PROCESS_INITIALIZED )) 
-			throw OSException("Process must be in state 'STOPPED' or 'INITIALIZED'", LOCATION);
 
 		if (isAttachedTo( LocalVcId ) == true )
 			throw OSException("Local VC has already been attached to this process.", LOCATION);

@@ -33,7 +33,7 @@
 <listOptionValue value="&quot;${workspace_loc:/AsaacInterface}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.1606245775" name="Defined symbols (-D)" valueType="definedSymbols">
-<listOptionValue value="dont_DEBUG" builtIn="false"/>
+<listOptionValue value="DEBUG" builtIn="false"/>
 <listOptionValue value="DEBUG_APPLICATION" builtIn="false"/>
 <listOptionValue value="dont_DEBUG_OLI" builtIn="false"/>
 <listOptionValue value="dont_DEBUG_BUFFER" builtIn="false"/>
@@ -101,7 +101,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.so.release.1388842336" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.release" artifactName="OpenOSLibShared" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="so" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.so.release.1388842336" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.release" artifactName="OpenOSLibShared" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="so" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.so.release.1388842336.35685207" name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.so.release" id="cdt.managedbuild.toolchain.gnu.so.release.557540358" name="GCC Tool Chain">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.so.release" id="cdt.managedbuild.target.gnu.platform.so.release.2032716705" name="Debug Platform"/>

@@ -32,8 +32,8 @@ size_t GlobalVc::predictSize( const ASAAC_VcDescription& Description )
 	// m_AccessSemaphore, m_SendSemaphore
 	CumulativeSize += 2 * Semaphore::predictSize();          
 
-	unsigned long TotalNumberOfBuffers = Description.max_number_of_buffers *
-										Description.max_number_of_threads_attached;
+	unsigned long TotalNumberOfBuffers = (Description.max_number_of_buffers) *
+										 (Description.max_number_of_threads_attached);
 
 	// m_BufferInfo
 	CumulativeSize += Shared<BufferInfo>::predictSize( TotalNumberOfBuffers ); 
@@ -68,6 +68,8 @@ void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_Vc
 	{	
 		m_IsInitialized = true;
 		
+		CharacterSequence ErrorString;
+		
 		if (IsMaster == true)
 		{
 			if ( Data.max_number_of_threads_attached < 2 ) 
@@ -76,14 +78,14 @@ void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_Vc
 					"It is lower than 2. "
 					"A valid communication via VCs is only possible with at least two involved threads. ", LOCATION);
 		
-			if ( div((long)Data.max_number_of_buffers, (long)Data.max_number_of_threads_attached).quot == 0 )
+			/*if ( div((long)Data.max_number_of_buffers, (long)Data.max_number_of_threads_attached).quot == 0 )
 			{ 
 				CharSeq ErrorString;
 				ErrorString << "The chosen max_number_of_buffers (" << Data.max_number_of_buffers << ") is not valid. ";
 				ErrorString << "It is lower than the max_number_of_threads_attached (" << Data.max_number_of_threads_attached << "). ";
 				ErrorString << "For every thread at least one buffer has to be reserved";
 				throw OSException( ErrorString.c_str(), LOCATION );
-			}
+			}*/
 		}
 		
 		m_IsMaster = IsMaster;
@@ -107,7 +109,8 @@ void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_Vc
 			//If we have attached to a already created shared memory,
 			//now check the consistency...
 			if ( m_Allocator.getSize() < predictSize( *m_Description ) )
-				throw FatalException("SharedMemory object is currupted", LOCATION); 	
+				throw FatalException( (ErrorString << "Size of SharedMemory (" << (signed long)m_Allocator.getSize() 
+						<< ") is smaller then predicted (" << (signed long)predictSize( *m_Description ) << ")").c_str(), LOCATION); 	
 		}
 		
 		// Initialize GlobalVC Status object
@@ -316,12 +319,13 @@ void GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& Description )
 		LocalVc* NewLocalVc = &m_LocalVcObject[ NewLocalVcIndex ];
 	
 		// Find target Process. On failure, abort with ASAAC_ERROR
+		Process* CurrentProcess = ProcessManager::getInstance()->getCurrentProcess();
 		Process* TargetProcess = ProcessManager::getInstance()->getProcess( Description.global_pid );
 		ProcessStatus ThisState = TargetProcess->getState();
 	
 		// Process must be in stopped or initialized state
-		if ( ( ThisState != PROCESS_STOPPED ) && 
-			 ( ThisState != PROCESS_INITIALIZED ) ) 
+		if ( ( ( ThisState != PROCESS_STOPPED ) && ( ThisState != PROCESS_INITIALIZED ) ) &&
+			 ( CurrentProcess->getId() != TargetProcess->getId() ) ) //TODO: analyse exception due to a leak in the standard
 			throw OSException("Process has to be in state 'STOPPED' or 'INITIALIZED'.", LOCATION);
 		
 		// Assign Local Vc to empty LocalVc Slot determined above	

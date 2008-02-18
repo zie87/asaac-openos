@@ -146,9 +146,6 @@ void Thread::setSchedulingParameters( const ASAAC_ThreadSchedulingInfo& Scheduli
 		if ( ProcessState == PROCESS_STOPPED )  
 	        throw OSException("Process shall be in state PROCESS_STOPPED", LOCATION);
 	
-		if ( m_ThreadData->Status == ASAAC_DORMANT )  
-	        throw OSException("Thread must not be in state ASAAC_DORMANT", LOCATION);
-
 		int Policy = SCHED_RR;
 	
 		if ( SchedulingInfo.scheduling_info.priority < sched_get_priority_min(Policy) )
