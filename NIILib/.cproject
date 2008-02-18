@@ -4,7 +4,7 @@
 <cproject>
 <storageModule moduleId="org.eclipse.cdt.core.settings">
 <cconfiguration id="cdt.managedbuild.config.gnu.lib.debug.1041337535">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Debug" id="cdt.managedbuild.config.gnu.lib.debug.1041337535" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.lib.debug.1041337535" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/NII"/>
@@ -20,14 +20,14 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.lib.debug.1041337535" name="Debug" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.debug" artifactName="NII" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="a" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.lib.debug.1041337535" name="Debug" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" parent="cdt.managedbuild.config.gnu.lib.debug" artifactName="NII" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" artifactExtension="a" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1041337535.231645897" name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.lib.debug" id="cdt.managedbuild.toolchain.gnu.lib.debug.1538387860" name="GCC Tool Chain" unusedChildren="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.lib.debug" id="cdt.managedbuild.target.gnu.platform.lib.debug.75235587" name="Debug Platform"/>
 <builder superClass="cdt.managedbuild.target.gnu.builder.lib.debug" id="cdt.managedbuild.target.gnu.builder.lib.debug.966565592" name="Gnu Make Builder" keepEnvironmentInBuildfile="false" buildPath="${workspace_loc:/NII/Debug}"/>
 <tool superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug" id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.301171904" name="GCC C Compiler">
 <option superClass="gnu.c.compiler.option.include.paths" id="gnu.c.compiler.option.include.paths.86565688" name="Include paths (-I)" valueType="includePath">
-<listOptionValue value="&quot;${workspace_loc:/ASAAC IF}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/AsaacInterface}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/AsaacCLib}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/NIILib/Source}&quot;" builtIn="false"/>
 </option>
@@ -42,10 +42,8 @@
 <tool superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug" id="cdt.managedbuild.tool.gnu.assembler.lib.debug.56240341" name="GCC Assembler">
 <inputType superClass="cdt.managedbuild.tool.gnu.assembler.input" id="cdt.managedbuild.tool.gnu.assembler.input.1596785802"/>
 </tool>
-<tool superClass="cdt.managedbuild.tool.gnu.c.linker.base" id="cdt.managedbuild.tool.gnu.c.linker.base.1811652674" name="GCC C Linker">
-<option superClass="gnu.c.link.option.shared" id="gnu.c.link.option.shared.470676183" name="Shared (-shared)"/>
-</tool>
-<tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.base" id="cdt.managedbuild.tool.gnu.cpp.linker.base.1801823940" name="GCC C++ Linker"/>
+<tool superClass="cdt.managedbuild.tool.gnu.c.linker.base" id="cdt.managedbuild.tool.gnu.c.linker.base.380676459" name="GCC C Linker"/>
+<tool superClass="cdt.managedbuild.tool.gnu.cpp.linker.base" id="cdt.managedbuild.tool.gnu.cpp.linker.base.127897722" name="GCC C++ Linker"/>
 </toolChain>
 </folderInfo>
 </configuration>
@@ -304,7 +302,7 @@
 </storageModule>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.lib.release.329010180">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Release" id="cdt.managedbuild.config.gnu.lib.release.329010180" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.lib.release.329010180" name="Release" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/NII"/>
