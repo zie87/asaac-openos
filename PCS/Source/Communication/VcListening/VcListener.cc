@@ -71,14 +71,14 @@ ASAAC_TimedReturnStatus VcListener::listen( const ASAAC_TimeInterval& Timeout )
 	
 	for ( unsigned long i = 0; i < ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE; i++ )
 	{
-		ListeningVcs.vc_id[ i ] = 0;
-		ReceivingVcs.vc_id[ i ] = 0;
+		ListeningVcs[ i ] = 0;
+		ReceivingVcs[ i ] = 0;
 	}
 	
 	
 	for ( unsigned long Index = 0; Index < m_NextFreeSlot; Index ++ )
 	{
-		ListeningVcs.vc_id[ Index ] = m_ListeningVcInfo[ Index ].LocalVc;
+		ListeningVcs[ Index ] = m_ListeningVcInfo[ Index ].LocalVc;
 		#ifdef _DEBUG_
 		cout << "VcListener::listen() adding local VC " << m_ListeningVcInfo[ Index ].LocalVc << endl;
 		#endif
@@ -111,25 +111,25 @@ ASAAC_TimedReturnStatus VcListener::listen( const ASAAC_TimeInterval& Timeout )
 	
 	//ASAAC_TimeInterval TimeInstant = {0,0};
 	
-	for ( unsigned long Index = 0; ReceivingVcs.vc_id[ Index ] != 0; Index ++ )
+	for ( unsigned long Index = 0; ReceivingVcs[ Index ] != 0; Index ++ )
 	{
 		for ( unsigned long VcIndex = 0; VcIndex < m_NextFreeSlot; VcIndex ++ )
 		{
-			if ( m_ListeningVcInfo[ VcIndex ].LocalVc == ReceivingVcs.vc_id[ Index ] )
+			if ( m_ListeningVcInfo[ VcIndex ].LocalVc == ReceivingVcs[ Index ] )
 			{
 				ASAAC_Address BufferAddress;
 				unsigned long DataLength;
 				
-				ASAAC_APOS_receiveBuffer( ReceivingVcs.vc_id[ Index ], &TimeIntervalInstant, &BufferAddress, &DataLength );
+				ASAAC_APOS_receiveBuffer( ReceivingVcs[ Index ], &TimeIntervalInstant, &BufferAddress, &DataLength );
 				
 				#ifdef _DEBUG_
 				cout << "VcListener::listen() processVcMessage (" << ReceivingVcs.vc_id[ Index ]<< "," << BufferAddress<< "," << DataLength << ")" << endl;
 				#endif 
 			
-				m_ListeningVcInfo[ VcIndex ].Consumer->processVcMessage( ReceivingVcs.vc_id[ Index ], BufferAddress, DataLength );
+				m_ListeningVcInfo[ VcIndex ].Consumer->processVcMessage( ReceivingVcs[ Index ], BufferAddress, DataLength );
 				
 				
-				ASAAC_APOS_unlockBuffer( ReceivingVcs.vc_id[ Index ], BufferAddress );
+				ASAAC_APOS_unlockBuffer( ReceivingVcs[ Index ], BufferAddress );
 				
 				break;
 			}

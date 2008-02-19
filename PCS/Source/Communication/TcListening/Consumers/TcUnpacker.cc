@@ -48,7 +48,7 @@ ASAAC_ReturnStatus TcUnpacker::processTcMessage( ASAAC_PublicId TcId, ASAAC_Addr
 		// if so, handle it properly
 
 		
-		GlobalVc = ReceivingVcs.vc_id[ 0 ];
+		GlobalVc = ReceivingVcs[ 0 ];
 		
 		ASAAC_VcDescription Description;
 		
@@ -90,7 +90,7 @@ ASAAC_ReturnStatus TcUnpacker::processTcMessage( ASAAC_PublicId TcId, ASAAC_Addr
 	// Check whether indicated GlobalVc
 	for ( unsigned long Index = 0;; Index ++ )
 	{
-		if ( ReceivingVcs.vc_id[ Index ] == GlobalVc ) 
+		if ( ReceivingVcs[ Index ] == GlobalVc ) 
 			break;
 		
 		if ( Index == Number ) 

@@ -75,9 +75,9 @@ ASAAC_ReturnStatus VcTcSwitch::processVcMessage( ASAAC_PublicId LocalVc, ASAAC_A
 
 	if ( m_Configuration->getTcMapping( GlobalVc, TargetTcs, Number ) == ASAAC_ERROR ) return ASAAC_ERROR;
 
-	for ( unsigned long Index = 0; TargetTcs.vc_id[ Index ] != 0; Index ++ )
+	for ( unsigned long Index = 0; TargetTcs[ Index ] != 0; Index ++ )
 	{
-		if ( m_OutputConsumer->processMessage( TargetTcs.vc_id[ Index ], GlobalVc, Data, Length ) != ASAAC_SUCCESS ) 
+		if ( m_OutputConsumer->processMessage( TargetTcs[ Index ], GlobalVc, Data, Length ) != ASAAC_SUCCESS ) 
 		{
 			return ASAAC_ERROR;
 		}

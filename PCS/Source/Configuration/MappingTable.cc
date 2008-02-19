@@ -64,7 +64,7 @@ ASAAC_ReturnStatus	MappingTable::getTcMapping( ASAAC_PublicId VcId, ASAAC_Public
 	{
 		if ( m_MappingTable[ TableIndex ].global_vc_id == VcId )
 		{
-			TcMapping.vc_id[ MappingIndex ] = m_MappingTable[ TableIndex ].tc_id;
+			TcMapping[ MappingIndex ] = m_MappingTable[ TableIndex ].tc_id;
 			MappingIndex++;
 		}
 	}
@@ -76,7 +76,7 @@ ASAAC_ReturnStatus	MappingTable::getTcMapping( ASAAC_PublicId VcId, ASAAC_Public
 	
 	for ( ; MappingIndex < ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE ; MappingIndex ++ )
 	{
-		TcMapping.vc_id[ MappingIndex ] = 0;
+		TcMapping[ MappingIndex ] = 0;
 	}
 
 
@@ -92,7 +92,7 @@ ASAAC_ReturnStatus	MappingTable::getVcMapping( ASAAC_PublicId TcId, ASAAC_Public
 	{
 		if ( m_MappingTable[ TableIndex ].tc_id == TcId )
 		{
-			VcMapping.vc_id[ MappingIndex ] = m_MappingTable[ TableIndex ].global_vc_id;
+			VcMapping[ MappingIndex ] = m_MappingTable[ TableIndex ].global_vc_id;
 			MappingIndex++;
 		}
 	}
@@ -104,7 +104,7 @@ ASAAC_ReturnStatus	MappingTable::getVcMapping( ASAAC_PublicId TcId, ASAAC_Public
 	
 	for ( ; MappingIndex < ASAAC_OS_MAX_PUBLIC_ID_SET_SIZE ; MappingIndex ++ )
 	{
-		VcMapping.vc_id[ MappingIndex ] = 0;
+		VcMapping[ MappingIndex ] = 0;
 	}
 
 	return ASAAC_SUCCESS;
