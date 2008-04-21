@@ -5,6 +5,7 @@
 #include "ASAAC.h"
 #include "OpenOSConstants.hh"
 #include "OpenOSTypes.hh"
+#include "Debug/Debug.hh"
 
 //TODO: These classes shall become an own library "AsaacCppLib"
 #include "Common/Asaac/CharacterSequence.hh"

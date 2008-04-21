@@ -6,127 +6,169 @@
 
 ASAAC_TimedReturnStatus ASAAC_SMOS_createProcess(const ASAAC_ProcessDescription* process_desc)
 {
+    ASAAC_TimedReturnStatus result;
+    
 	try
 	{
 		ProcessManager::getInstance()->createProcess( *process_desc );
+		
+		result = ASAAC_TM_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
 	{
-	    e.addPath("SMOS::create", LOCATION);
+	    e.addPath("SMOS::createProcess", LOCATION);
 	    e.raiseError();
 	    
-	    return e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
+	    result = e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
 	}
+
+	LOG_SERVICE1(*process_desc, result);
 	
-	return ASAAC_TM_SUCCESS;
+	return result;
 }
 
 
 ASAAC_ReturnStatus ASAAC_SMOS_createThread(const ASAAC_ThreadDescription* thread_desc)
 {
-	try
+    ASAAC_ReturnStatus result;
+
+    try
 	{
 		ThreadManager::getInstance()->createThread( *thread_desc );
+
+		result = ASAAC_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
 	{
 	    e.addPath("SMOS::createThread", LOCATION);
 	    e.raiseError();
 	    
-	    return ASAAC_ERROR;
+	    result = ASAAC_ERROR;
 	}
+
+	LOG_SERVICE1(*thread_desc, result);
 	
-	return ASAAC_SUCCESS;
+	return result;
 }
 
 
 ASAAC_ReturnStatus ASAAC_SMOS_runProcess(const ASAAC_PublicId process_id)
 {
-	try
+    ASAAC_ReturnStatus result;
+
+    try
 	{
 		ProcessManager::getInstance()->runProcess( process_id );
+
+        result = ASAAC_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
 	{
 	    e.addPath("SMOS::runProcess", LOCATION);
 	    e.raiseError();
 	    
-	    return ASAAC_ERROR;
+	    result = ASAAC_ERROR;
 	}
 	
-	return ASAAC_SUCCESS;
+    LOG_SERVICE1(process_id, result);
+
+    return result;
 }
 	
 
 ASAAC_ReturnStatus ASAAC_SMOS_stopProcess(const ASAAC_PublicId process_id)
 {
-	try
+    ASAAC_ReturnStatus result;
+
+    try
 	{
 		ProcessManager::getInstance()->stopProcess( process_id );
+
+        result = ASAAC_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
 	{
 	    e.addPath("SMOS::stopProcess", LOCATION);
 	    e.raiseError();
 	    
-	    return ASAAC_ERROR;
+	    result = ASAAC_ERROR;
 	}
 	
-	return ASAAC_SUCCESS;
+    LOG_SERVICE1(process_id, result);
+
+    return result;
 }
 	
 
 ASAAC_ReturnStatus ASAAC_SMOS_destroyProcess(const ASAAC_PublicId process_id)
 {
-	try
+    ASAAC_ReturnStatus result;
+
+    try
 	{
 		ProcessManager::getInstance()->destroyProcess( process_id );
+
+        result = ASAAC_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
 	{
 	    e.addPath("SMOS::destroyProcess", LOCATION);
 	    e.raiseError();
 	    
-	    return ASAAC_ERROR;
+	    result = ASAAC_ERROR;
 	}
+
+    LOG_SERVICE1(process_id, result);
 	
-	return ASAAC_SUCCESS;
+    return result;
 }
 
 
 ASAAC_ReturnStatus ASAAC_SMOS_setSchedulingParameters(const ASAAC_ThreadSchedulingInfo* thread_scheduling_info)
 {
-	try
+    ASAAC_ReturnStatus result;
+
+    try
 	{
 		ThreadManager::getInstance()->setSchedulingParameters( *thread_scheduling_info );
+
+        result = ASAAC_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
 	{
 	    e.addPath("SMOS::setSchedulingParameters", LOCATION);
 	    e.raiseError();
 	    
-	    return ASAAC_ERROR;
+	    result = ASAAC_ERROR;
 	}
 	
-	return ASAAC_SUCCESS;
+    LOG_SERVICE1(*thread_scheduling_info, result);
+
+    return result;
 }
 
 
 ASAAC_ReturnStatus ASAAC_SMOS_getThreadState(const ASAAC_PublicId process_id, const ASAAC_PublicId thread_id, ASAAC_ThreadStatus* thread_status)
 {
-	try
+    ASAAC_ReturnStatus result;
+
+    try
 	{
 		ThreadManager::getInstance()->getThreadState( process_id, thread_id, *thread_status );
+
+        result = ASAAC_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
 	{
 	    e.addPath("SMOS::getThreadState", LOCATION);
 	    e.raiseError();
 	    
-	    return ASAAC_ERROR;
+	    result = ASAAC_ERROR;
 	}
 	
-	return ASAAC_SUCCESS;
+    LOG_SERVICE3(process_id, thread_id, *thread_status, result);
+	
+    return result;
 }
 
 

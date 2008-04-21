@@ -22,7 +22,7 @@ int applicationMain( void )
 		OpenOS::getInstance()->deinitialize();
 
 		e.addPath("Caught exception in main loop of application.", LOCATION);
-		e.printMessage();
+		e.printErrorMessage();
 		
 		if (e.isTimeout())
 			return OS_SIGNAL_TIMEOUT;
@@ -80,7 +80,7 @@ char bufferThread(char * name, EntryPointAddr address)
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error registering thread", LOCATION);
-		e.printMessage();
+		e.printErrorMessage();
 		
 		return false;
 	}

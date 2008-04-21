@@ -249,30 +249,6 @@ ASAAC_ReturnStatus ErrorHandler::logMessage( const ASAAC_CharacterSequence& log_
 		ThisReportData.process_id = process_id;
 		ThisReportData.thread_id = thread_id;
 	
-#ifdef DEBUG
-		CharSeq csTime = TimeStamp::Now().asaac_Time();
-		CharSeq csMessageType = "";
-		CharSeq csProcess = "";
-		CharSeq csThread = "";
-		CharSeq csMessage = log_message;
-		
-		if (process_id != OS_UNUSED_ID)
-			csProcess << " PID:" << CharSeq(process_id);
-		
-		if (thread_id != OS_UNUSED_ID)
-			csThread << " TID:" << CharSeq(thread_id);
-		
-		switch (message_type)
-		{
-			case ASAAC_LOG_MESSAGE_TYPE_ERROR: 			csMessageType << " ASAAC_LOG_MESSAGE_TYPE_ERROR"; break;
-	  		case ASAAC_LOG_MESSAGE_TYPE_APPLICATION: 	csMessageType << " ASAAC_LOG_MESSAGE_TYPE_APPLICATION"; break;
-	  		case ASAAC_LOG_MESSAGE_TYPE_GSM: 			csMessageType << " ASAAC_LOG_MESSAGE_TYPE_GSM"; break;
-	  		case ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE: 	csMessageType << " ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE"; break;
-	  		default: csMessageType << " Unknown Message Type";
-		}
-		cout << csTime.c_str() << csProcess.c_str() << csThread.c_str() << csMessageType.c_str() << ": '" << csMessage.c_str() << "'" << endl;
-#endif
-	
 		if ( m_IsInitialized == false ) 
 			throw UninitializedObjectException( LOCATION );
 	

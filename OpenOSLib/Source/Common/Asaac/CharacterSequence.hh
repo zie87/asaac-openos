@@ -26,6 +26,10 @@ public:
 	CharacterSequence(const ASAAC_PublicId number, const NumberRepresentation representation = unsigned_decimal );
 	CharacterSequence(const ASAAC_Time time);
 	CharacterSequence(const ASAAC_TimeInterval interval);
+    CharacterSequence(const ASAAC_ProcessDescription &process_desc );
+    CharacterSequence(const ASAAC_ThreadDescription &thread_desc );
+    CharacterSequence(const ASAAC_ThreadSchedulingInfo &thread_scheduling_info );
+    CharacterSequence(const ASAAC_ThreadStatus &thread_status );
 	virtual ~CharacterSequence();
 	
 	CharacterSequence & append( const ASAAC_CharacterSequence &data );
@@ -44,6 +48,10 @@ public:
 	CharacterSequence & assign( const ASAAC_PublicId number, const NumberRepresentation representation = unsigned_decimal );
 	CharacterSequence & assign( const ASAAC_Time time);
 	CharacterSequence & assign( const ASAAC_TimeInterval interval);
+    CharacterSequence & assign( const ASAAC_ProcessDescription &process_desc );
+    CharacterSequence & assign( const ASAAC_ThreadDescription &thread_desc );
+    CharacterSequence & assign( const ASAAC_ThreadSchedulingInfo &thread_scheduling_info );
+    CharacterSequence & assign( const ASAAC_ThreadStatus &thread_status );
 	
 	CharacterSequence & insert( const unsigned long pos, const unsigned long len, const char ch );
 	CharacterSequence & insert( const unsigned long pos, const ASAAC_PublicId number, const NumberRepresentation representation = unsigned_decimal );

@@ -310,7 +310,7 @@ void Process::launch()
             catch ( ASAAC_Exception &e )
             {
                 e.addPath("Exception in ProcessStarter", LOCATION); 
-                e.printMessage();
+                e.printErrorMessage();
                 e.raiseError();
 
 				//TODO: To be able to deinitialize all objects switchState shall
@@ -324,7 +324,7 @@ void Process::launch()
             catch (...)
             {
                 OSException e("Unknown Exception in ProcessStarter", LOCATION);
-                e.printMessage();
+                e.printErrorMessage();
                 e.raiseError();
                 
                 AllocatorManager::getInstance()->deallocateAllObjects();

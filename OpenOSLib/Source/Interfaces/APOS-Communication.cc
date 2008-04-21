@@ -11,19 +11,23 @@ ASAAC_ResourceReturnStatus ASAAC_APOS_sendMessageNonblocking(const ASAAC_PublicI
                                                             const ASAAC_Address message_buffer_reference, 
                                                             const unsigned long actual_size)
 {
+    ASAAC_ResourceReturnStatus Result;
+    
     try 
     {
     	CommunicationManager::getInstance()->sendMessageNonblocking( local_vc_id, message_buffer_reference, actual_size );
+    	
+    	Result = ASAAC_RS_SUCCESS;
     }
     catch ( ASAAC_Exception &e )
     {
         e.addPath("APOS::sendMessageNonblocking", LOCATION);
         e.raiseError();
         
-        return e.isResource()?ASAAC_RS_RESOURCE:ASAAC_RS_ERROR;
+        Result = e.isResource()?ASAAC_RS_RESOURCE:ASAAC_RS_ERROR;
     }
     
-	return ASAAC_RS_SUCCESS;
+    return Result;
 }
 
 

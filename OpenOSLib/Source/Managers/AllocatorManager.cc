@@ -106,7 +106,7 @@ void AllocatorManager::reallocateAllObjects( SessionId NewSessionId )
 #ifdef DEBUG_SHM
 				CharSeq LogString;
 				LogString << "ShM reallocateAllObjects: NewSessionId: " << NewSessionId << ", OldSessionId: " << ShM->getSessionId();
-				OSException(LogString.c_str()).printMessage();
+				OSException(LogString.c_str()).printErrorMessage();
 #endif	
 				if (ShM->getSessionId() == NewSessionId)
 				{

@@ -31,7 +31,7 @@ ASAAC_Exception::~ASAAC_Exception() throw()
 
 const char *ASAAC_Exception::what() const throw()
 {
-    return getMessage();
+    return getErrorMessage();
 } 
 
 
@@ -138,50 +138,90 @@ ASAAC_Address ASAAC_Exception::getLocation() const
 
 static CharacterSequence Message;
 
-const char * ASAAC_Exception::getMessage() const
+const char * ASAAC_Exception::getErrorMessage() const
 {
-	CharacterSequence ErrorType;
-		
-	Message.erase();
-		
-	switch (getErrorType())
-	{
-		case ASAAC_APPLICATION_ERROR: ErrorType = "ASAAC_APPLICATION_ERROR"; break;
-		case ASAAC_APOS_CLIENT_ERROR: ErrorType = "ASAAC_APOS_CLIENT_ERROR"; break;
-		case ASAAC_RESOURCE_ERROR:    ErrorType = "ASAAC_RESOURCE_ERROR"; break;
-		case ASAAC_OS_ERROR:          ErrorType = "ASAAC_OS_ERROR"; break;
-		case ASAAC_SMOS_ERROR:        ErrorType = "ASAAC_SMOS_ERROR"; break;
-		case ASAAC_SMBP_ERROR:        ErrorType = "ASAAC_SMBP_ERROR"; break;
-		case ASAAC_PROCESSOR_ERROR:   ErrorType = "ASAAC_PROCESSOR_ERROR"; break;
-		case ASAAC_HW_RESOURCE_ERROR: ErrorType = "ASAAC_HW_RESOURCE_ERROR"; break;
-		case ASAAC_HW_FAILURE:        ErrorType = "ASAAC_HW_FAILURE"; break;
-		case ASAAC_FATAL_ERROR:       ErrorType = "ASAAC_FATAL_ERROR"; break;
-		default: Message = "Unknown Exception Type"; break;
-	}
+    CharacterSequence ErrorType;
+        
+    Message.erase();
+        
+    switch (getErrorType())
+    {
+        case ASAAC_APPLICATION_ERROR: ErrorType = "ASAAC_APPLICATION_ERROR"; break;
+        case ASAAC_APOS_CLIENT_ERROR: ErrorType = "ASAAC_APOS_CLIENT_ERROR"; break;
+        case ASAAC_RESOURCE_ERROR:    ErrorType = "ASAAC_RESOURCE_ERROR"; break;
+        case ASAAC_OS_ERROR:          ErrorType = "ASAAC_OS_ERROR"; break;
+        case ASAAC_SMOS_ERROR:        ErrorType = "ASAAC_SMOS_ERROR"; break;
+        case ASAAC_SMBP_ERROR:        ErrorType = "ASAAC_SMBP_ERROR"; break;
+        case ASAAC_PROCESSOR_ERROR:   ErrorType = "ASAAC_PROCESSOR_ERROR"; break;
+        case ASAAC_HW_RESOURCE_ERROR: ErrorType = "ASAAC_HW_RESOURCE_ERROR"; break;
+        case ASAAC_HW_FAILURE:        ErrorType = "ASAAC_HW_FAILURE"; break;
+        case ASAAC_FATAL_ERROR:       ErrorType = "ASAAC_FATAL_ERROR"; break;
+        default: Message = "Unknown Exception Type"; break;
+    }
 
-	Message << m_Time;
+    Message << m_Time;
 
-	if (m_ProcessId != OS_UNUSED_ID)
-	{
- 		Message = Message + CharSeq(" PID:") + CharSeq(m_ProcessId);
-	}
+    if (m_ProcessId != OS_UNUSED_ID)
+    {
+        Message = Message + CharSeq(" PID:") + CharSeq(m_ProcessId);
+    }
 
-	if (m_ThreadId != OS_UNUSED_ID)
-	{
- 		Message = Message + CharSeq(" TID:") + CharSeq(m_ThreadId);
-	}
-	
-	Message << " " << ErrorType << ":";
-	
-	Message << getMessageItem(0);
-	
-	for (unsigned short Index = 1; Index < m_PathSize; Index++)
-	{	 
-		Message.appendLineBreak();
-		Message << ">>>>> continuing " << ErrorType << ":" << getMessageItem(Index);
-	}
-	
-	return Message.c_str();
+    if (m_ThreadId != OS_UNUSED_ID)
+    {
+        Message = Message + CharSeq(" TID:") + CharSeq(m_ThreadId);
+    }
+    
+    Message << " " << ErrorType << ":";
+    
+    Message << getMessageItem(0);
+    
+    for (unsigned short Index = 1; Index < m_PathSize; Index++)
+    {    
+        Message.appendLineBreak();
+        Message << ">>>>> continuing " << ErrorType << ":" << getMessageItem(Index);
+    }
+    
+    return Message.c_str();
+}
+
+const char * ASAAC_Exception::getLoggingMessage( ASAAC_LogMessageType message_type ) const
+{
+    CharacterSequence LoggingType;
+        
+    Message.erase();
+        
+    switch (message_type)
+    {
+        case ASAAC_LOG_MESSAGE_TYPE_ERROR:          LoggingType << "ASAAC_LOG_MESSAGE_TYPE_ERROR"; break;
+        case ASAAC_LOG_MESSAGE_TYPE_APPLICATION:    LoggingType << "ASAAC_LOG_MESSAGE_TYPE_APPLICATION"; break;
+        case ASAAC_LOG_MESSAGE_TYPE_GSM:            LoggingType << "ASAAC_LOG_MESSAGE_TYPE_GSM"; break;
+        case ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE:    LoggingType << "ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE"; break;
+        default: LoggingType << "Unknown Logging Type";
+    }
+
+    Message << m_Time;
+
+    if (m_ProcessId != OS_UNUSED_ID)
+    {
+        Message = Message + CharSeq(" PID:") + CharSeq(m_ProcessId);
+    }
+
+    if (m_ThreadId != OS_UNUSED_ID)
+    {
+        Message = Message + CharSeq(" TID:") + CharSeq(m_ThreadId);
+    }
+    
+    Message << " " << LoggingType << ":";
+    
+    Message << getMessageItem(0);
+    
+    for (unsigned short Index = 1; Index < m_PathSize; Index++)
+    {    
+        Message.appendLineBreak();
+        Message << ">>>>> continuing " << LoggingType << ":" << getMessageItem(Index);
+    }
+    
+    return Message.c_str();
 }
 
 static CharacterSequence MessageItem;
@@ -216,18 +256,22 @@ const char * ASAAC_Exception::getMessageItem(unsigned short index) const
 }
 
 
-void ASAAC_Exception::printMessage() const
+void ASAAC_Exception::printErrorMessage() const
 {
-	cerr << getMessage() << endl;
+	cerr << getErrorMessage() << endl << endl;
 }
 
+void ASAAC_Exception::printLoggingMessage( ASAAC_LogMessageType message_type ) const
+{
+    cout << getLoggingMessage( message_type ) << endl << endl;
+}
 
 void ASAAC_Exception::logMessage( ASAAC_LogMessageType message_type ) const
 {
-    ASAAC_CharacterSequence log_message = CharSeq(getMessage()).asaac_str(); 
+    ASAAC_CharacterSequence log_message = CharSeq(getErrorMessage()).asaac_str(); 
 
 #ifdef DEBUG
-    printMessage();
+    printLoggingMessage( message_type );
 #endif
 
     ErrorHandler* eh = ErrorHandler::getInstance();
@@ -242,7 +286,7 @@ void ASAAC_Exception::raiseError( ) const
 {
 	
 #ifdef DEBUG
-    printMessage();
+    printErrorMessage();
 #endif
 
 if ((isTimeout() == true) || (isResource() == true))
@@ -250,11 +294,11 @@ if ((isTimeout() == true) || (isResource() == true))
 
 #ifdef DEBUG_APPLICATION
 #ifndef DEBUG
-    printMessage();
+    printErrorMessage();
 #endif
 #endif
     
-    ASAAC_CharacterSequence error_message = CharSeq(getMessage()).asaac_str(); 
+    ASAAC_CharacterSequence error_message = CharSeq(getErrorMessage()).asaac_str(); 
 
     ErrorHandler* eh = ErrorHandler::getInstance();
 

@@ -39,11 +39,13 @@ class ASAAC_Exception: public exception {
 		
 		virtual void addPath( const char* Message, const char* Function = 0, long Line = 0 );
 		
-		virtual const char * getMessage() const;
+        virtual const char * getErrorMessage() const;
+        virtual const char * getLoggingMessage( ASAAC_LogMessageType message_type = ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE ) const;
 
 		virtual const char * getMessageItem(unsigned short index) const;
 
-		void printMessage() const;
+        void printErrorMessage() const;
+        void printLoggingMessage( ASAAC_LogMessageType message_type = ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE ) const;
 		
         void logMessage( ASAAC_LogMessageType message_type = ASAAC_LOG_MESSAGE_TYPE_MAINTENANCE ) const;
         void raiseError( ) const;

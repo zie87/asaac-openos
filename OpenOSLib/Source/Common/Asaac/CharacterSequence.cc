@@ -54,6 +54,30 @@ CharacterSequence::CharacterSequence(const ASAAC_TimeInterval interval)
 	this->assign(interval);
 }
 
+CharacterSequence::CharacterSequence(const ASAAC_ProcessDescription &process_desc )
+{
+    erase();
+    this->assign(process_desc);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_ThreadDescription &thread_desc )
+{
+    erase();
+    this->assign(thread_desc);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_ThreadSchedulingInfo &thread_scheduling_info )
+{
+    erase();
+    this->assign(thread_scheduling_info);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_ThreadStatus &thread_status )
+{
+    erase();
+    this->assign(thread_status);
+}
+
 CharacterSequence::~CharacterSequence()
 {
 }
@@ -196,7 +220,9 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_PublicId number, cons
 }
 
 CharacterSequence & CharacterSequence::assign( const ASAAC_Time time)
-{	
+{
+    erase();
+    
 	tm t = TimeStamp(time).tm_Time();
 	*this << (long)(t.tm_mon + 1) << "/" << (long)t.tm_mday << "/" <<  (long)(1900 + t.tm_year) << " " <<  (long)t.tm_hour << ":" <<  (long)t.tm_min << ":" <<  (long)t.tm_sec << "." << (long)div(time.nsec, (long)100000).quot;
 	
@@ -208,7 +234,60 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_TimeInterval interval
 	TimeInterval Interval = interval;
 
 	//TODO: find out how to print interval
-	return *this;
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_ProcessDescription &process_desc )
+{
+    erase();
+
+    *this << "{" 
+    << "programme_file_name: " << CharSeq(process_desc.programme_file_name) 
+    << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_ThreadDescription &thread_desc )
+{
+    erase();
+
+    *this << "{" 
+    << "global_pid: " << CharSeq(thread_desc.global_pid) << ", " 
+    << "thread_id: " << CharSeq(thread_desc.thread_id) << ", " 
+    << "entry_point: " << CharSeq(thread_desc.entry_point) 
+    << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_ThreadSchedulingInfo &thread_scheduling_info )
+{
+    erase();
+
+    *this << "{" 
+    << "global_pid: " << CharSeq(thread_scheduling_info.global_pid) << ", " 
+    << "thread_id: " << CharSeq(thread_scheduling_info.thread_id) 
+    << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_ThreadStatus &thread_status )
+{
+    erase();
+
+    switch (thread_status)
+    {
+        case ASAAC_DORMANT: *this << "ASAAC_DORMANT"; break; 
+        case ASAAC_READY: *this << "ASAAC_DORMANT"; break;
+        case ASAAC_WAITING: *this << "ASAAC_DORMANT"; break;
+        case ASAAC_RUNNING: *this << "ASAAC_DORMANT"; break;
+        default: *this << "NULL";
+    }
+    
+    return *this;
 }
 
 CharacterSequence & CharacterSequence::insert( const unsigned long pos, const unsigned long len, const char ch )

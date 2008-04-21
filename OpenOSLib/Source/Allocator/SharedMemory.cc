@@ -127,7 +127,7 @@ void SharedMemory::initialize( const ASAAC_CharacterSequence& Name, bool IsMaste
 		CharSeq LogString;
 		LogString << "ShM inititialized: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
 			<< ", Counter: " << getMemoryHeader()->AllocationCounter; 
-		OSException(LogString.c_str()).printMessage();
+		OSException(LogString.c_str()).printErrorMessage();
 #endif	
 	}
 	catch ( ASAAC_Exception &e )
@@ -168,7 +168,7 @@ void SharedMemory::deinitialize()
 			CharSeq LogString;
 			LogString << "ShM deinititialized: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
 				<< ", Counter: " << getMemoryHeader()->AllocationCounter;			
-			OSException(LogString.c_str()).printMessage();
+			OSException(LogString.c_str()).printErrorMessage();
 #endif	
 			
 			// Unmap memory mapping of shared memory file.	
@@ -318,7 +318,7 @@ void SharedMemory::setAllocationCounter(unsigned long value)
 	CharSeq LogString;
 	LogString << "ShM setAllocationCounter: " << CharSeq(m_Name) << ", Size: " << getMemoryHeader()->Size 
 		<< ", Counter: " << getMemoryHeader()->AllocationCounter;
-	OSException(LogString.c_str()).printMessage();
+	OSException(LogString.c_str()).printErrorMessage();
 #endif	
 }
 
