@@ -30,6 +30,16 @@ public:
     CharacterSequence(const ASAAC_ThreadDescription &thread_desc );
     CharacterSequence(const ASAAC_ThreadSchedulingInfo &thread_scheduling_info );
     CharacterSequence(const ASAAC_ThreadStatus &thread_status );
+    CharacterSequence(const ASAAC_VcDescription &vc_desc );
+    CharacterSequence(const ASAAC_VcMappingDescription &vc_mapping );
+    CharacterSequence(const ASAAC_VcToTcMappingDescription &vc_to_tc_mapping );
+    CharacterSequence(const ASAAC_SecurityRating &security_rating);
+    CharacterSequence(const ASAAC_SecurityInfo &security_info);
+    CharacterSequence(const ASAAC_VirtualChannelType &vc_type);
+    CharacterSequence(const ASAAC_Bool &is_typed_message);
+    CharacterSequence(const ASAAC_ClassificationLevel &classification_level);
+    CharacterSequence(const ASAAC_Category &security_category);
+
 	virtual ~CharacterSequence();
 	
 	CharacterSequence & append( const ASAAC_CharacterSequence &data );
@@ -52,6 +62,15 @@ public:
     CharacterSequence & assign( const ASAAC_ThreadDescription &thread_desc );
     CharacterSequence & assign( const ASAAC_ThreadSchedulingInfo &thread_scheduling_info );
     CharacterSequence & assign( const ASAAC_ThreadStatus &thread_status );
+    CharacterSequence & assign( const ASAAC_VcDescription &vc_desc );
+    CharacterSequence & assign( const ASAAC_VcMappingDescription &vc_mapping );
+    CharacterSequence & assign( const ASAAC_VcToTcMappingDescription &vc_to_tc_mapping );
+    CharacterSequence & assign( const ASAAC_SecurityRating &security_rating );
+    CharacterSequence & assign( const ASAAC_SecurityInfo &security_info );
+    CharacterSequence & assign( const ASAAC_VirtualChannelType &vc_type );
+    CharacterSequence & assign( const ASAAC_Bool &is_typed_message );
+    CharacterSequence & assign( const ASAAC_ClassificationLevel &classification_level);
+    CharacterSequence & assign( const ASAAC_Category &security_category);
 	
 	CharacterSequence & insert( const unsigned long pos, const unsigned long len, const char ch );
 	CharacterSequence & insert( const unsigned long pos, const ASAAC_PublicId number, const NumberRepresentation representation = unsigned_decimal );

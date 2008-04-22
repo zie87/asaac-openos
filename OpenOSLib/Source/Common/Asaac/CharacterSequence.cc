@@ -78,6 +78,60 @@ CharacterSequence::CharacterSequence(const ASAAC_ThreadStatus &thread_status )
     this->assign(thread_status);
 }
 
+CharacterSequence::CharacterSequence(const ASAAC_VcDescription &vc_desc )
+{
+    erase();
+    this->assign(vc_desc);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_VcMappingDescription &vc_mapping )
+{
+    erase();
+    this->assign(vc_mapping);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_VcToTcMappingDescription &vc_to_tc_mapping )
+{
+    erase();
+    this->assign(vc_to_tc_mapping);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_SecurityRating &security_rating)
+{
+    erase();
+    this->assign(security_rating);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_SecurityInfo &security_info)
+{
+    erase();
+    this->assign(security_info);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_VirtualChannelType &vc_type)
+{
+    erase();
+    this->assign(vc_type);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_Bool &boolean)
+{
+    erase();
+    this->assign(boolean);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_ClassificationLevel &classification_level)
+{
+    erase();
+    this->assign(classification_level);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_Category &security_category)
+{
+    erase();
+    this->assign(security_category);
+}
+
 CharacterSequence::~CharacterSequence()
 {
 }
@@ -284,6 +338,145 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_ThreadStatus &thread_
         case ASAAC_READY: *this << "ASAAC_DORMANT"; break;
         case ASAAC_WAITING: *this << "ASAAC_DORMANT"; break;
         case ASAAC_RUNNING: *this << "ASAAC_DORMANT"; break;
+        default: *this << "NULL";
+    }
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_VcDescription &vc_desc )
+{
+    erase();
+
+    *this << "{" 
+    << "global_vc_id: " << CharSeq(vc_desc.global_vc_id) << ", "
+    << "max_msg_length: " << CharSeq(vc_desc.max_msg_length) << ", "
+    << "max_number_of_buffers: " << CharSeq(vc_desc.max_number_of_buffers) << ", "
+    << "max_number_of_threads_attached: " << CharSeq(vc_desc.max_number_of_threads_attached) << ", "
+    << "max_number_of_TCs_attached: " << CharSeq(vc_desc.max_number_of_TCs_attached) << ", "
+    << "security_rating: " << CharSeq(vc_desc.security_rating) << ", "
+    << "security_info: " << CharSeq(vc_desc.security_info) << ", "
+    << "vc_type: " << CharSeq(vc_desc.vc_type) << ", "
+    << "cpu_id: " << CharSeq(vc_desc.cpu_id) << ", "
+    << "is_typed_message: " << CharSeq(vc_desc.is_typed_message)
+    << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_VcMappingDescription &vc_mapping )
+{
+    erase();
+
+    *this << "{" 
+    << "global_pid: " << CharSeq(vc_mapping.global_pid) << ", "
+    << "local_vc_id: " << CharSeq(vc_mapping.local_vc_id) << ", "
+    << "global_vc_id: " << CharSeq(vc_mapping.global_vc_id) << ", "
+    << "local_thread_id: " << CharSeq(vc_mapping.local_thread_id) << ", "
+    << "buffer_size: " << CharSeq(vc_mapping.buffer_size) << ", "
+    << "number_of_message_buffers: " << CharSeq(vc_mapping.number_of_message_buffers) << ", "
+    << "is_reading: " << CharSeq(vc_mapping.is_reading) << ", "
+    << "is_lifo_queue: " << CharSeq(vc_mapping.is_lifo_queue) << ", "
+    << "is_refusing_queue: " << CharSeq(vc_mapping.is_refusing_queue) << ", "
+    << "Priority: " << CharSeq(vc_mapping.Priority)
+    << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_VcToTcMappingDescription &vc_to_tc_mapping )
+{
+    erase();
+
+    *this << "{" 
+    << "global_vc_id: " << CharSeq(vc_to_tc_mapping.global_vc_id) << ", "
+    << "tc_id: " << CharSeq(vc_to_tc_mapping.tc_id) << ", "
+    << "is_data_representation: " << CharSeq(vc_to_tc_mapping.is_data_representation)
+    << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_SecurityRating &security_rating )
+{
+    erase();
+
+    *this << "{" 
+    << "classification_level: " << CharSeq(security_rating.classification_level) << ", " 
+    << "security_category: " << CharSeq(security_rating.security_category) 
+    << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_SecurityInfo &security_info )
+{
+    erase();
+
+    switch (security_info)
+    {
+        case ASAAC_Marked: *this << "ASAAC_Marked"; break;
+        case ASAAC_Unmarked: *this << "ASAAC_Unmarked"; break;
+        default: *this << "NULL";
+    }
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_VirtualChannelType &vc_type )
+{
+    erase();
+
+    switch (vc_type)
+    {
+        case ASAAC_Application_Header_VC: *this << "ASAAC_Application_Header_VC"; break;
+        case ASAAC_Application_Raw_VC: *this << "ASAAC_Application_Raw_VC"; break;
+        case ASAAC_OLI_VC: *this << "ASAAC_OLI_VC"; break;
+        default: *this << "NULL";
+    }
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_Bool &boolean )
+{
+    erase();
+
+    switch (boolean)
+    {
+        case ASAAC_BOOL_FALSE: *this << "ASAAC_BOOL_FALSE"; break;
+        case ASAAC_BOOL_TRUE: *this << "ASAAC_BOOL_TRUE"; break;
+        default: *this << "NULL";
+    }
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_ClassificationLevel &classification_level)
+{
+    erase();
+
+    switch (classification_level)
+    {
+        case ASAAC_UNCLASSIFIED: *this << "ASAAC_UNCLASSIFIED"; break;
+        case ASAAC_CONFIDENTIAL: *this << "ASAAC_CONFIDENTIAL"; break;
+        case ASAAC_SECRET: *this << "ASAAC_SECRET"; break;
+        case ASAAC_TOP_SECRET: *this << "ASAAC_TOP_SECRET"; break;
+        default: *this << "NULL";
+    }
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_Category &security_category)
+{
+    erase();
+
+    switch (security_category)
+    {
+        case ASAAC_LEVEL_1: *this << "ASAAC_LEVEL_1"; break;
+        case ASAAC_LEVEL_2: *this << "ASAAC_LEVEL_2"; break;
+        case ASAAC_LEVEL_3: *this << "ASAAC_LEVEL_3"; break;
         default: *this << "NULL";
     }
     
