@@ -1,7 +1,6 @@
 #include "OpenOS.hh"
 #include "PcsCIncludes.hh"
 
-//#include "Common/Aid.h"
 #include "LogicalInterfaces/asaac_pcs.hh"
 
 #include "PcsCIncludes.hh"
@@ -55,9 +54,9 @@ ASAAC_ReturnStatus handleConfigureInterface(ASAAC_PCS_MessageParameter &Paramete
 	cout << "PCS: handleConfigureInterface" << endl;
 #endif
 
-    //do something with the paramter
+	Parameter._u.reply_configure_interface.result = PCS::getInstance()->configureInterface( Parameter._u.request_configure_interface.if_config );
      
-    return ASAAC_ERROR;
+    return ASAAC_SUCCESS;
 }
 
 ASAAC_ReturnStatus handleCreateTransferConnection(ASAAC_PCS_MessageParameter &Parameter)

@@ -275,7 +275,16 @@ ASAAC_ReturnStatus PCS::configureInterface( const ASAAC_InterfaceData& if_config
 	cout << "PCS::configureInterface()  " << endl;
 #endif
 	
-	return ASAAC_ERROR;
+	ASAAC_NiiReturnStatus status = ASAAC_MOS_configureInterface( if_config.if_id, &if_config.nw_id, &if_config.conf_data);
+
+	if (status == ASAAC_MOS_NII_CALL_COMPLETE)
+	{
+	    return ASAAC_SUCCESS;
+	}
+	else 
+    {
+	    return ASAAC_ERROR;
+    }
 }	
 
 
