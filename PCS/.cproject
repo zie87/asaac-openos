@@ -4,7 +4,7 @@
 <cproject>
 <storageModule moduleId="org.eclipse.cdt.core.settings">
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.707694650">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Debug" id="cdt.managedbuild.config.gnu.exe.debug.707694650" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.exe.debug.707694650" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings/>
 <extensions>
 <extension point="org.eclipse.cdt.core.BinaryParser" id="org.eclipse.cdt.core.ELF"/>
@@ -29,7 +29,7 @@
 <listOptionValue value="&quot;${workspace_loc:/PCS/Source}&quot;" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.option.preprocessor.def" id="gnu.cpp.compiler.option.preprocessor.def.346070771" name="Defined symbols (-D)" valueType="definedSymbols">
-<listOptionValue value="dont_DEBUG_" builtIn="false"/>
+<listOptionValue value="_DEBUG_" builtIn="false"/>
 </option>
 <option superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" id="gnu.cpp.compiler.exe.debug.option.optimization.level.2056740741" name="Optimization Level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" id="gnu.cpp.compiler.exe.debug.option.debugging.level.1820508697" name="Debug Level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>

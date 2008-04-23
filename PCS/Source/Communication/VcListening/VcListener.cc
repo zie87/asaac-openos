@@ -123,7 +123,7 @@ ASAAC_TimedReturnStatus VcListener::listen( const ASAAC_TimeInterval& Timeout )
 				ASAAC_APOS_receiveBuffer( ReceivingVcs[ Index ], &TimeIntervalInstant, &BufferAddress, &DataLength );
 				
 				#ifdef _DEBUG_
-				cout << "VcListener::listen() processVcMessage (" << ReceivingVcs.vc_id[ Index ]<< "," << BufferAddress<< "," << DataLength << ")" << endl;
+				cout << "VcListener::listen() processVcMessage (" << ReceivingVcs[ Index ]<< "," << BufferAddress<< "," << DataLength << ")" << endl;
 				#endif 
 			
 				m_ListeningVcInfo[ VcIndex ].Consumer->processVcMessage( ReceivingVcs[ Index ], BufferAddress, DataLength );
