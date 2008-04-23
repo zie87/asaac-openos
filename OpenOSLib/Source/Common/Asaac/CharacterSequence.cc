@@ -54,6 +54,24 @@ CharacterSequence::CharacterSequence(const ASAAC_TimeInterval interval)
 	this->assign(interval);
 }
 
+CharacterSequence::CharacterSequence(const ASAAC_ReturnStatus status)
+{
+    erase();
+    this->assign(status);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_TimedReturnStatus status)
+{
+    erase();
+    this->assign(status);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_ResourceReturnStatus status)
+{
+    erase();
+    this->assign(status);
+}
+
 CharacterSequence::CharacterSequence(const ASAAC_ProcessDescription &process_desc )
 {
     erase();
@@ -130,6 +148,30 @@ CharacterSequence::CharacterSequence(const ASAAC_Category &security_category)
 {
     erase();
     this->assign(security_category);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_InterfaceData &if_config)
+{
+    erase();
+    this->assign(if_config);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_TcDescription &tc_desc)
+{
+    erase();
+    this->assign(tc_desc);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_NetworkDescriptor &network_desc)
+{
+    erase();
+    this->assign(network_desc);
+}
+
+CharacterSequence::CharacterSequence(const ASAAC_NetworkPortStatus &network_status)
+{
+    erase();
+    this->assign(network_status);
 }
 
 CharacterSequence::~CharacterSequence()
@@ -292,14 +334,58 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_TimeInterval interval
     return *this;
 }
 
+CharacterSequence & CharacterSequence::assign( const ASAAC_ReturnStatus status)
+{
+    erase();
+
+    switch (status)
+    {
+        case ASAAC_SUCCESS: *this << "ASAAC_SUCCESS"; break; 
+        case ASAAC_ERROR: *this << "ASAAC_ERROR"; break;
+        default: *this << "NULL";
+    }
+  
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_TimedReturnStatus status)
+{
+    erase();
+
+    switch (status)
+    {
+        case ASAAC_TM_SUCCESS: *this << "ASAAC_TM_SUCCESS"; break; 
+        case ASAAC_TM_ERROR: *this << "ASAAC_TM_ERROR"; break;
+        case ASAAC_TM_TIMEOUT: *this << "ASAAC_TM_TIMEOUT"; break;
+        default: *this << "NULL";
+    }
+  
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_ResourceReturnStatus status)
+{
+    erase();
+
+    switch (status)
+    {
+        case ASAAC_RS_SUCCESS: *this << "ASAAC_RS_SUCCESS"; break; 
+        case ASAAC_RS_ERROR: *this << "ASAAC_RS_ERROR"; break;
+        case ASAAC_RS_RESOURCE: *this << "ASAAC_RS_RESOURCE"; break;
+        default: *this << "NULL";
+    }
+  
+    return *this;
+}
+
 CharacterSequence & CharacterSequence::assign( const ASAAC_ProcessDescription &process_desc )
 {
     erase();
 
-    *this << "{" 
-    << "programme_file_name: " << CharSeq(process_desc.programme_file_name) 
-    << "}";
-    
+    *this << "{";
+    *this << "programme_file_name: " << CharSeq(process_desc.programme_file_name); 
+    *this << "}";
+  
     return *this;
 }
 
@@ -307,12 +393,12 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_ThreadDescription &th
 {
     erase();
 
-    *this << "{" 
-    << "global_pid: " << CharSeq(thread_desc.global_pid) << ", " 
-    << "thread_id: " << CharSeq(thread_desc.thread_id) << ", " 
-    << "entry_point: " << CharSeq(thread_desc.entry_point) 
-    << "}";
-    
+    *this << "{"; 
+    *this << "global_pid: " << CharSeq(thread_desc.global_pid) << ", ";
+    *this << "thread_id: " << CharSeq(thread_desc.thread_id) << ", ";
+    *this << "entry_point: " << CharSeq(thread_desc.entry_point); 
+    *this << "}";
+  
     return *this;
 }
 
@@ -320,11 +406,11 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_ThreadSchedulingInfo 
 {
     erase();
 
-    *this << "{" 
-    << "global_pid: " << CharSeq(thread_scheduling_info.global_pid) << ", " 
-    << "thread_id: " << CharSeq(thread_scheduling_info.thread_id) 
-    << "}";
-    
+    *this << "{";
+    *this << "global_pid: " << CharSeq(thread_scheduling_info.global_pid) << ", "; 
+    *this << "thread_id: " << CharSeq(thread_scheduling_info.thread_id);
+    *this << "}";
+  
     return *this;
 }
 
@@ -340,7 +426,7 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_ThreadStatus &thread_
         case ASAAC_RUNNING: *this << "ASAAC_DORMANT"; break;
         default: *this << "NULL";
     }
-    
+  
     return *this;
 }
 
@@ -348,18 +434,18 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_VcDescription &vc_des
 {
     erase();
 
-    *this << "{" 
-    << "global_vc_id: " << CharSeq(vc_desc.global_vc_id) << ", "
-    << "max_msg_length: " << CharSeq(vc_desc.max_msg_length) << ", "
-    << "max_number_of_buffers: " << CharSeq(vc_desc.max_number_of_buffers) << ", "
-    << "max_number_of_threads_attached: " << CharSeq(vc_desc.max_number_of_threads_attached) << ", "
-    << "max_number_of_TCs_attached: " << CharSeq(vc_desc.max_number_of_TCs_attached) << ", "
-    << "security_rating: " << CharSeq(vc_desc.security_rating) << ", "
-    << "security_info: " << CharSeq(vc_desc.security_info) << ", "
-    << "vc_type: " << CharSeq(vc_desc.vc_type) << ", "
-    << "cpu_id: " << CharSeq(vc_desc.cpu_id) << ", "
-    << "is_typed_message: " << CharSeq(vc_desc.is_typed_message)
-    << "}";
+    *this << "{";
+    *this << "global_vc_id: " << CharSeq(vc_desc.global_vc_id) << ", ";
+    *this << "max_msg_length: " << CharSeq(vc_desc.max_msg_length) << ", ";
+    *this << "max_number_of_buffers: " << CharSeq(vc_desc.max_number_of_buffers) << ", ";
+    *this << "max_number_of_threads_attached: " << CharSeq(vc_desc.max_number_of_threads_attached) << ", ";
+    *this << "max_number_of_TCs_attached: " << CharSeq(vc_desc.max_number_of_TCs_attached) << ", ";
+    *this << "security_rating: " << CharSeq(vc_desc.security_rating) << ", ";
+    *this << "security_info: " << CharSeq(vc_desc.security_info) << ", ";
+    *this << "vc_type: " << CharSeq(vc_desc.vc_type) << ", ";
+    *this << "cpu_id: " << CharSeq(vc_desc.cpu_id) << ", ";
+    *this << "is_typed_message: " << CharSeq(vc_desc.is_typed_message);
+    *this << "}";
     
     return *this;
 }
@@ -368,19 +454,19 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_VcMappingDescription 
 {
     erase();
 
-    *this << "{" 
-    << "global_pid: " << CharSeq(vc_mapping.global_pid) << ", "
-    << "local_vc_id: " << CharSeq(vc_mapping.local_vc_id) << ", "
-    << "global_vc_id: " << CharSeq(vc_mapping.global_vc_id) << ", "
-    << "local_thread_id: " << CharSeq(vc_mapping.local_thread_id) << ", "
-    << "buffer_size: " << CharSeq(vc_mapping.buffer_size) << ", "
-    << "number_of_message_buffers: " << CharSeq(vc_mapping.number_of_message_buffers) << ", "
-    << "is_reading: " << CharSeq(vc_mapping.is_reading) << ", "
-    << "is_lifo_queue: " << CharSeq(vc_mapping.is_lifo_queue) << ", "
-    << "is_refusing_queue: " << CharSeq(vc_mapping.is_refusing_queue) << ", "
-    << "Priority: " << CharSeq(vc_mapping.Priority)
-    << "}";
-    
+    *this << "{";
+    *this << "global_pid: " << CharSeq(vc_mapping.global_pid) << ", ";
+    *this << "local_vc_id: " << CharSeq(vc_mapping.local_vc_id) << ", ";
+    *this << "global_vc_id: " << CharSeq(vc_mapping.global_vc_id) << ", ";
+    *this << "local_thread_id: " << CharSeq(vc_mapping.local_thread_id) << ", ";
+    *this << "buffer_size: " << CharSeq(vc_mapping.buffer_size) << ", ";
+    *this << "number_of_message_buffers: " << CharSeq(vc_mapping.number_of_message_buffers) << ", ";
+    *this << "is_reading: " << CharSeq(vc_mapping.is_reading) << ", ";
+    *this << "is_lifo_queue: " << CharSeq(vc_mapping.is_lifo_queue) << ", ";
+    *this << "is_refusing_queue: " << CharSeq(vc_mapping.is_refusing_queue) << ", ";
+    *this << "Priority: " << CharSeq(vc_mapping.Priority);
+    *this << "}";
+  
     return *this;
 }
 
@@ -388,12 +474,12 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_VcToTcMappingDescript
 {
     erase();
 
-    *this << "{" 
-    << "global_vc_id: " << CharSeq(vc_to_tc_mapping.global_vc_id) << ", "
-    << "tc_id: " << CharSeq(vc_to_tc_mapping.tc_id) << ", "
-    << "is_data_representation: " << CharSeq(vc_to_tc_mapping.is_data_representation)
-    << "}";
-    
+    *this << "{"; 
+    *this << "global_vc_id: " << CharSeq(vc_to_tc_mapping.global_vc_id) << ", ";
+    *this << "tc_id: " << CharSeq(vc_to_tc_mapping.tc_id) << ", ";
+    *this << "is_data_representation: " << CharSeq(vc_to_tc_mapping.is_data_representation);
+    *this << "}";
+  
     return *this;
 }
 
@@ -401,10 +487,10 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_SecurityRating &secur
 {
     erase();
 
-    *this << "{" 
-    << "classification_level: " << CharSeq(security_rating.classification_level) << ", " 
-    << "security_category: " << CharSeq(security_rating.security_category) 
-    << "}";
+    *this << "{";
+    *this << "classification_level: " << CharSeq(security_rating.classification_level) << ", "; 
+    *this << "security_category: " << CharSeq(security_rating.security_category);
+    *this << "}";
     
     return *this;
 }
@@ -479,6 +565,67 @@ CharacterSequence & CharacterSequence::assign( const ASAAC_Category &security_ca
         case ASAAC_LEVEL_3: *this << "ASAAC_LEVEL_3"; break;
         default: *this << "NULL";
     }
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_InterfaceData &if_config )
+{
+    erase();
+
+    *this << "{";
+    *this << "if_id :" << CharSeq(if_config.if_id) << ", ";
+    *this << "nw_id :" << CharSeq(if_config.nw_id) << ", ";
+    *this << "cpu_id :" << CharSeq(if_config.cpu_id) << ", ";
+    *this << "conf_data_type :" << CharSeq(if_config.conf_data_type) << ", ";
+    *this << "conf_data_size :" << CharSeq(if_config.conf_data_size) << ", ";
+    //*this << "conf_data :" << CharSeq(if_config.conf_data);
+    *this << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_TcDescription &tc_desc )
+{
+    erase();
+
+    *this << "{";
+    *this << "tc_id :" << CharSeq(tc_desc.tc_id) << ", ";
+    *this << "network_descr :" << CharSeq(tc_desc.network_descr) << ", ";
+    *this << "is_receiver :" << CharSeq(tc_desc.is_receiver) << ", ";
+    *this << "is_msg_transfer :" << CharSeq(tc_desc.is_msg_transfer) << ", ";
+    *this << "is_fragmented :" << CharSeq(tc_desc.is_fragmented) << ", ";
+    *this << "security_rating :" << CharSeq(tc_desc.security_rating) << ", ";
+    *this << "cpu_id :" << CharSeq(tc_desc.cpu_id) << ", ";
+    *this << "conf_data_type :" << CharSeq(tc_desc.conf_data_type) << ", ";
+    *this << "conf_data_size :" << CharSeq(tc_desc.conf_data_size) << ", ";
+    //*this << "conf_data :" << CharSeq(tc_desc.conf_data);
+    *this << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_NetworkDescriptor &network_desc )
+{
+    erase();
+
+    *this << "{";
+    *this << "network :" << CharSeq(network_desc.network) << ", ";
+    *this << "port :" << CharSeq(network_desc.port);
+    *this << "}";
+    
+    return *this;
+}
+
+CharacterSequence & CharacterSequence::assign( const ASAAC_NetworkPortStatus &network_status )
+{
+    erase();
+
+    *this << "{";
+    *this << "final_status :" << CharSeq(network_status.final_status) << ", ";
+    *this << "status_data_length :" << CharSeq(network_status.status_data_length) << ", ";
+    //*this << "detailed_status_data[256] :" << CharSeq(network_status.detailed_status_data);
+    *this << "}";
     
     return *this;
 }

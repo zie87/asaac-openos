@@ -26,6 +26,9 @@ public:
 	CharacterSequence(const ASAAC_PublicId number, const NumberRepresentation representation = unsigned_decimal );
 	CharacterSequence(const ASAAC_Time time);
 	CharacterSequence(const ASAAC_TimeInterval interval);
+    CharacterSequence(const ASAAC_ReturnStatus status);
+    CharacterSequence(const ASAAC_TimedReturnStatus status);
+    CharacterSequence(const ASAAC_ResourceReturnStatus status);
     CharacterSequence(const ASAAC_ProcessDescription &process_desc );
     CharacterSequence(const ASAAC_ThreadDescription &thread_desc );
     CharacterSequence(const ASAAC_ThreadSchedulingInfo &thread_scheduling_info );
@@ -39,6 +42,10 @@ public:
     CharacterSequence(const ASAAC_Bool &is_typed_message);
     CharacterSequence(const ASAAC_ClassificationLevel &classification_level);
     CharacterSequence(const ASAAC_Category &security_category);
+    CharacterSequence(const ASAAC_InterfaceData &if_config);
+    CharacterSequence(const ASAAC_TcDescription &tc_desc);
+    CharacterSequence(const ASAAC_NetworkDescriptor &network_desc);
+    CharacterSequence(const ASAAC_NetworkPortStatus &network_status);
 
 	virtual ~CharacterSequence();
 	
@@ -57,7 +64,10 @@ public:
 	CharacterSequence & assign( const unsigned long len, const char ch );
 	CharacterSequence & assign( const ASAAC_PublicId number, const NumberRepresentation representation = unsigned_decimal );
 	CharacterSequence & assign( const ASAAC_Time time);
-	CharacterSequence & assign( const ASAAC_TimeInterval interval);
+    CharacterSequence & assign( const ASAAC_TimeInterval interval);
+    CharacterSequence & assign( const ASAAC_ReturnStatus status);
+    CharacterSequence & assign( const ASAAC_TimedReturnStatus status);
+    CharacterSequence & assign( const ASAAC_ResourceReturnStatus status);
     CharacterSequence & assign( const ASAAC_ProcessDescription &process_desc );
     CharacterSequence & assign( const ASAAC_ThreadDescription &thread_desc );
     CharacterSequence & assign( const ASAAC_ThreadSchedulingInfo &thread_scheduling_info );
@@ -69,8 +79,12 @@ public:
     CharacterSequence & assign( const ASAAC_SecurityInfo &security_info );
     CharacterSequence & assign( const ASAAC_VirtualChannelType &vc_type );
     CharacterSequence & assign( const ASAAC_Bool &is_typed_message );
-    CharacterSequence & assign( const ASAAC_ClassificationLevel &classification_level);
-    CharacterSequence & assign( const ASAAC_Category &security_category);
+    CharacterSequence & assign( const ASAAC_ClassificationLevel &classification_level );
+    CharacterSequence & assign( const ASAAC_Category &security_category );
+    CharacterSequence & assign( const ASAAC_InterfaceData &if_config );
+    CharacterSequence & assign( const ASAAC_TcDescription &tc_desc );
+    CharacterSequence & assign( const ASAAC_NetworkDescriptor &network_desc );
+    CharacterSequence & assign( const ASAAC_NetworkPortStatus &network_status );
 	
 	CharacterSequence & insert( const unsigned long pos, const unsigned long len, const char ch );
 	CharacterSequence & insert( const unsigned long pos, const ASAAC_PublicId number, const NumberRepresentation representation = unsigned_decimal );
