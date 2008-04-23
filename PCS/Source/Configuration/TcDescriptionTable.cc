@@ -65,6 +65,10 @@ ASAAC_ReturnStatus TcDescriptionTable::getTcDescription( ASAAC_PublicId TcId, AS
 			return ASAAC_SUCCESS;
 		}
 	}
+
+#ifdef _DEBUG_       
+    cerr << "PCS::TcDescriptionTable::getTcDescription() TcId not found: " << TcId << endl;
+#endif
 	
 	return ASAAC_ERROR;
 }
