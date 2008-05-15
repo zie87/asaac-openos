@@ -122,8 +122,8 @@ void SimpleCommandInterface::handleOneCommand( ASAAC_PublicId& CommandIdentifier
 			else ThisCommand->Handler( m_CommandData->Buffer );
 			
 #ifdef DEBUG_SCI		
-			cout << "Returning Data: " << *(ASAAC_ReturnStatus*)m_CommandData->Buffer << endl;
-			cout << "Returning Command: " << m_CommandData->Identifier << " (" << CharSeq(getCommandString(m_CommandData->Identifier)) << ")" << endl;
+			cout << "Process " << ProcessManager::getInstance()->getCurrentProcess()->getId() << "returns data: " << *(ASAAC_ReturnStatus*)m_CommandData->Buffer << endl;
+			cout << "Process " << ProcessManager::getInstance()->getCurrentProcess()->getId() << "returns command: " << m_CommandData->Identifier << " (" << CharSeq(getCommandString(m_CommandData->Identifier)) << ")" << endl;
 #endif
 		}
 

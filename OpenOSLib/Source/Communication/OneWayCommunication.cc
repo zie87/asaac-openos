@@ -614,15 +614,16 @@ void OneWayCommunication::attachLocalVc(OSScopeCommandBuffer param)
 		if (P == NULL)
 			throw OSException("process is not available", LOCATION);
 	
-		ProcessStatus p_state = P->getState(); 
+		/*ProcessStatus p_state = P->getState(); 
 		
 		if (p_state == PROCESS_RUNNING)
 			P->stop();	
-
+		*/
 		CM->attachChannelToProcessOrThread(data->mapping);
 
-		if (p_state == PROCESS_RUNNING)
-			P->run();	
+		/*if (p_state == PROCESS_RUNNING)
+			P->run();
+		*/	
 	}
 	catch (ASAAC_Exception &e)
 	{
@@ -656,13 +657,14 @@ void OneWayCommunication::detachLocalVc(OSScopeCommandBuffer param)
 	
 		ProcessStatus p_state = P->getState(); 
 
-		if (p_state == PROCESS_RUNNING)
+		/*if (p_state == PROCESS_RUNNING)
 			P->stop();	
-		
+		*/
 		CM->detachAllThreadsOfProcessFromVc( data->mapping.global_vc_id, data->mapping.global_pid);
 		
-		if (p_state == PROCESS_RUNNING)
-			P->run();	
+		/*if (p_state == PROCESS_RUNNING)
+			P->run();
+		*/		
 	}
 	catch (ASAAC_Exception &e)
 	{

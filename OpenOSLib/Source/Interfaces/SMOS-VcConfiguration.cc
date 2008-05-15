@@ -108,8 +108,6 @@ ASAAC_ReturnStatus ASAAC_SMOS_attachTransferConnectionToVirtualChannel(const ASA
     	CommunicationManager::getInstance()->attachTransferConnectionToVirtualChannel( *vc_to_tc_mapping );
 
         result = ASAAC_SUCCESS;
-
-        LOG_SERVICE1(*vc_to_tc_mapping, result);
     }
     catch ( ASAAC_Exception &e )
     {
@@ -118,6 +116,8 @@ ASAAC_ReturnStatus ASAAC_SMOS_attachTransferConnectionToVirtualChannel(const ASA
         
         result = ASAAC_ERROR;
     }
+
+    LOG_SERVICE1(*vc_to_tc_mapping, result);
     
     return result;
 }

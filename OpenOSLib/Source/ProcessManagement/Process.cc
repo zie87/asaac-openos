@@ -505,9 +505,12 @@ void Process::resumeAllThreads()
 			ASAAC_ThreadStatus state;
 			ThreadObject->getState( state );
 			
-			if (state == ASAAC_DORMANT)
-				continue;
-			
+            if (state == ASAAC_DORMANT)
+                continue;
+            
+            if (state == ASAAC_DORMANT)
+                continue;
+            
 			ThreadObject->resume();
 		}		
 

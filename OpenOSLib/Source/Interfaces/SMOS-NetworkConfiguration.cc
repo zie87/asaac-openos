@@ -35,8 +35,6 @@ ASAAC_ReturnStatus ASAAC_SMOS_createTransferConnection(const ASAAC_TcDescription
     	CommunicationManager::getInstance()->createTransferConnection( *tc_desc );
 
         result = ASAAC_SUCCESS;
-
-        LOG_SERVICE1(*tc_desc, result);
     }
     catch ( ASAAC_Exception &e )
     {
@@ -45,6 +43,8 @@ ASAAC_ReturnStatus ASAAC_SMOS_createTransferConnection(const ASAAC_TcDescription
         
         result = ASAAC_ERROR;
     }
+
+    LOG_SERVICE1(*tc_desc, result);
     
     return result;
 }

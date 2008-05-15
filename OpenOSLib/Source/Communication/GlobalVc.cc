@@ -324,10 +324,10 @@ void GlobalVc::createLocalVc( const ASAAC_VcMappingDescription& Description )
 		ProcessStatus ThisState = TargetProcess->getState();
 	
 		// Process must be in stopped or initialized state
-		if ( ( ( ThisState != PROCESS_STOPPED ) && ( ThisState != PROCESS_INITIALIZED ) ) &&
+		/*if ( ( ( ThisState != PROCESS_STOPPED ) && ( ThisState != PROCESS_INITIALIZED ) ) &&
 			 ( CurrentProcess->getId() != TargetProcess->getId() ) ) //TODO: analyse exception due to a leak in the standard
 			throw OSException("Process has to be in state 'STOPPED' or 'INITIALIZED'.", LOCATION);
-		
+		*/
 		// Assign Local Vc to empty LocalVc Slot determined above	
 		m_LocalVcAllocator[ NewLocalVcIndex ].reset();
 		NewLocalVc->initialize( true, Description, this, &(m_LocalVcAllocator[ NewLocalVcIndex ]), &m_GlobalVcQueueCallback );

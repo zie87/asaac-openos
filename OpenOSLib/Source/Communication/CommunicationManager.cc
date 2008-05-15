@@ -514,7 +514,7 @@ void CommunicationManager::attachTransferConnectionToVirtualChannel( const ASAAC
 	   		throw OSException("PCS Process was not found.", LOCATION);
 	   	
 	   	//Stop PCS Process now
-	    PCSProcess->stop();
+	    //PCSProcess->stop();
 	    
 	    try //This inner exception block is needed to surely restart PCS Process
 	    {
@@ -525,7 +525,7 @@ void CommunicationManager::attachTransferConnectionToVirtualChannel( const ASAAC
             //Restart PCS Process
 	    	try
 	    	{
-	    		PCSProcess->run();
+	    		//PCSProcess->run();
 	    	}
 	    	catch (ASAAC_Exception &e2)
 	    	{
@@ -536,7 +536,7 @@ void CommunicationManager::attachTransferConnectionToVirtualChannel( const ASAAC
 	    }
 
 		//Restart PCS Process
-	    PCSProcess->run();
+	    //PCSProcess->run();
 		
         m_PCSClient.attachTransferConnectionToVirtualChannel( *vc_description, tc_id, is_data_representation);
 	}		
@@ -568,7 +568,7 @@ void CommunicationManager::detachTransferConnectionFromVirtualChannel( ASAAC_Pub
 	   		throw OSException("PCS Process was not found.", LOCATION);
 	   	
 	   	//Stop PCS Process now
-	    PCSProcess->stop();
+	    //PCSProcess->stop();
 
 	    try //This inner exception block is needed to surely restart PCS Process
 	    {
@@ -577,13 +577,13 @@ void CommunicationManager::detachTransferConnectionFromVirtualChannel( ASAAC_Pub
 	    catch (ASAAC_Exception &e)
 	    {
             //Restart PCS Process
-            PCSProcess->run();
+            //PCSProcess->run();
                 
 	    	throw;
 	    }
 
 		//Restart PCS Process
-	    PCSProcess->run();
+	    //PCSProcess->run();
     }
 	catch (ASAAC_Exception &e)
 	{
