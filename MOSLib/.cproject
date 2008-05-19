@@ -4,7 +4,7 @@
 <cproject>
 <storageModule moduleId="org.eclipse.cdt.core.settings">
 <cconfiguration id="cdt.managedbuild.config.gnu.so.debug.984623079">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Debug" id="cdt.managedbuild.config.gnu.so.debug.984623079" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.so.debug.984623079" name="Debug" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/MOSLib"/>
@@ -31,6 +31,7 @@
 <option superClass="gnu.c.compiler.so.debug.option.debugging.level" id="gnu.c.compiler.so.debug.option.debugging.level.1687014960" name="Debug Level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 <option superClass="gnu.c.compiler.option.include.paths" id="gnu.c.compiler.option.include.paths.1547516771" name="Include paths (-I)" valueType="includePath">
 <listOptionValue value="&quot;${workspace_loc:/AsaacInterface}&quot;" builtIn="false"/>
+<listOptionValue value="&quot;${workspace_loc:/AsaacPlatformInterfaces}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/AsaacCLib}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/NIILib/Source}&quot;" builtIn="false"/>
 <listOptionValue value="&quot;${workspace_loc:/MOSLib/Source}&quot;" builtIn="false"/>
@@ -487,7 +488,7 @@
 </storageModule>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.so.release.795630477">
-<storageModule moduleId="org.eclipse.cdt.core.settings" name="Release" id="cdt.managedbuild.config.gnu.so.release.795630477" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
+<storageModule moduleId="org.eclipse.cdt.core.settings" id="cdt.managedbuild.config.gnu.so.release.795630477" name="Release" buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider">
 <externalSettings>
 <externalSetting>
 <entry kind="includePath" flags="VALUE_WORKSPACE_PATH" name="/MOSLib"/>
@@ -503,7 +504,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration id="cdt.managedbuild.config.gnu.so.release.795630477" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.release" artifactName="MOSLib" artifactExtension="so" cleanCommand="rm -rf">
+<configuration id="cdt.managedbuild.config.gnu.so.release.795630477" name="Release" description="" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" parent="cdt.managedbuild.config.gnu.so.release" artifactName="MOSLib" artifactExtension="so" cleanCommand="rm -rf">
 <folderInfo id="cdt.managedbuild.config.gnu.so.release.795630477." name="/" resourcePath="">
 <toolChain superClass="cdt.managedbuild.toolchain.gnu.so.release" id="cdt.managedbuild.toolchain.gnu.so.release.1561989311" name="Linux GCC">
 <targetPlatform superClass="cdt.managedbuild.target.gnu.platform.so.release" id="cdt.managedbuild.target.gnu.platform.so.release.2007823797" name="Debug Platform"/>
