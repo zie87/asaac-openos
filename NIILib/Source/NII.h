@@ -51,7 +51,7 @@ ASAAC_NiiReturnStatus NII_sendTransfer(
 		const ASAAC_PublicId tc_id, 
 		const char *transmit_data,
 		const unsigned long data_length, 
-		const ASAAC_Time time_out);
+		ASAAC_Time time_out);
 
 /////////////////////////////////////////////
 /// Receive a block of data on the given TC

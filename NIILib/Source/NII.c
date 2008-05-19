@@ -34,7 +34,7 @@ void releaseAccess();
 // Service synchronization
 ASAAC_NiiReturnStatus hasTcData( const ASAAC_PublicId tc_id );
 ASAAC_NiiReturnStatus hasNetworkData( const ASAAC_NetworkDescriptor network_id, ASAAC_PublicId *tc_id );
-ASAAC_NiiReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId *tc_id  );
+ASAAC_NiiReturnStatus waitForData( ASAAC_Time time_out, ASAAC_PublicId *tc_id  );
 ASAAC_NiiReturnStatus receiveData( 		
 		const ASAAC_PublicId tc_id, 
 		const ASAAC_CharAddress receive_data, 
@@ -73,7 +73,7 @@ long getIndexOfNw(const ASAAC_PublicId port);
 long getIndexOfTc(const ASAAC_PublicId tc_id);
 
 ASAAC_NiiReturnStatus receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor *network_id, ASAAC_PublicId *buffer_id );
-ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, const ASAAC_TimeInterval time_out );
+ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, ASAAC_TimeInterval time_out );
 
 
 /***********************************************************************************/
@@ -349,7 +349,7 @@ ASAAC_NiiReturnStatus NII_sendTransfer(
 		const ASAAC_PublicId tc_id,
 		const char* transmit_data, 
 		const unsigned long data_length, 
-		const ASAAC_Time time_out)
+		ASAAC_Time time_out)
 {
 	initialize();
 	
@@ -379,7 +379,11 @@ ASAAC_NiiReturnStatus NII_sendTransfer(
 	if ( getNw( Tc.network_id.port, &Nw ) == 0)
 		return ASAAC_MOS_NII_CALL_FAILED;
 
-	ASAAC_TimeInterval Interval = TimeToInterval( time_out );
+	ASAAC_Time now;
+	ASAAC_TimeInterval Interval;
+	
+	ASAAC_MOS_getAbsoluteLocalTime( &now );
+	Time_subtractTime( &time_out, &now, &Interval );
 	
 	Tc.event_info_data.comms_ev_buffer_sent.status = sendToNetwork(m_ServiceFileDescriptor, Tc.network_id, tc_id, transmit_data, data_length, Interval);
 	Tc.event_info_data.comms_ev_buffer_sent.tc_id  = Tc.tc_id;
@@ -569,7 +573,7 @@ ASAAC_NiiReturnStatus receiveFromNetwork( const int fd, ASAAC_NetworkDescriptor 
 }
 
 
-ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, const ASAAC_TimeInterval time_out )
+ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor network_id, const ASAAC_PublicId tc_id, const char* data, const unsigned long length, ASAAC_TimeInterval time_out )
 {
 	if (length > NII_MAX_SIZE_OF_BUFFER)
 		return ASAAC_MOS_NII_CALL_FAILED;
@@ -599,7 +603,9 @@ ASAAC_NiiReturnStatus sendToNetwork( const int fd, const ASAAC_NetworkDescriptor
 	FD_ZERO( &wfds );
 	FD_SET( fd, &wfds );
 
-	struct timeval tv = IntervalToTimeval( time_out );
+	struct timeval tv;
+	
+	TimeInterval_convertToTimeval( &time_out, &tv );
 	
 	select(fd+1, NULL, &wfds, NULL, &tv);
 	
@@ -1074,7 +1080,12 @@ void* ServiceThread(void* Data)
 		printf("ServiceThread: execute select()\n");
 #endif
 
-		struct timeval tv = IntervalToTimeval( TimeIntervalInfinity() );
+		ASAAC_TimeInterval interval;
+		struct timeval tv;
+		
+		TimeInterval_assignInfinity( &interval );
+		TimeInterval_convertToTimeval( &interval, &tv );
+		
 		tv.tv_sec = 10;
 		tv.tv_usec = 0;
 
@@ -1180,13 +1191,16 @@ ASAAC_NiiReturnStatus hasNetworkData( const ASAAC_NetworkDescriptor network_id, 
 }
 
 
-ASAAC_NiiReturnStatus waitForData( const ASAAC_Time time_out, ASAAC_PublicId *tc_id )
+ASAAC_NiiReturnStatus waitForData( ASAAC_Time time_out, ASAAC_PublicId *tc_id )
 {
 #ifdef _DEBUG_
 	printf("waitForData: wait for new_data condition\n");
 #endif
 
-	struct timespec TimespecTimeout = TimeToTimespec( time_out );
+	struct timespec TimespecTimeout;
+	
+	Time_convertToTimespec( &time_out, &TimespecTimeout );
+	
 	int iErrorCode = pthread_cond_timedwait( &m_NewDataCondition, &m_NewDataMutex, &TimespecTimeout );
 	
 	if ( iErrorCode == ETIMEDOUT )
@@ -1279,7 +1293,10 @@ void configureServices()
 	printf("configureServices: send data via ServiceFileDescriptor\n");
 #endif
 
-	sendToNetwork(m_ServiceFileDescriptor, NetworkId, NII_UNUSED_ID, NULL, 0, TimeIntervalInstant());
+	ASAAC_TimeInterval interval;
+	TimeInterval_assignInstant( &interval );
+	
+	sendToNetwork(m_ServiceFileDescriptor, NetworkId, NII_UNUSED_ID, NULL, 0, interval);
 	
 #ifdef _DEBUG_
 	printf("configureServices: exit\n");
