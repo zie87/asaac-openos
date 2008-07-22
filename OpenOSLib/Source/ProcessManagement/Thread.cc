@@ -148,10 +148,10 @@ void Thread::setSchedulingParameters( const ASAAC_ThreadSchedulingInfo& Scheduli
 	
 		int Policy = SCHED_RR;
 	
-		if ( SchedulingInfo.scheduling_info.scheduling_data.round_robin.priority < sched_get_priority_min(Policy) )
+		if ( SchedulingInfo.scheduling_info.priority < sched_get_priority_min(Policy) )
 	        throw OSException( (ErrorString << "Priority is out of systems range (minimum is " << (long)sched_get_priority_min(Policy) << ")").c_str(), LOCATION);
 		
-		if ( SchedulingInfo.scheduling_info.scheduling_data.round_robin.priority > sched_get_priority_max(Policy) )
+		if ( SchedulingInfo.scheduling_info.priority > sched_get_priority_max(Policy) )
 	        throw OSException( (ErrorString << "Priority is out of systems range (maximum is " << (long)sched_get_priority_max(Policy) << ")").c_str(), LOCATION);
 		
 		m_ThreadData->SchedulingInfo = SchedulingInfo;	    
@@ -229,7 +229,7 @@ void Thread::start()
 		int Result;
 
 		sched_param Parameter;
-		Parameter.__sched_priority = m_ThreadData->SchedulingInfo.scheduling_info.scheduling_data.round_robin.priority;
+		Parameter.__sched_priority = m_ThreadData->SchedulingInfo.scheduling_info.priority;
 	
 		Result = oal_thread_attr_init( &( m_ThreadData->PosixThreadAttributes ) );
 		if (Result != 0)
