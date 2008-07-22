@@ -18,19 +18,7 @@
 
 #include "./Source/AsaacCIncludes.h"
 
-#include "./Source/Data/DataHeap.h"
-#include "./Source/Data/DataHeapMap.h"
-#include "./Source/Data/DataList.h"
-#include "./Source/Data/DataMap.h"
-#include "./Source/Data/DataMemory.h"
-#include "./Source/Data/DataQueue.h"
-#include "./Source/Data/DataSortedList.h"
-#include "./Source/Data/DataStack.h"
-
 #include "./Source/Asaac/AsaacTime.h"
 #include "./Source/Asaac/AsaacTimeInterval.h"
-#include "./Source/Asaac/AsaacCharacterSequence.h"
-
-#include "./Source/Debug/DebugTrace.h"
 
 #endif /*ASAACCLIB_H_*/
