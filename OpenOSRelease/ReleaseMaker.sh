@@ -41,6 +41,6 @@ strip OpenOS/HelloWorld/ReceiveHelloWorldApplication
 tar -cvzf Release.tgz OpenOS
 rm -rf OpenOS
 
-ftp -u ftp://upload.sourceforge.net/incoming/OpenOS-Release1.tar.gz Release.tgz
+# ftp -u ftp://upload.sourceforge.net/incoming/OpenOS-Release11.tar.gz Release.tgz
 
-rm Release.tgz
+# rm Release.tgz
