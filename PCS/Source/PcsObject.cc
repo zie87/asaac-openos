@@ -49,7 +49,9 @@ void PCS::initialize()
 		m_Marshalling.initialize();
 #endif
 		m_Switch.initialize();
+#ifndef DISABLE_RATELIMITER
 		m_Limiter.initialize();
+#endif
 		m_Packer.initialize();
 	    m_NiiSender.initialize();
 
@@ -87,13 +89,20 @@ void PCS::initialize()
 #endif
 
 		m_Packer.setConfiguration( m_Configuration );
+
+#ifdef DISABLE_RATELIMITER
+		m_Packer.setOutputConsumer( m_NiiSender );
+#else
 		m_Packer.setOutputConsumer( m_Limiter );
+#endif
 #ifdef _DEBUG_
         cout << "PCS::initialize() Setup Packer" << endl;
 #endif
 
+#ifndef DISABLE_RATELIMITER
 		m_Limiter.setConfiguration( m_Configuration );
 		m_Limiter.setOutputConsumer( m_NiiSender );
+#endif
 #ifdef _DEBUG_
         cout << "PCS::initialize() Setup Limiter" << endl;
 #endif
@@ -168,7 +177,9 @@ void PCS::deinitialize()
 	m_Marshalling.deinitialize();
 #endif
 	m_Switch.deinitialize();
+#ifndef DISABLE_RATELIMITER
 	m_Limiter.deinitialize();
+#endif
 	m_Packer.deinitialize();
     m_NiiSender.deinitialize();
 
@@ -212,6 +223,7 @@ void PCS::loopVcListener()
 	}
 }
 
+#ifndef DISABLE_RATELIMITER
 
 void PCS::loopRateLimiter()
 {
@@ -234,7 +246,7 @@ void PCS::loopRateLimiter()
 		}
 	}
 }
-
+#endif
 
 ASAAC_Address PCS::getBuffer()
 {
@@ -364,8 +376,10 @@ ASAAC_ReturnStatus PCS::createTransferConnection( const ASAAC_TcDescription& tc_
 	m_Configuration.addTcDescription(tc_description);
 
 	//TODO: way to specify limits from outside is not known yet
+#ifndef DISABLE_RATELIMITER
 	if (tc_description.is_receiver == ASAAC_BOOL_FALSE )
 		m_Limiter.setRateLimit( tc_description.tc_id, PCS_DEFAULT_RATE_LIMIT );
+#endif
 
 	return ASAAC_SUCCESS;
 }
@@ -394,8 +408,10 @@ ASAAC_ReturnStatus PCS::destroyTransferConnection( ASAAC_PublicId tc_id, const A
 	if ( m_Configuration.getTcDescription( tc_id, tc_description ) == ASAAC_ERROR )
 		return ASAAC_ERROR;
 
+#ifndef DISABLE_RATELIMITER
 	if (tc_description.is_receiver == ASAAC_BOOL_FALSE )
 		m_Limiter.setRateLimit( tc_description.tc_id, PCS_DEFAULT_RATE_LIMIT );
+#endif
 
 	m_Configuration.removeTcDescription( tc_id );
 

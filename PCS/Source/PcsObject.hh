@@ -39,7 +39,9 @@ class PCS
 		void deinitialize();
 
 		void loopVcListener();
+#ifdef DISABLE_RATELIMITER
 		void loopRateLimiter();
+#endif
 
 		ASAAC_ReturnStatus configureInterface( const ASAAC_InterfaceData& if_config );
 		ASAAC_ReturnStatus createTransferConnection( const ASAAC_TcDescription& tc_description );
@@ -70,8 +72,9 @@ class PCS
 		PmFilter			m_OutgoingPmFilter;
 
 		TcPacker			m_Packer;
+#ifndef DISABLE_RATELIMITER
 		TcRateLimiter		m_Limiter;
-
+#endif
 	    TcSender            m_NiiSender;
 
 	    TcListener 			m_NiiReceiver;
