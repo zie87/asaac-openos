@@ -295,22 +295,22 @@ void Process::launch()
 					case PROC_SMOS:
 					case PROC_GSM:
 					case PROC_SM:
-		            	param.__sched_priority = sched_get_priority_max(SCHED_FIFO)-2;
+		            	param.__sched_priority = sched_get_priority_max(SCHED_RR)-2;
 		            	break;
 					case PROC_PCS:
-		            	param.__sched_priority = sched_get_priority_max(SCHED_FIFO)-0;
+		            	param.__sched_priority = sched_get_priority_max(SCHED_RR)-0;
 		            	break;
 					case PROC_OLI:
-		            	param.__sched_priority = sched_get_priority_max(SCHED_FIFO)-1;
+		            	param.__sched_priority = sched_get_priority_max(SCHED_RR)-1;
 		            	break;
 					case PROC_UNDEFINED:
 					case PROC_APOS:
 					default:
-		            	param.__sched_priority = sched_get_priority_min(SCHED_FIFO);
+		            	param.__sched_priority = sched_get_priority_min(SCHED_RR);
 		            	break;
                 }
 
-            	int result = sched_setscheduler( m_PosixId, SCHED_FIFO, &param);
+            	int result = sched_setscheduler( m_PosixId, SCHED_RR, &param);
 
             	if (result != 0)
             		throw OSException( strerror(errno), LOCATION );
