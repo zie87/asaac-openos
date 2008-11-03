@@ -19,18 +19,18 @@
 #include "Communication/CommunicationManager.hh"
 
 class ProcessSigChildCallback : public Callback {
-	
+
 	public:
-	
+
 		virtual void call ( void* Data )
 		{
 			siginfo_t* SignalInfo = (siginfo_t*)Data;
 			ProcessManager* PM = ProcessManager::getInstance();
-			
+
 			ASAAC_PublicId ProcessId = PM->getProcessId(SignalInfo->si_pid);
 			PM->getProcess( ProcessId )->SigChildCallback( Data );
 		}
-		
+
 		virtual ~ProcessSigChildCallback() { };
 };
 
@@ -41,25 +41,25 @@ ProcessManager::ProcessManager()
 {
 	m_CurrentCpuId = OS_UNUSED_ID;
 	m_CurrentProcessId = OS_UNUSED_ID;
-	
+
 	m_CurrentProcessIndex = -1;
-	
+
 	m_IsMaster = false;
 	m_IsInitialized = false;
-		
+
 }
 
 
 size_t	ProcessManager::predictSize()
 {
 	size_t CumulativeSize = 0;
-	
+
 	// m_Semaphore
 	CumulativeSize +=  Semaphore::predictSize();
-	
+
 	// m_ProcessId
 	CumulativeSize +=  Shared<ASAAC_PublicId>::predictSize(OS_MAX_NUMBER_OF_PROCESSES);
-	
+
 	return CumulativeSize;
 }
 
@@ -67,25 +67,25 @@ size_t	ProcessManager::predictSize()
 size_t	ProcessManager::predictInternalSize()
 {
 	size_t CumulativeSize = 0;
-	
+
 	// m_CommandInterface
 	CumulativeSize += SimpleCommandInterface::predictSize();
-	
+
 	return CumulativeSize;
 }
 
 
 void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *ParentAllocator, ASAAC_PublicId CurrentCpuId, ASAAC_PublicId CurrentProcessId, MemoryLocation Location )
 {
-	if ( m_IsInitialized ) 
+	if ( m_IsInitialized )
 		throw DoubleInitializationException( LOCATION );
 
 	try
 	{
-		m_IsInitialized = true;	
+		m_IsInitialized = true;
 
 		m_CurrentCpuId = CurrentCpuId;
-		
+
 		m_IsServer = IsServer;
 		m_IsMaster = IsMaster;
 
@@ -95,50 +95,50 @@ void ProcessManager::initialize( bool IsServer, bool IsMaster, Allocator *Parent
 
 		if ( IsServer )
 			OpenOS::getInstance()->registerCpu(CurrentCpuId);
-		
+
 		if ( Location == SHARED ) //Applications with special rights (GSM, SM, ...)
 		{
-			m_SharedMemoryAllocator.initialize( 
+			m_SharedMemoryAllocator.initialize(
 				FileNameGenerator::getProcessManagerName( m_CurrentCpuId ),
 				IsServer,	// IsServer is correct here!
 				predictInternalSize() );
-										
+
 			m_Allocator = &m_SharedMemoryAllocator;
 		}
 		else //Normal Applications
 		{
 			m_LocalMemoryAllocator.initialize( predictSize() );
-	
+
 			m_Allocator = &m_LocalMemoryAllocator;
 		}
-		
+
 		//CommandInterface has to be the first object initialized here,
 		//because memory is used in OpenOS object too
 		m_CommandInterface.initialize( m_Allocator, IsServer );
-		
+
 		//Semaphore is an global OpenOS object, therefore it has to allocate memory from parent allocator
 		m_Semaphore.initialize( ParentAllocator, IsMaster );
 		m_ProcessId.initialize( ParentAllocator, OS_MAX_NUMBER_OF_PROCESSES );
-		
+
 		if ( IsMaster )
 		{
 			for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
 				m_ProcessId[ Index ] = OS_UNUSED_ID;
-		}	
-	
+		}
+
 		if ( IsServer )
 		{
 			m_CommandInterface.addCommandHandler( CMD_CREATE_PROCESS,  ProcessManager::CreateProcessHandler );
 			m_CommandInterface.addCommandHandler( CMD_DESTROY_PROCESS, ProcessManager::DestroyProcessHandler );
-			m_CommandInterface.addCommandHandler( CMD_TERM_ENTITY, 	   ProcessManager::DestroyEntityHandler );		
-		}		
-			
+			m_CommandInterface.addCommandHandler( CMD_TERM_ENTITY, 	   ProcessManager::DestroyEntityHandler );
+		}
+
 		setCurrentProcess( CurrentProcessId );
 	}
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error initializing ProcessManager", LOCATION);
-		
+
 		throw;
 	}
 
@@ -149,9 +149,9 @@ void ProcessManager::deinitialize()
 {
 	if ( m_IsInitialized == false )
 		return;
-		
+
 	try
-	{		
+	{
 		SignalManager::getInstance()->unregisterSignalHandler( SIGCHLD );
 
 		if ( m_IsServer )
@@ -159,20 +159,20 @@ void ProcessManager::deinitialize()
 			OpenOS::getInstance()->unregisterCpu(m_CurrentCpuId);
 		}
 
-		releaseAllProcesses();					
+		releaseAllProcesses();
 
 		m_Semaphore.deinitialize();
 		m_CommandInterface.deinitialize();
-		
+
 		m_LocalMemoryAllocator.deinitialize();
 		m_SharedMemoryAllocator.deinitialize();
 	}
 	catch (ASAAC_Exception &e)
-	{		
+	{
 		e.addPath("Error deinitializing ProcessManager");
 		e.raiseError();
 	}
-	
+
 	m_IsInitialized = false;
 }
 
@@ -191,16 +191,16 @@ ProcessManager::~ProcessManager()
 
 long ProcessManager::getProcessIndex( ASAAC_PublicId ProcessId )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
-	
+
 	for ( unsigned long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
 	{
 		if ( m_ProcessId[ Index ] == ProcessId )
 			return Index;
 	}
-			 
-	return -1;	
+
+	return -1;
 }
 
 
@@ -211,19 +211,19 @@ ASAAC_PublicId ProcessManager::getProcessId( pid_t PosixId )
 		if ( m_ProcessId[ Index ] != OS_UNUSED_ID )
 		{
 			Process *P = getProcess( m_ProcessId[ Index ] );
-			
+
 			if (P->getPosixId() == PosixId)
 				return P->getId();
 		}
 	}
-	
+
 	return OS_UNUSED_ID;
 }
 
 
 Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription &Description, long &Index )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	CharacterSequence ErrorString;
@@ -233,20 +233,20 @@ Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription &Descri
 		ProtectedScope Access( "Creating a process", m_Semaphore );
 
 		bool IsMaster = true;
-		 
-		bool IsServer; 
+
+		bool IsServer;
 		SimpleCommandInterface *CommandInterface;
 		MemoryLocation Location;
-		
+
 		if ( Description.global_pid == OS_PROCESSID_MASTER )
 		{
 			IsServer = true;
 			CommandInterface = &m_CommandInterface;
 			Location = LOCAL;
-			
+
 			Index = getProcessIndex( Description.global_pid );
 
-			if (Index == -1)	
+			if (Index == -1)
 				Index = getProcessIndex( OS_UNUSED_ID );
 		}
 		else
@@ -254,32 +254,32 @@ Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription &Descri
 			IsServer = false;
 			CommandInterface = NULL;
 			Location = SHARED;
-					
+
 			Index = getProcessIndex( Description.global_pid );
-			
+
 			if (Index != -1)
 				throw OSException( (ErrorString << "Process is already created with dedicated id (" << CharSeq(Description.global_pid) << ")").c_str(), LOCATION);
-	
+
 			Index = getProcessIndex( OS_UNUSED_ID );
 		}
-		
-		if ( Index == -1 ) 
+
+		if ( Index == -1 )
 			throw OSException("Maximum number of processes reached. No more free slots.", LOCATION);
-			
-		//Maybe an old object is still initialized	
+
+		//Maybe an old object is still initialized
 		if ( m_ProcessObject[Index].isInitialized() )
 			m_ProcessObject[Index].deinitialize();
 
 		m_ProcessId[Index] = Description.global_pid;
-		
+
 		m_ProcessObject[Index].initialize( IsServer, IsMaster, Description, Location, CommandInterface );
-			
+
 		return &m_ProcessObject[Index];
 	}
 	catch ( ASAAC_Exception& e )
 	{
 		e.addPath("Error while creating a process");
-		
+
 		throw;
 	}
 }
@@ -287,11 +287,11 @@ Process* ProcessManager::allocateProcess( const ASAAC_ProcessDescription &Descri
 
 Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 			throw UninitializedObjectException(LOCATION);
-	
+
 	Process* Object = NULL;
-	
+
 	try
 	{
 		CharacterSequence ErrorString;
@@ -300,22 +300,22 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId )
 			throw OSException( (ErrorString << "ProcessId is out of range (" << CharSeq(ProcessId) << ")").c_str(), LOCATION);
 
 		signed long Index = getProcessIndex( ProcessId );
-		
-		if ( Index == -1 ) 
+
+		if ( Index == -1 )
 			throw OSException("Process not found", LOCATION);
-	
+
 		Object = &m_ProcessObject[Index];
-		
+
 		ASAAC_ProcessDescription Description;
 		Description.global_pid = ProcessId;
-		
+
 		if (Object->isInitialized())
 		{
 			if (Object->getId() != ProcessId)
 			{
 				Object->deinitialize();
 				Object->initialize( false, false, Description, SHARED, NULL );
-			}	
+			}
 		}
 		else
 		{
@@ -330,14 +330,14 @@ Process* ProcessManager::getProcess( ASAAC_PublicId ProcessId )
 
 		throw e;
 	}
-	
+
 	return Object;
 }
 
 
 void ProcessManager::createProcess( const ASAAC_ProcessDescription& Description )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	try
@@ -348,43 +348,43 @@ void ProcessManager::createProcess( const ASAAC_ProcessDescription& Description 
 			{
 				long Index;
 				Process* NewProcess = allocateProcess(Description, Index);
-			
-				if ( NewProcess == NULL ) 
+
+				if ( NewProcess == NULL )
 					throw OSException("Process object has not been created", LOCATION);
-		
+
 				NewProcess->launch();
 			}
 			else //different CPU from current one
 			{
-				CommandData d;		
+				CommandData d;
 				d.Data.Description = Description;
-				
+
 				if (d.Data.Description.access_type == ASAAC_OLI_ACCESS)
 					d.Data.Timeout = TimeStamp(d.Data.Description.timeout).asaac_Time();
 				else d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
-				
+
 				OpenOS::getInstance()->sendCommand( Description.cpu_id, CMD_CREATE_PROCESS, d.ReturnBuffer, d.Data.Timeout );
 			}
 		}
 		else //not server
 		{
 			CommandData d;
-	
+
 			d.Data.Description = Description;
-			
+
 			if (d.Data.Description.access_type == ASAAC_OLI_ACCESS)
 				d.Data.Timeout = TimeStamp(d.Data.Description.timeout).asaac_Time();
 			else d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
-	
+
 			sendCommand( CMD_CREATE_PROCESS, d.ReturnBuffer, d.Data.Timeout );
-			
+
 			Process* CreatedProcess = getProcess( Description.global_pid );
-			
+
 			if (CreatedProcess == NULL)
 				throw OSException("Created process could not be located", LOCATION);
-				
+
 			CreatedProcess->refreshPosixId();
-					
+
 			if ( d.Return == ASAAC_TM_ERROR )
 				throw OSException("process entity reported an error while creating a process", LOCATION);
 
@@ -395,7 +395,7 @@ void ProcessManager::createProcess( const ASAAC_ProcessDescription& Description 
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error creating a process", LOCATION);
-		
+
 		throw;
 	}
 }
@@ -403,7 +403,7 @@ void ProcessManager::createProcess( const ASAAC_ProcessDescription& Description 
 
 void ProcessManager::destroyProcess( const ASAAC_PublicId& ProcessId )
 {
-	if ( m_IsInitialized == false ) 
+	if ( m_IsInitialized == false )
 		throw UninitializedObjectException(LOCATION);
 
 	try
@@ -414,36 +414,36 @@ void ProcessManager::destroyProcess( const ASAAC_PublicId& ProcessId )
 		}
 		else
 		{
-		
+
 			CharacterSequence ErrorString;
-		
+
 			if ( m_IsServer )
-			{		
+			{
 				Process* P = getProcess( ProcessId );
-				
-				if ( P == NULL ) 
+
+				if ( P == NULL )
 					throw OSException("Process not found", LOCATION);
-				
+
 				if (P->getProcessDescription().cpu_id == this->getCurrentCpuId())
 				{
 					P->destroy();
 				}
 				else //different CPU from current one
 				{
-					CommandData d;		
+					CommandData d;
 					d.Data.Description.global_pid = ProcessId;
 					d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
-					
+
 					OpenOS::getInstance()->sendCommand( P->getProcessDescription().cpu_id, CMD_DESTROY_PROCESS, d.ReturnBuffer, d.Data.Timeout );
 				}
 			}
 			else //not server
 			{
 				CommandData d;
-		
+
 				d.Data.Description.global_pid = ProcessId;
 				d.Data.Timeout = TimeStamp(OS_COMPLEX_COMMAND_TIMEOUT).asaac_Time();
-		
+
 				sendCommand( CMD_DESTROY_PROCESS, d.ReturnBuffer, d.Data.Timeout );
 			}
 		}
@@ -451,7 +451,7 @@ void ProcessManager::destroyProcess( const ASAAC_PublicId& ProcessId )
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error destroying client process", LOCATION);
-		
+
 		throw;
 	}
 }
@@ -459,32 +459,34 @@ void ProcessManager::destroyProcess( const ASAAC_PublicId& ProcessId )
 
 void ProcessManager::runProcess(const ASAAC_PublicId process_id)
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	Process* TargetProcess = ProcessManager::getInstance()->getProcess( process_id );
 
-	if ( TargetProcess == NULL ) 
+	if ( TargetProcess == NULL )
 		throw OSException("Process object could not be found", LOCATION);
-	
+
 	//SBS: synchronize with GSM via PCS server/client
-	if(process_id < OS_PROCESSID_SM)
+	//HR: dont start VcListenThread when running CM_RE
+	//PUN: dont start VcListenThread when running a GSM component
+	if (process_id < OS_PROCESSID_SMOS)
 	{
 		CommunicationManager::getInstance()->letPcsListenToAttachedChannels();
 	}
-	
+
 	TargetProcess->run();
 }
 
 
 void ProcessManager::stopProcess(const ASAAC_PublicId process_id)
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	Process* TargetProcess = ProcessManager::getInstance()->getProcess( process_id );
 
-	if ( TargetProcess == NULL ) 
+	if ( TargetProcess == NULL )
 		throw OSException("Process object could not be found", LOCATION);
 
 	return TargetProcess->stop();
@@ -493,65 +495,65 @@ void ProcessManager::stopProcess(const ASAAC_PublicId process_id)
 
 void ProcessManager::releaseProcess( ASAAC_PublicId ProcessId )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	long Index = getProcessIndex( ProcessId );
-    
+
     if (Index != -1)
     {
     	m_ProcessObject[Index].deinitialize();
 	}
-	
-	if ( Index == m_CurrentProcessIndex )				
+
+	if ( Index == m_CurrentProcessIndex )
 		m_CurrentProcessIndex = -1;
 }
- 
-    
+
+
 void ProcessManager::releaseAllProcesses()
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	for ( long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
 	{
-		if ( m_ProcessObject[ Index ].isInitialized() ) 
+		if ( m_ProcessObject[ Index ].isInitialized() )
 			m_ProcessObject[ Index ].deinitialize();
 	}
-	
+
 	m_CurrentProcessIndex = -1;
 }
- 
-    
+
+
 void ProcessManager::releaseAllClientProcesses()
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	for ( long Index = 0; Index < OS_MAX_NUMBER_OF_PROCESSES; Index ++ )
 	{
-		if ( (Index != m_CurrentProcessIndex) && (m_ProcessObject[ Index ].isInitialized()) ) 
+		if ( (Index != m_CurrentProcessIndex) && (m_ProcessObject[ Index ].isInitialized()) )
 			m_ProcessObject[ Index ].deinitialize();
 	}
 }
-    
+
 
 void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	try
 	{
 		Process *P = NULL;
-		
+
 		NO_EXCEPTION( P = getCurrentProcess() );
-		
+
 		if (P != NULL)
 			P->setServer( false );
-		
+
 		m_CurrentProcessIndex = getProcessIndex( ProcessId );
-		
+
 		if ( m_CurrentProcessIndex == -1 )
 		{
 			ASAAC_ProcessDescription Description;
@@ -559,15 +561,15 @@ void ProcessManager::setCurrentProcess( ASAAC_PublicId ProcessId )
 			P = allocateProcess(Description, m_CurrentProcessIndex);
 		}
 		else P = getProcess( ProcessId );
-	
+
 		P->setServer( true );
-		
+
 		m_CurrentProcessId = ProcessId;
 	}
 	catch ( ASAAC_Exception &e )
 	{
 		e.addPath("Error setting the current process", LOCATION);
-		
+
 		throw;
 	}
 }
@@ -577,17 +579,17 @@ Process* ProcessManager::getCurrentProcess()
 {
 	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
-	
-	if ( (m_CurrentProcessIndex < 0) || (m_CurrentProcessIndex >= OS_MAX_NUMBER_OF_PROCESSES) )	
+
+	if ( (m_CurrentProcessIndex < 0) || (m_CurrentProcessIndex >= OS_MAX_NUMBER_OF_PROCESSES) )
 		throw OSException("CurrentProcess object not available", LOCATION);
-		
+
 	return (&m_ProcessObject[m_CurrentProcessIndex]);
 }
 
 
 void 	 ProcessManager::addCommandHandler( unsigned long CommandIdentifier, CommandHandler Handler )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	m_CommandInterface.addCommandHandler( CommandIdentifier, Handler );
@@ -596,7 +598,7 @@ void 	 ProcessManager::addCommandHandler( unsigned long CommandIdentifier, Comma
 
 void 	 ProcessManager::removeCommandHandler( unsigned long CommandIdentifier )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	m_CommandInterface.removeCommandHandler( CommandIdentifier );
@@ -605,7 +607,7 @@ void 	 ProcessManager::removeCommandHandler( unsigned long CommandIdentifier )
 
 void 	 ProcessManager::removeAllCommandHandler()
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	m_CommandInterface.removeAllCommandHandler();
@@ -614,7 +616,7 @@ void 	 ProcessManager::removeAllCommandHandler()
 
 void ProcessManager::sendCommand( unsigned long CommandIdentifier, CommandBuffer Buffer, const ASAAC_Time& Timeout, bool Cancelable )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	m_CommandInterface.sendCommand( CommandIdentifier, Buffer, Timeout, Cancelable );
@@ -623,7 +625,7 @@ void ProcessManager::sendCommand( unsigned long CommandIdentifier, CommandBuffer
 
 void ProcessManager::sendCommandNonblocking( unsigned long CommandIdentifier, CommandBuffer Buffer )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	m_CommandInterface.sendCommandNonblocking( CommandIdentifier, Buffer );
@@ -632,7 +634,7 @@ void ProcessManager::sendCommandNonblocking( unsigned long CommandIdentifier, Co
 
 void ProcessManager::handleOneCommand( unsigned long& CommandIdentifier )
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	m_CommandInterface.handleOneCommand( CommandIdentifier );
@@ -654,14 +656,14 @@ ASAAC_PublicId ProcessManager::getCurrentProcessId()
 ProcessManager* ProcessManager::getInstance()
 {
 	static ProcessManager Instance;
-	
+
 	return &Instance;
 }
 
 
 void ProcessManager::destroyAllClientProcesses()
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	if (m_IsServer)
@@ -670,10 +672,10 @@ void ProcessManager::destroyAllClientProcesses()
         {
             if (m_ProcessObject[ Index ].isInitialized())
             {
-                if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCurrentCpuId()) && 
+                if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCurrentCpuId()) &&
                      (m_ProcessObject[ Index ].getId() != getCurrentProcess()->getId()) &&
-                     (m_ProcessObject[ Index ].getAlias() == PROC_APOS ) ) 
-                {   
+                     (m_ProcessObject[ Index ].getAlias() == PROC_APOS ) )
+                {
                     m_ProcessObject[ Index ].destroy();
                     m_ProcessObject[ Index ].deinitialize();
                 }
@@ -684,9 +686,9 @@ void ProcessManager::destroyAllClientProcesses()
         {
             if (m_ProcessObject[ Index ].isInitialized())
             {
-                if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCurrentCpuId()) && 
-                     (m_ProcessObject[ Index ].getId() != getCurrentProcess()->getId()) ) 
-                {   
+                if ( (m_ProcessObject[ Index ].getProcessDescription().cpu_id == this->getCurrentCpuId()) &&
+                     (m_ProcessObject[ Index ].getId() != getCurrentProcess()->getId()) )
+                {
                     m_ProcessObject[ Index ].destroy();
                     m_ProcessObject[ Index ].deinitialize();
                 }
@@ -698,20 +700,20 @@ void ProcessManager::destroyAllClientProcesses()
 
 void ProcessManager::destroyEntity()
 {
-	if (m_IsInitialized == false) 
+	if (m_IsInitialized == false)
 		throw UninitializedObjectException(LOCATION);
 
 	if (m_IsServer)
 	{
 		destroyAllClientProcesses();
-		
+
 		if ( getCurrentProcess()->isOSScope() == false)
 			getCurrentProcess()->destroy();
 	}
 	else
 	{
 		CommandData d;
-		
+
 		sendCommandNonblocking( CMD_TERM_ENTITY, d.ReturnBuffer );
 	}
 }
@@ -725,21 +727,21 @@ void ProcessManager::destroyEntity()
 void ProcessManager::CreateProcessHandler( CommandBuffer Buffer )
 {
 	CommandData *d = (CommandData*)Buffer;
-	
+
 	try
 	{
 		//recalculate timeout
 		d->Data.Description.timeout = TimeStamp(d->Data.Timeout).asaac_Interval();
-		
+
 		ProcessManager::getInstance()->createProcess(d->Data.Description);
-		
-		d->Return = ASAAC_TM_SUCCESS; 	
+
+		d->Return = ASAAC_TM_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
 	{
 		e.raiseError();
-		
-		d->Return = e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR; 		
+
+		d->Return = e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
 	}
 }
 
@@ -747,17 +749,17 @@ void ProcessManager::CreateProcessHandler( CommandBuffer Buffer )
 void ProcessManager::DestroyProcessHandler( CommandBuffer Buffer )
 {
 	CommandData *d = (CommandData*)Buffer;
-	
+
 	try
 	{
 		ProcessManager::getInstance()->destroyProcess(d->Data.Description.global_pid);
-		
+
 		d->Return = ASAAC_TM_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
-	{		
+	{
 		d->Return = e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
-		
+
 		e.raiseError();
 	}
 }
@@ -766,20 +768,20 @@ void ProcessManager::DestroyProcessHandler( CommandBuffer Buffer )
 void ProcessManager::DestroyEntityHandler( CommandBuffer Buffer )
 {
 	volatile CommandData *d = (CommandData*)Buffer;
-	
+
 	try
 	{
 		ProcessManager::getInstance()->destroyEntity();
-		
+
 		d->Return = ASAAC_TM_SUCCESS;
 	}
 	catch ( ASAAC_Exception &e )
-	{		
+	{
 		d->Return = e.isTimeout()?ASAAC_TM_TIMEOUT:ASAAC_TM_ERROR;
 
 		e.raiseError();
 	}
-}	
+}
 
 
 
