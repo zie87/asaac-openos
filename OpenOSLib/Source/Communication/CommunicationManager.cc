@@ -981,6 +981,7 @@ void CommunicationManager::waitOnMultiChannel(const ASAAC_PublicIdSet vc_set_in,
 						vc_set_out[ AvailableVcs ] = 0;
 					}
 				}
+				else break;
 			}
 
 			if ( AvailableVcs >= min_no_vc )
