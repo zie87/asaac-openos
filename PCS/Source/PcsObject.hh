@@ -39,7 +39,7 @@ class PCS
 		void deinitialize();
 
 		void loopVcListener();
-#ifdef DISABLE_RATELIMITER
+#ifndef DISABLE_RATELIMITER
 		void loopRateLimiter();
 #endif
 
