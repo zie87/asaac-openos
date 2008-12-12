@@ -1499,7 +1499,7 @@ ASAAC_OLI_OliMessageParameter message_parameter;
 #if !defined(_ASAAC_GLI_GliMessageId_defined)
 #define _ASAAC_GLI_GliMessageId_defined 1
 typedef enum {
-  ASAAC_GLI_Load_Configuration,
+  ASAAC_GLI_Load_Configuration = 21, // MTG-08-12-04 : Changed from 30 to 21 in order to avoid overrlap with SMLI
   ASAAC_GLI_Configuration_Loaded,
   ASAAC_GLI_Stop_Configuration,
   ASAAC_GLI_Configuration_Stopped,
@@ -1577,7 +1577,7 @@ ASAAC_GLI_GliMessageParameter message_parameter;
 #if !defined(_ASAAC_SMLI_SmliMessageId_defined)
 #define _ASAAC_SMLI_SmliMessageId_defined 1
 typedef enum {
-  ASAAC_SMLI_Request_Lc_Change,
+  ASAAC_SMLI_Request_Lc_Change = 50, //MTG-08-11-21 : Consistent with STAGE II values
   ASAAC_SMLI_Lc_Changed,
   ASAAC_SMLI_Signal_For_Lc_Change,
   ASAAC_SMLI_Ready_For_Lc_Change,
