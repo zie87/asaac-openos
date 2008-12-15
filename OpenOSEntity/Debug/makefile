@@ -43,7 +43,7 @@ all: OpenOSEntity
 OpenOSEntity: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L"/root/workspaces/OpenOs/OpenOSLib/Debug" -L"/root/workspaces/OpenOs/MOSLib/Debug" -o"OpenOSEntity" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L"/home/gam/IDEFIX/OpenOSLib/Debug" -L"/home/gam/IDEFIX/MOSLib/Debug" -o"OpenOSEntity" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
