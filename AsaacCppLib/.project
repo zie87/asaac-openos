@@ -3,6 +3,7 @@
 	<name>AsaacCppLib</name>
 	<comment></comment>
 	<projects>
+		<project>AsaacInterface</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -51,7 +52,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value></value>
+					<value>-k</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -63,7 +64,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.stopOnError</key>
-					<value>true</value>
+					<value>false</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>
