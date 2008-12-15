@@ -452,14 +452,29 @@ ASAAC_ReturnStatus PCS::attachTransferConnectionToVirtualChannel( const ASAAC_Vc
 	cout << "PCS::attachTransferConnectionToVirtualChannel()  " << endl;
 #endif
 
-	if(m_Configuration.addVcDescription( vc_description ) != ASAAC_SUCCESS)
+
+/**************************** PROBLEM WITH VC/TC MAPPING WAS HERE *******************************************/
+
+	/* CHECK FIRST IF THE VC WAS NOT ALREADY USED IN A MAPPING -SBS*/
+
+	ASAAC_VcDescription dummy_vc_description;
+
+	if(m_Configuration.getVcDescription(vc_description.global_vc_id, dummy_vc_description) != ASAAC_SUCCESS)
 	{
-#ifdef _DEBUG_
-		cerr << "PCS::attachTransferConnectionToVirtualChannel() failed when adding VC description " << endl;
+
+		if(m_Configuration.addVcDescription( vc_description ) != ASAAC_SUCCESS)
+		{
+#ifdef _DEBUG_       
+			cerr << "PCS::attachTransferConnectionToVirtualChannel() failed when adding VC description " << endl;
 #endif
-		return ASAAC_ERROR;
+			return ASAAC_ERROR;
+		}
+
+		m_Configuration.addLocalVc( vc_description.global_vc_id, vc_description.global_vc_id );
 	}
 
+/**************************** PROBLEM WITH VC/TC MAPPING WAS HERE *******************************************/
+  
 	ASAAC_TcDescription tc_desc;
 
 	if(m_Configuration.getTcDescription(tc_id, tc_desc) != ASAAC_SUCCESS)
@@ -482,8 +497,6 @@ ASAAC_ReturnStatus PCS::attachTransferConnectionToVirtualChannel( const ASAAC_Vc
 #endif
 		return ASAAC_ERROR;
 	}
-
-	m_Configuration.addLocalVc( vc_description.global_vc_id, vc_description.global_vc_id );
 
 	if(tc_desc.is_receiver == ASAAC_BOOL_FALSE)
 	{
