@@ -35,7 +35,7 @@ C_DEPS += \
 Source/Interfaces/%.o: ../Source/Interfaces/%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C Compiler'
-	gcc -I"/root/workspaces/OpenOs/AsaacInterface" -I"/root/workspaces/OpenOs/AsaacCLib" -I"/root/workspaces/OpenOs/NIILib/Source" -I"/root/workspaces/OpenOs/MOSLib/Source" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
+	gcc -I"/home/gam/IDEFIX/AsaacInterface" -I"/home/gam/IDEFIX/AsaacCLib" -I"/home/gam/IDEFIX/NIILib/Source" -I"/home/gam/IDEFIX/MOSLib/Source" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

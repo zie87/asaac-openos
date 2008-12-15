@@ -29,7 +29,7 @@ all: libMOS.so
 libMOS.so: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L"/root/workspaces/OpenOs/AsaacCLib/Debug" -L"/root/workspaces/OpenOs/NIILib/Debug" -shared -o"libMOS.so" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L"/home/gam/IDEFIX/AsaacCLib/Debug" -L"/home/gam/IDEFIX/NIILib/Debug" -shared -o"libMOS.so" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
