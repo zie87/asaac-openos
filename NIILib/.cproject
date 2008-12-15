@@ -24,7 +24,7 @@
 <folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1041337535.231645897" name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.1538387860" name="GCC Tool Chain" superClass="cdt.managedbuild.toolchain.gnu.lib.debug" unusedChildren="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug.75235587" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
-<builder buildPath="${workspace_loc:/NII/Debug}" id="cdt.managedbuild.target.gnu.builder.lib.debug.966565592" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
+<builder buildPath="${workspace_loc:/NIILib/Debug}" id="cdt.managedbuild.target.gnu.builder.lib.debug.966565592" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.301171904" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
 <option id="gnu.c.compiler.option.include.paths.86565688" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/AsaacInterface}&quot;"/>
@@ -58,6 +58,10 @@
 <option id="gnu.both.lib.option.flags.1510073460" name="Archiver flags" superClass="gnu.both.lib.option.flags"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.assembler.lib.debug.56240341" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug">
+<option id="gnu.both.asm.option.flags.113003430" superClass="gnu.both.asm.option.flags"/>
+<option id="gnu.both.asm.option.include.paths.1763087463" superClass="gnu.both.asm.option.include.paths"/>
+<option id="gnu.both.asm.option.warnings.nowarn.167056400" superClass="gnu.both.asm.option.warnings.nowarn"/>
+<option id="gnu.both.asm.option.version.670980589" superClass="gnu.both.asm.option.version"/>
 <inputType id="cdt.managedbuild.tool.gnu.assembler.input.1596785802" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.base.380676459" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>

@@ -3,6 +3,8 @@
 	<name>NIILib</name>
 	<comment></comment>
 	<projects>
+		<project>AsaacCLib</project>
+		<project>AsaacInterface</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -23,7 +25,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildLocation</key>
-					<value>${workspace_loc:/NII/Debug}</value>
+					<value>${workspace_loc:/NIILib/Debug}</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.enableFullBuild</key>
