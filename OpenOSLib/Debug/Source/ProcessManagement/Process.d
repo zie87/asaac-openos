@@ -1,8 +1,6 @@
-Source/ProcessManagement/ProcessManager.d \
-  Source/ProcessManagement/ProcessManager.o:  \
- ../Source/ProcessManagement/ProcessManager.cc \
-  ../Source/ProcessManagement/ProcessManager.hh \
-  ../Source/ProcessManagement/Thread.hh \
+Source/ProcessManagement/Process.d Source/ProcessManagement/Process.o:  \
+ ../Source/ProcessManagement/Process.cc \
+  ../Source/ProcessManagement/Process.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/OAL/oal.h \
   /home/gam/IDEFIX/AsaacInterface/ASAAC.h \
@@ -40,19 +38,15 @@ Source/ProcessManagement/ProcessManager.d \
   /home/gam/IDEFIX/OpenOSLib/Source/Exceptions/UninitializedObjectException.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Allocator/Allocator.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/Callback.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/IPC/BlockingScope.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/IPC/ProtectedScope.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/LockingObject.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
-  ../Source/ProcessManagement/Process.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Allocator/SharedMemory.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Allocator/Allocator.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Allocator/LocalMemory.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Allocator/AllocatedArea.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/IPC/Semaphore.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Common/Templates/Shared.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/LockingObject.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/IPC/SimpleCommandInterface.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/IPC/Semaphore.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/IPC/Event.hh \
@@ -68,6 +62,10 @@ Source/ProcessManagement/ProcessManager.d \
   /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/EntryPoint.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/Thread.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Common/Templates/Shared.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/Callback.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/IPC/BlockingScope.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/IPC/ProtectedScope.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/ProcessStatus.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/OpenOSObject.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
@@ -76,13 +74,28 @@ Source/ProcessManagement/ProcessManager.d \
   /home/gam/IDEFIX/OpenOSLib/Source/Allocator/SharedMemory.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/IPC/SimpleCommandInterface.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/IPC/NoLock.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/Managers/FileNameGenerator.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/IPC/ProtectedScope.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Exceptions/Exceptions.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/ProcessManager.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/Thread.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/Process.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Allocator/LocalMemory.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Allocator/SharedMemory.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Managers/SignalManager.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/Callback.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Allocator/LocalMemory.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Common/Templates/SharedMap.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Common/Templates/SharedList.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Managers/TimeManager.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Managers/AllocatorManager.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Allocator/Allocator.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Allocator/SharedMemory.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Managers/FileManager.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Exceptions/Exceptions.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/IPC/Semaphore.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/IPC/ProtectedScope.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Managers/FileNameGenerator.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/FaultManagement/ErrorHandler.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/IPC/SimpleCommandInterface.hh \
@@ -92,7 +105,6 @@ Source/ProcessManagement/ProcessManager.d \
   /home/gam/IDEFIX/OpenOSLib/Source/IPC/Trigger.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Allocator/AllocatedArea.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/ProcessManager.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/Exceptions/Exceptions.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Communication/CommunicationManager.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Allocator/AllocatedArea.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/IPC/Semaphore.hh \
@@ -112,11 +124,14 @@ Source/ProcessManagement/ProcessManager.d \
   /home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/PCS/PCSMessages.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/PCS/PCSClient.hh \
   /home/gam/IDEFIX/OpenOSLib/Source/Communication/TwoWayCommunication.hh \
-  /home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/PCS/PCSMessages.hh
+  /home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/PCS/PCSMessages.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/asaac_oli.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/OLI/OLIServer.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/OLI/OLIClient.hh \
+  /home/gam/IDEFIX/OpenOSLib/Source/Communication/TwoWayCommunication.hh
 
-../Source/ProcessManagement/ProcessManager.hh:
-
-../Source/ProcessManagement/Thread.hh:
+../Source/ProcessManagement/Process.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh:
 
@@ -192,20 +207,6 @@ Source/ProcessManagement/ProcessManager.d \
 
 /home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh:
 
-/home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/Callback.hh:
-
-/home/gam/IDEFIX/OpenOSLib/Source/IPC/BlockingScope.hh:
-
-/home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh:
-
-/home/gam/IDEFIX/OpenOSLib/Source/IPC/ProtectedScope.hh:
-
-/home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/LockingObject.hh:
-
-/home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh:
-
-../Source/ProcessManagement/Process.hh:
-
 /home/gam/IDEFIX/OpenOSLib/Source/Allocator/SharedMemory.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/Allocator/Allocator.hh:
@@ -217,6 +218,12 @@ Source/ProcessManagement/ProcessManager.d \
 /home/gam/IDEFIX/OpenOSLib/Source/IPC/Semaphore.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/Common/Templates/Shared.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/LockingObject.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/IPC/SimpleCommandInterface.hh:
 
@@ -248,6 +255,14 @@ Source/ProcessManagement/ProcessManager.d \
 
 /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/Thread.hh:
 
+/home/gam/IDEFIX/OpenOSLib/Source/Common/Templates/Shared.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/Callback.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/IPC/BlockingScope.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/IPC/ProtectedScope.hh:
+
 /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/ProcessStatus.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/OpenOSObject.hh:
@@ -264,11 +279,23 @@ Source/ProcessManagement/ProcessManager.d \
 
 /home/gam/IDEFIX/OpenOSLib/Source/IPC/NoLock.hh:
 
-/home/gam/IDEFIX/OpenOSLib/Source/Managers/FileNameGenerator.hh:
+/home/gam/IDEFIX/OpenOSLib/Source/IPC/ProtectedScope.hh:
 
-/home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh:
+/home/gam/IDEFIX/OpenOSLib/Source/Exceptions/Exceptions.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/ProcessManager.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/Thread.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/Process.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Allocator/LocalMemory.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Allocator/SharedMemory.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/Managers/SignalManager.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/AbstractInterfaces/Callback.hh:
 
@@ -277,6 +304,24 @@ Source/ProcessManagement/ProcessManager.d \
 /home/gam/IDEFIX/OpenOSLib/Source/Common/Templates/SharedMap.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/Common/Templates/SharedList.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Managers/TimeManager.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Managers/AllocatorManager.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Allocator/Allocator.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Allocator/SharedMemory.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Managers/FileManager.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Exceptions/Exceptions.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/IPC/Semaphore.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/IPC/ProtectedScope.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Managers/FileNameGenerator.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/FaultManagement/ErrorHandler.hh:
 
@@ -295,8 +340,6 @@ Source/ProcessManagement/ProcessManager.d \
 /home/gam/IDEFIX/OpenOSLib/Source/Allocator/AllocatedArea.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/ProcessManagement/ProcessManager.hh:
-
-/home/gam/IDEFIX/OpenOSLib/Source/Exceptions/Exceptions.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/Communication/CommunicationManager.hh:
 
@@ -337,3 +380,13 @@ Source/ProcessManagement/ProcessManager.d \
 /home/gam/IDEFIX/OpenOSLib/Source/Communication/TwoWayCommunication.hh:
 
 /home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/PCS/PCSMessages.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/asaac_oli.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/OLI/OLIServer.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/OpenOSIncludes.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/LogicalInterfaces/OLI/OLIClient.hh:
+
+/home/gam/IDEFIX/OpenOSLib/Source/Communication/TwoWayCommunication.hh:

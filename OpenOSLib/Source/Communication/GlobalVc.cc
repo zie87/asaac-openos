@@ -121,6 +121,7 @@ void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_Vc
 			m_Status->NumberOfBuffers      	= 0;
 			m_Status->NumberOfConnectedVCs 	= 0;
 			m_Status->NumberOfConnectedTCs 	= 0;
+      m_Status->PcsAttached         = false; /* This extra information is needed to solve VC/TC mapping problem -SBS */
 			m_Status->SenderVcIndex   		= -1;
 		}
 
@@ -193,6 +194,17 @@ void GlobalVc::initialize(ASAAC_PublicId GlobalVc, bool IsMaster, const ASAAC_Vc
 		throw;
 	}
 }
+
+/* This functions are needed to handle extra information needed to solve VC/TC mapping problem -SBS */
+bool GlobalVc::isPcsAttached()
+{
+  return m_Status->PcsAttached;
+};
+
+void GlobalVc::attachPcs()
+{
+  m_Status->PcsAttached = true;
+};
 
 
 GlobalVc::~GlobalVc()

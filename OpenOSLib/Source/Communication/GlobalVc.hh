@@ -43,7 +43,7 @@ typedef struct {
 	unsigned long	NumberOfConnectedVCs;
 	unsigned long	NumberOfConnectedTCs;
 	unsigned long	NumberOfBuffers;
-	
+	bool PcsAttached; /* This extra information is needed to solve VC/TC mapping problem -SBS */
 	long			SenderVcIndex;
 } GlobalVcStatus;
 
@@ -291,7 +291,10 @@ public:
 	//! predict size of control and data structures required from an allocator by an instance of global vc
 	static size_t predictSize( const ASAAC_VcDescription& Description );
 	
-
+  /* This functions are needed to handle extra information needed to solve VC/TC mapping problem -SBS */
+  bool isPcsAttached();
+  void attachPcs();
+  
 protected:	
 
 	typedef struct {

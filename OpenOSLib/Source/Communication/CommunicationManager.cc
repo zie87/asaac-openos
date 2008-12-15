@@ -503,7 +503,12 @@ void CommunicationManager::attachTransferConnectionToVirtualChannel( const ASAAC
 		if (number_of_message_buffers == 0)
 			throw OSException("Not enough free buffer size for TC.", LOCATION);
 
-		vc_mapping.global_pid     			 = OS_PROCESSID_PCS;
+/**************************** PROBLEM WITH VC/TC MAPPING WAS HERE *******************************************/
+
+    /* The status of the global VC has to be considered in order to solve VC/TC mapping problem -SBS */
+    if(!ThisVc->isPcsAttached())
+    {
+		  vc_mapping.global_pid     			 = OS_PROCESSID_PCS;
 	    vc_mapping.local_vc_id				 = vc_to_tc_mapping.global_vc_id;
 	    vc_mapping.global_vc_id				 = vc_to_tc_mapping.global_vc_id;
 	    vc_mapping.buffer_size				 = vc_description->max_msg_length;
@@ -537,11 +542,16 @@ void CommunicationManager::attachTransferConnectionToVirtualChannel( const ASAAC
 
             throw;
 	    }
-
+      /* Now set status of the global VC to solve VC/TC mapping problem -SBS */
+      ThisVc->attachPcs();
+      
 		//Restart PCS Process
 	    //PCSProcess->run();
-
-        m_PCSClient.attachTransferConnectionToVirtualChannel( *vc_description, tc_id, is_data_representation);
+    } 
+       
+/**************************** PROBLEM WITH VC/TC MAPPING WAS HERE *******************************************/
+    
+    m_PCSClient.attachTransferConnectionToVirtualChannel( *vc_description, tc_id, is_data_representation);
 	}
 	catch (ASAAC_Exception &e)
 	{

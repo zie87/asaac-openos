@@ -62,7 +62,7 @@ all: libOpenOS.so
 libOpenOS.so: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L"/root/workspaces/OpenOs/MOSLib/Debug" -shared -pg -p -o"libOpenOS.so" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L"/home/gam/IDEFIX/MOSLib/Debug" -shared -o"libOpenOS.so" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
