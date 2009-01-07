@@ -186,7 +186,7 @@ void initializePcsServer()
 void startPcsThreads()
 {
 	ASAAC_APOS_startThread(2); //SBS: this shall be VcListenThread
-#ifdef DISABLE_RATELIMITER
+#ifndef DISABLE_RATELIMITER
 	ASAAC_APOS_startThread(3); //SBS: this shall be RateLimiterThread
 #endif
 }
@@ -195,7 +195,7 @@ void startPcsThreads()
 void stopPcsThreads()
 {
 	ASAAC_APOS_stopThread(2); //SBS: this shall be VcListenThread
-#ifdef DISABLE_RATELIMITER
+#ifndef DISABLE_RATELIMITER
 	ASAAC_APOS_stopThread(3); //SBS: this shall be RateLimiterThread
 #endif
 }
@@ -232,7 +232,7 @@ ASAAC_THREAD( MainThread )
 
 		//SBS: Only start the rate limiter already from the beginning.
 		//SBS: !!! The VcListenerThread shall be started later after full configuration of all VC/TC attachments !!!
-#ifdef DISABLE_RATELIMITER
+#ifndef DISABLE_RATELIMITER
 		ASAAC_APOS_startThread(3);
 #endif
 
