@@ -69,6 +69,9 @@
 </sourceEntries>
 </configuration>
 </storageModule>
+
+<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 <storageModule moduleId="scannerConfiguration">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile"/>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
@@ -238,7 +241,7 @@
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -248,7 +251,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -258,7 +261,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -268,7 +271,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfile">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -278,7 +281,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileCPP">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -288,7 +291,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileC">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -321,7 +324,7 @@
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -331,7 +334,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -341,7 +344,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -351,7 +354,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfile">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -361,7 +364,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileCPP">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -371,7 +374,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileC">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -484,8 +487,6 @@
 </profile>
 </scannerConfigBuildInfo>
 </storageModule>
-<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
-<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.lib.release.1504822184">
 <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.lib.release.1504822184" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -531,6 +532,9 @@
 </sourceEntries>
 </configuration>
 </storageModule>
+
+<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 <storageModule moduleId="scannerConfiguration">
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile"/>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
@@ -700,7 +704,7 @@
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -710,7 +714,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -720,7 +724,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -730,7 +734,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfile">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -740,7 +744,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileCPP">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -750,7 +754,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileC">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -783,7 +787,7 @@
 <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -793,7 +797,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -803,7 +807,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -813,7 +817,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfile">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -823,7 +827,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileCPP">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -833,7 +837,7 @@
 </profile>
 <profile id="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileC">
 <buildOutputProvider>
-<openAction enabled="false" filePath=""/>
+<openAction enabled="true" filePath=""/>
 <parser enabled="false"/>
 </buildOutputProvider>
 <scannerInfoProvider id="specsFile">
@@ -946,8 +950,6 @@
 </profile>
 </scannerConfigBuildInfo>
 </storageModule>
-<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
-<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 </cconfiguration>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
